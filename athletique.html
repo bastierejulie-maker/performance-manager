@@ -223,9 +223,9 @@ async function init(){
     STATE.tests=testsRaw.map(t=>({
       date:getProp(t,'Date'),
       saison:getProp(t,'Saison')||STATE.saisons[0],
-      cmj:getProp(t,'CMJ'),
-      sj:getProp(t,'SJ'),
-      vma:getProp(t,'VMA'),
+      cmj:parseFloat(getProp(t,'CMJ (cm)'))||0,
+      sj:getProp(t,'SJ (cm)'),
+      vma:getProp(t,'VMA (km/h)'),
     })).filter(t=>t.cmj||t.sj||t.vma);
 
     const sSet=new Set(STATE.matchs.map(m=>m.saison).filter(Boolean));
@@ -384,8 +384,8 @@ function renderAll(){
     :'Fibres <strong>'+fibres+'</strong>';
 
   const attrs=[
-    {label:'VITESSE',val:sVmax,raw:vmaxMax?vmaxMax.toFixed(1)+' km/h':'—'},
-    {label:'EXPLOSIVITÉ',val:sAcc,raw:accMax?accMax.toFixed(1)+' m/s²':'—'},
+    {label:'VITESSE',val:sVmax,raw:vmaxMax>0?vmaxMax.toFixed(1)+' km/h':'—'},
+    {label:'EXPLOSIVITÉ',val:sAcc,raw:accMax>0?accMax.toFixed(1)+' m/s²':'—'},
     {label:'DÉTENTE',val:sSaut,raw:cmjMax?'CMJ '+cmjMax+'cm / SJ '+sjMax+'cm':'—'},
     {label:'ENDURANCE',val:sVma,raw:vma?vma.toFixed(1)+' km/h VMA':'—'},
   ];
@@ -399,6 +399,7 @@ function renderAll(){
   makeLine('cAcc',mL,[{label:'AccMax',data:matchs.map(m=>m.acc||0)}],refs.acc,club.bg);setDelta('dAcc',matchs.map(m=>m.acc||0));
   const tL=tests.map(t=>t.date?.slice(5)||'');
   makeLine('cSaut',tL,[{label:'CMJ',data:tests.map(t=>t.cmj||0)},{label:'SJ',data:tests.map(t=>t.sj||0)}],refs.cmj,club.bg);setDelta('dSaut',tests.map(t=>t.cmj||0));
+  makeBar('cNbSprint',mL,matchs.map(m=>m.sprints||0),club.bg);setDelta('dNbSprint',matchs.map(m=>m.sprints||0));
   makeBar('cSprint',mL,matchs.map(m=>m.distSprint||0),club.bg);setDelta('dSprint',matchs.map(m=>m.distSprint||0));
   const mmSrc=matchs.filter(m=>m.dist&&m.tps);
   makeBar('cMmin',mmSrc.map(m=>m.adv||''),mmSrc.map(m=>Math.round(m.dist/m.tps)),club.accent);setDelta('dMmin',mmSrc.map(m=>Math.round(m.dist/m.tps)));
