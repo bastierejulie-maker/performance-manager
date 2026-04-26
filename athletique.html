@@ -137,6 +137,7 @@ select{font-size:12px;padding:5px 10px;border-radius:6px;border:0.5px solid rgba
 const PROXY='https://notion-proxy.bastierejulie.workers.dev';
 const DB_STATS='34d69796-db3f-801c-aed5-d8cfa048dbba';
 const DB_JOUEURS='34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_TESTS='34d69796-db3f-8047-b6f9-e361371604a9';
 
 const CLUBS={
   'PSG':{bg:'#003D83',accent:'#DA291C',avatar:'#001F5B'},
@@ -218,7 +219,14 @@ async function init(){
     // On calcule VMA depuis la dernière entrée où VMA est renseigné
     const vmaSrc=STATE.matchs.filter(m=>m.vma).sort((a,b)=>a.date?.localeCompare(b.date));
     const cmjSrc=STATE.matchs.filter(m=>m.cmj).sort((a,b)=>a.date?.localeCompare(b.date));
-    STATE.tests=[];// sera branché sur la vraie base tests quand on aura la relation
+    const testsRaw=await notionQuery(DB_TESTS);
+    STATE.tests=testsRaw.map(t=>({
+      date:getProp(t,'Date'),
+      saison:getProp(t,'Saison')||STATE.saisons[0],
+      cmj:getProp(t,'CMJ'),
+      sj:getProp(t,'SJ'),
+      vma:getProp(t,'VMA'),
+    })).filter(t=>t.cmj||t.sj||t.vma);
 
     const sSet=new Set(STATE.matchs.map(m=>m.saison).filter(Boolean));
     STATE.saisons=[...sSet].sort().reverse();
