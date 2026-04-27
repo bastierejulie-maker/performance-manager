@@ -72,7 +72,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 
 /* MAIN */
 .main{padding:24px 32px;max-width:1080px}
-.main:has(#s-matchs.active),.main:has(#s-performance.active),.main:has(#s-nutrition.active){padding:12px 0 0;max-width:100%}
+#s-matchs.active,#s-performance.active,#s-nutrition.active{margin:-24px -32px;}
 .sec{display:none;animation:fu .3s ease}.sec.active{display:block}
 @keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
@@ -155,9 +155,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 .tt{background:color-mix(in srgb,var(--c1) 12%,transparent);color:color-mix(in srgb,var(--c1) 90%,white)}
 .tg{background:rgba(201,168,76,.1);color:var(--gold)}
 
-/* IFRAME DASHBOARDS */
-.dash-frame{width:100%;height:calc(100vh - 130px);border:none;border-radius:var(--r);display:block;background:var(--bg2)}
-.sec.active.iframe-sec{padding:0}
+/* DASH WRAPS */
+.dash-wrap{min-height:200px}
 
 /* SKELETON / EMPTY */
 .sk{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;color:transparent!important}
@@ -194,15 +193,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
   </div>
 
   <div class="sec" id="s-matchs">
-    <iframe id="iframe-matchs" class="dash-frame" src="" title="Stats Match"></iframe>
+    <div id="wrap-matchs" class="dash-wrap">Chargement...</div>
   </div>
 
   <div class="sec" id="s-performance">
-    <iframe id="iframe-performance" class="dash-frame" src="" title="Performance Athlétique"></iframe>
+    <div id="wrap-performance" class="dash-wrap">Chargement...</div>
   </div>
 
   <div class="sec" id="s-nutrition">
-    <iframe id="iframe-nutrition" class="dash-frame" src="" title="Nutrition"></iframe>
+    <div id="wrap-nutrition" class="dash-wrap">Chargement...</div>
   </div>
 </div>
 
@@ -282,11 +281,17 @@ async function loadAll(){
 
 function loadIframe(name){
   if(iframesLoaded[name]) return;
+  iframesLoaded[name]=true;
   const jid=J?J.id:'';
   const param=name==='nutrition'?'id':'joueur';
   const url=DASH[name]+(jid?'?'+param+'='+jid:'');
-  document.getElementById('iframe-'+name).src=url;
-  iframesLoaded[name]=true;
+  const wrap=document.getElementById('wrap-'+name);
+  wrap.innerHTML='';
+  const iframe=document.createElement('iframe');
+  iframe.style.cssText='width:100%;height:calc(100vh - 130px);border:none;border-radius:12px;display:block;background:#f4f5f7';
+  iframe.src=url;
+  iframe.setAttribute('loading','lazy');
+  wrap.appendChild(iframe);
 }
 
 /* HERO */
