@@ -391,8 +391,7 @@ function ov(saisonFilter){
           ['G + A',nButs+nPasses,'contributions'],
           ['Minutes',nMins+"'",'temps de jeu'],
           ['Victoires',nVict,nMatchs?Math.round(nVict/nMatchs*100)+'% win rate':'—'],
-          ['CMJ',lastCMJ?lastCMJ.toFixed(1)+' cm':'—','dernier test'],
-          ['VMA',lastVMA?lastVMA.toFixed(1)+' km/h':'—','dernier test'],
+
         ].map(([l,v,s])=>`
           <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:14px 16px">
             <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-bottom:7px">${l}</div>
