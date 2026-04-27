@@ -283,7 +283,8 @@ async function loadAll(){
 function loadIframe(name){
   if(iframesLoaded[name]) return;
   const jid=J?J.id:'';
-  const url=DASH[name]+(jid?'?id='+jid:'');
+  const param=name==='nutrition'?'id':'joueur';
+  const url=DASH[name]+(jid?'?'+param+'='+jid:'');
   document.getElementById('iframe-'+name).src=url;
   iframesLoaded[name]=true;
 }
