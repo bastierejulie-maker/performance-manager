@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Julie Bastière — Performance Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0f;
+    --bg-card: #161612;
+    --bg-card-hover: #1a1a15;
+    --border: #252318;
+    --border-light: #1a1912;
+    --gold: #c9a84c;
+    --gold-light: #e8c878;
+    --gold-dim: #7a6530;
+    --text: #f0ede6;
+    --text-muted: #a09880;
+    --text-dim: #5a5544;
+    --green: #5d9b5d;
+    --green-bg: #1a2a1a;
+    --orange: #c9a84c;
+    --orange-bg: #2e2210;
+    --red: #c26a6a;
+    --red-bg: #2a1a1a;
+    --blue: #6b9bd2;
+    --blue-bg: #1c2233;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #0a0a0b;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--gold);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .logo-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--text-dim);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .sync-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  .sync-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  .sync-dot.loading { background: var(--gold); }
+  .sync-dot.error { background: var(--red); animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .header-date { font-size: 11px; color: var(--text-dim); font-weight: 300; }
+
+  /* ─── NAV ─── */
+  .nav {
+    background: #0a0a0b;
+    border-bottom: 0.5px solid var(--border-light);
+    display: flex;
+    gap: 0;
+    padding: 0 28px;
+  }
+
+  .nav-tab {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-dim);
+    padding: 10px 18px 9px;
+    cursor: pointer;
+    border-bottom: 1.5px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .nav-tab:hover:not(.active) { color: var(--text-muted); }
+
+  .nav-badge {
+    display: inline-block;
+    background: var(--red-bg);
+    color: var(--red);
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+
+  /* ─── LAYOUT ─── */
+  .main { padding: 24px 28px; max-width: 1200px; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ─── KPI ROW ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-card {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .kpi-card:hover::before { opacity: 1; }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 30px;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .kpi-value.gold { color: var(--gold); }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.red { color: var(--red); }
+
+  .kpi-sub { font-size: 10px; color: var(--text-dim); margin-top: 6px; font-weight: 300; }
+
+  .kpi-bar { height: 2px; background: var(--border); border-radius: 2px; margin-top: 10px; }
+  .kpi-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.8s ease; }
+
+  /* ─── CAPACITY ROW ─── */
+  .capa-row {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .capa-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; min-width: 80px; }
+  .capa-track { flex: 1; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .capa-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 4px; transition: width 0.8s ease; }
+  .capa-count { font-size: 14px; font-weight: 500; color: var(--gold); min-width: 40px; text-align: right; }
+  .capa-places { font-size: 11px; color: var(--text-dim); }
+
+  /* ─── SECTION TITLE ─── */
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* ─── ATHLETE CARDS ─── */
+  .athlete-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .athlete-card {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .athlete-card:hover { border-color: var(--gold-dim); background: var(--bg-card-hover); }
+
+  .athlete-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .athlete-info { flex: 1; min-width: 0; }
+  .athlete-name { font-size: 13px; font-weight: 500; color: #e0ddd5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .athlete-meta { font-size: 11px; color: var(--text-dim); font-weight: 300; margin-top: 2px; }
+  .athlete-score { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--gold); min-width: 36px; text-align: right; }
+  .athlete-score-label { font-size: 9px; color: var(--text-dim); text-align: right; margin-top: 1px; }
+
+  /* ─── BADGES ─── */
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .badge-active { background: var(--green-bg); color: var(--green); }
+  .badge-blessure { background: var(--red-bg); color: var(--red); }
+  .badge-repos { background: var(--border); color: var(--text-dim); }
+  .badge-test { background: var(--blue-bg); color: var(--blue); }
+
+  /* ─── LOADING STATE ─── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-card) 25%, var(--border) 50%, var(--bg-card) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .loader-card {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  /* ─── COMPTA ─── */
+  .invoice-wrap {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .invoice-table { width: 100%; border-collapse: collapse; }
+  .invoice-table th {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 400;
+    padding: 12px 16px 10px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--border);
+    background: #111110;
+  }
+
+  .invoice-table th:last-child, .invoice-table td:last-child { text-align: right; }
+  .invoice-table td {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 11px 16px;
+    border-bottom: 0.5px solid var(--border-light);
+    vertical-align: middle;
+  }
+
+  .invoice-table tr:last-child td { border-bottom: none; }
+  .invoice-num { font-weight: 500; color: #e0ddd5; font-size: 12px; }
+  .invoice-date { font-size: 10px; color: var(--text-dim); display: block; margin-top: 2px; }
+
+  .pill { display: inline-block; font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+  .pill-paid { background: var(--green-bg); color: var(--green); }
+  .pill-pending { background: var(--orange-bg); color: var(--orange); }
+  .pill-late { background: var(--red-bg); color: var(--red); }
+
+  .amount-paid { color: var(--green); font-weight: 500; }
+  .amount-pending { color: var(--orange); font-weight: 500; }
+  .amount-late { color: var(--red); font-weight: 500; }
+
+  /* ─── CHART ─── */
+  .chart-card {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .chart-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+  .chart-total { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--gold); }
+
+  /* ─── ALERTES ─── */
+  .alert-item {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .alert-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+  .alert-dot.gold { background: var(--gold); }
+  .alert-dot.red { background: var(--red); }
+  .alert-dot.blue { background: var(--blue); }
+
+  .alert-body { flex: 1; }
+  .alert-title { font-size: 13px; font-weight: 500; color: #e0ddd5; margin-bottom: 3px; }
+  .alert-desc { font-size: 11px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+  .alert-time { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    color: var(--gold);
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .btn:hover { background: var(--orange-bg); border-color: var(--gold-dim); }
+
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  /* ─── ERROR STATE ─── */
+  .error-state {
+    background: var(--bg-card);
+    border: 0.5px solid var(--red-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .error-state strong { color: var(--red); display: block; margin-bottom: 6px; }
+
+  /* ─── AVATAR COLORS ─── */
+  .av-a { background: #1c2233; color: #6b9bd2; }
+  .av-b { background: #1f1c33; color: #8b6bd2; }
+  .av-c { background: #1c2e1c; color: #6ba86b; }
+  .av-d { background: #2e1c1c; color: #d26b6b; }
+  .av-e { background: #2e2a1c; color: #c9a84c; }
+  .av-f { background: #1c2e2e; color: #6bc9c9; }
+  .av-g { background: #2e1c2e; color: #c96bc9; }
+  .av-h { background: #2e2e1c; color: #9bc96b; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    Julie Bastière
+    <span class="logo-sub">Performance Manager</span>
+  </div>
+  <div class="header-right">
+    <div class="sync-indicator">
+      <div class="sync-dot loading" id="sync-dot"></div>
+      <span id="sync-text">Connexion Notion...</span>
+    </div>
+    <div class="header-date" id="header-date"></div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-tab active" onclick="switchTab('athletes', this)">Athlètes</div>
+  <div class="nav-tab" onclick="switchTab('compta', this)">Comptabilité</div>
+  <div class="nav-tab" onclick="switchTab('alertes', this)">Alertes <span class="nav-badge" id="alert-count">—</span></div>
+</div>
+
+<div class="main">
+
+  <!-- ══════════ ATHLETES ══════════ -->
+  <div class="section active" id="tab-athletes">
+
+    <div class="kpi-grid" id="kpi-athletes">
+      <div class="kpi-card">
+        <div class="kpi-label">Athlètes actifs</div>
+        <div class="kpi-value gold skeleton" style="width:40px;height:30px" id="kpi-count">&nbsp;</div>
+        <div class="kpi-sub" id="kpi-count-sub">&nbsp;</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Matchs ce mois</div>
+        <div class="kpi-value skeleton" style="width:40px;height:30px" id="kpi-matchs">&nbsp;</div>
+        <div class="kpi-sub" id="kpi-matchs-sub">&nbsp;</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Tests planifiés</div>
+        <div class="kpi-value skeleton" style="width:40px;height:30px" id="kpi-tests">&nbsp;</div>
+        <div class="kpi-sub" id="kpi-tests-sub">&nbsp;</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Blessures actives</div>
+        <div class="kpi-value red skeleton" style="width:40px;height:30px" id="kpi-blessures">&nbsp;</div>
+        <div class="kpi-sub" id="kpi-blessures-sub">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="capa-row">
+      <div class="capa-label">Capacité</div>
+      <div class="capa-track"><div class="capa-fill" id="capa-fill" style="width:0%"></div></div>
+      <div class="capa-count" id="capa-count">— / 10</div>
+      <div class="capa-places" id="capa-places">&nbsp;</div>
+    </div>
+
+    <div class="section-title">
+      <span>Roster actuel</span>
+      <span id="roster-updated" style="font-weight:300;font-style:italic">&nbsp;</span>
+    </div>
+
+    <div class="athlete-grid" id="athlete-grid">
+      <!-- Skeleton loaders -->
+      <div class="loader-card">
+        <div class="skeleton" style="width:40px;height:40px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="skeleton" style="height:13px;width:60%;margin-bottom:6px;border-radius:4px"></div>
+          <div class="skeleton" style="height:10px;width:80%;border-radius:4px"></div>
+        </div>
+      </div>
+      <div class="loader-card">
+        <div class="skeleton" style="width:40px;height:40px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="skeleton" style="height:13px;width:70%;margin-bottom:6px;border-radius:4px"></div>
+          <div class="skeleton" style="height:10px;width:50%;border-radius:4px"></div>
+        </div>
+      </div>
+      <div class="loader-card">
+        <div class="skeleton" style="width:40px;height:40px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="skeleton" style="height:13px;width:55%;margin-bottom:6px;border-radius:4px"></div>
+          <div class="skeleton" style="height:10px;width:75%;border-radius:4px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="loadAthletes()">↺ Actualiser</button>
+    </div>
+  </div>
+
+  <!-- ══════════ COMPTA ══════════ -->
+  <div class="section" id="tab-compta">
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="border-color:#1a2e1a">
+        <div class="kpi-label">Encaissé 2025</div>
+        <div class="kpi-value green skeleton" style="width:80px;height:30px" id="compta-paid">&nbsp;</div>
+        <div class="kpi-sub" id="compta-paid-sub">&nbsp;</div>
+      </div>
+      <div class="kpi-card" style="border-color:#2e2210">
+        <div class="kpi-label">En attente</div>
+        <div class="kpi-value gold skeleton" style="width:80px;height:30px" id="compta-pending">&nbsp;</div>
+        <div class="kpi-sub" id="compta-pending-sub">&nbsp;</div>
+      </div>
+      <div class="kpi-card" style="border-color:#2a1a1a">
+        <div class="kpi-label">En retard</div>
+        <div class="kpi-value red skeleton" style="width:80px;height:30px" id="compta-late">&nbsp;</div>
+        <div class="kpi-sub" id="compta-late-sub">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Revenus par mois</div>
+        <div class="chart-total" id="chart-total">&nbsp;</div>
+      </div>
+      <div style="position:relative;height:160px;">
+        <canvas id="revenueChart" role="img" aria-label="Revenus mensuels 2025">Chargement...</canvas>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <span>Factures récentes</span>
+      <button class="btn" onclick="loadCompta()" style="padding:4px 10px;font-size:10px">↺ Actualiser</button>
+    </div>
+
+    <div class="invoice-wrap">
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Facture</th>
+            <th>Athlète</th>
+            <th>Prestation</th>
+            <th>Montant</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="invoice-body">
+          <tr><td colspan="5" style="padding:24px;text-align:center;color:var(--text-dim);font-style:italic;font-size:12px">Chargement des factures Notion...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn">+ Nouvelle facture</button>
+      <button class="btn">Rapport mensuel</button>
+    </div>
+  </div>
+
+  <!-- ══════════ ALERTES ══════════ -->
+  <div class="section" id="tab-alertes">
+
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:20px">
+      <div class="kpi-card">
+        <div class="kpi-label">Alertes actives</div>
+        <div class="kpi-value red" id="al-total">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Priorité haute</div>
+        <div class="kpi-value gold" id="al-high">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Informations</div>
+        <div class="kpi-value" id="al-info">—</div>
+      </div>
+    </div>
+
+    <div class="section-title">Alertes en cours</div>
+    <div id="alerts-list">
+      <div class="empty-state">Chargement des alertes...</div>
+    </div>
+
+    <div class="btn-row" id="alert-actions"></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const PROXY = 'https://notion-proxy.bastierejulie.workers.dev';
+const DB_JOUEURS  = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_STATS    = '34d69796-db3f-801c-aed5-d8cfa048dbba';
+const DB_TESTS    = '34d69796-db3f-8047-b6f9-e361371604a9';
+
+const AVATAR_COLORS = ['av-a','av-b','av-c','av-d','av-e','av-f','av-g','av-h'];
+
+let chartInstance = null;
+let allAthletes = [];
+let allStats    = [];
+let allTests    = [];
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  setDate();
+  loadAll();
+});
+
+function setDate() {
+  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('fr-FR', opts);
+}
+
+async function loadAll() {
+  setSyncState('loading', 'Connexion Notion...');
+  try {
+    await Promise.all([loadAthletes(), loadCompta(), loadTests()]);
+    buildAlerts();
+    setSyncState('ok', 'Notion connecté');
+  } catch(e) {
+    setSyncState('error', 'Erreur de connexion');
+    console.error(e);
+  }
+}
+
+function setSyncState(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot ' + (state === 'ok' ? '' : state);
+  txt.textContent = text;
+}
+
+// ══════════════════════════════════════════════
+// NOTION API via PROXY
+// ══════════════════════════════════════════════
+async function notionQuery(dbId, filter = {}, sorts = []) {
+  const body = { page_size: 100 };
+  if (Object.keys(filter).length) body.filter = filter;
+  if (sorts.length) body.sorts = sorts;
+
+  const res = await fetch(`${PROXY}/v1/databases/${dbId}/query`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) throw new Error(`Notion ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+function getProp(page, key, type = 'text') {
+  const prop = page.properties?.[key];
+  if (!prop) return null;
+
+  if (type === 'text') {
+    return prop.rich_text?.[0]?.plain_text
+        || prop.title?.[0]?.plain_text
+        || null;
+  }
+  if (type === 'select') return prop.select?.name || null;
+  if (type === 'multi_select') return prop.multi_select?.map(s => s.name) || [];
+  if (type === 'number') return prop.number ?? null;
+  if (type === 'date') return prop.date?.start || null;
+  if (type === 'checkbox') return prop.checkbox ?? false;
+  if (type === 'formula') return prop.formula?.number ?? prop.formula?.string ?? null;
+  return null;
+}
+
+function getTitle(page) {
+  const props = page.properties || {};
+  for (const key of Object.keys(props)) {
+    if (props[key].type === 'title') {
+      return props[key].title?.[0]?.plain_text || 'Sans nom';
+    }
+  }
+  return 'Sans nom';
+}
+
+// ══════════════════════════════════════════════
+// ATHLETES
+// ══════════════════════════════════════════════
+async function loadAthletes() {
+  try {
+    const data = await notionQuery(DB_JOUEURS, {}, [
+      { property: 'Nom', direction: 'ascending' }
+    ]);
+
+    allAthletes = data.results || [];
+    renderAthletes(allAthletes);
+  } catch(e) {
+    document.getElementById('athlete-grid').innerHTML = `
+      <div class="error-state" style="grid-column:1/-1">
+        <strong>Impossible de charger les athlètes</strong>
+        Vérifie que le proxy Cloudflare est actif et que la base est partagée avec l'intégration.
+      </div>`;
+    // Fallback démo
+    renderAthletesFallback();
+  }
+}
+
+function renderAthletes(athletes) {
+  const grid = document.getElementById('athlete-grid');
+
+  if (!athletes.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Aucun athlète trouvé dans Notion.</div>';
+    updateKPIs(0, 0);
+    return;
+  }
+
+  const active = athletes.filter(a => {
+    const status = getProp(a, 'Statut', 'select');
+    return !status || status.toLowerCase().includes('actif') || status.toLowerCase().includes('active');
+  });
+
+  const blessures = athletes.filter(a => {
+    const status = getProp(a, 'Statut', 'select');
+    return status && status.toLowerCase().includes('bless');
+  });
+
+  const pct = Math.round((athletes.length / 10) * 100);
+  document.getElementById('kpi-count').textContent = athletes.length;
+  document.getElementById('kpi-count').classList.remove('skeleton');
+  document.getElementById('kpi-count-sub').textContent = `sur 10 maximum`;
+  document.getElementById('kpi-bar-fill').style.width = pct + '%';
+
+  document.getElementById('kpi-blessures').textContent = blessures.length;
+  document.getElementById('kpi-blessures').classList.remove('skeleton');
+  document.getElementById('kpi-blessures-sub').textContent = blessures.length ? blessures.map(b => getTitle(b)).join(', ') : 'Aucune';
+
+  document.getElementById('capa-fill').style.width = pct + '%';
+  document.getElementById('capa-count').textContent = athletes.length + ' / 10';
+  document.getElementById('capa-places').textContent = (10 - athletes.length) + ' places disponibles';
+
+  document.getElementById('kpi-matchs').textContent = '—';
+  document.getElementById('kpi-matchs').classList.remove('skeleton');
+  document.getElementById('kpi-matchs-sub').textContent = 'Données stats match';
+
+  document.getElementById('kpi-tests').textContent = '—';
+  document.getElementById('kpi-tests').classList.remove('skeleton');
+  document.getElementById('kpi-tests-sub').textContent = 'Tests programmés';
+
+  document.getElementById('roster-updated').textContent = 'Notion · ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+
+  grid.innerHTML = athletes.map((a, i) => {
+    const nom     = getTitle(a);
+    const poste   = getProp(a, 'Poste', 'select') || '—';
+    const club    = getProp(a, 'Club', 'text') || getProp(a, 'Club', 'select') || '—';
+    const age     = getProp(a, 'Âge', 'number') || getProp(a, 'Age', 'number') || '—';
+    const statut  = getProp(a, 'Statut', 'select') || 'Actif';
+    const initials = nom.split(' ').slice(0,2).map(n => n[0]?.toUpperCase() || '').join('');
+    const avClass = AVATAR_COLORS[i % AVATAR_COLORS.length];
+
+    const badgeClass = statut.toLowerCase().includes('bless') ? 'badge-blessure'
+                     : statut.toLowerCase().includes('repos') ? 'badge-repos'
+                     : statut.toLowerCase().includes('test')  ? 'badge-test'
+                     : 'badge-active';
+
+    const badgeLabel = statut.length > 12 ? statut.slice(0,12) + '…' : statut;
+
+    return `
+      <div class="athlete-card">
+        <div class="athlete-avatar ${avClass}">${initials}</div>
+        <div class="athlete-info">
+          <div class="athlete-name">${nom}</div>
+          <div class="athlete-meta">${poste} · ${club}${age !== '—' ? ' · ' + age + ' ans' : ''}</div>
+        </div>
+        <div>
+          <div style="text-align:right;margin-bottom:4px"><span class="badge ${badgeClass}">${badgeLabel}</span></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderAthletesFallback() {
+  // Données démo si Notion inaccessible
+  const demo = [
+    { nom:'Marcus Diallo', poste:'Ailier', club:'L2', age:24, statut:'Actif' },
+    { nom:'Lorenzo Mancini', poste:'Déf. central', club:'Serie A', age:27, statut:'Blessé' },
+    { nom:'Sébastien Koffi', poste:'Milieu off.', club:'L1', age:22, statut:'Actif' },
+    { nom:'Thomas Vernay', poste:'Latéral', club:'N1', age:26, statut:'Test prévu' },
+    { nom:'Amara Touré', poste:'Attaquant', club:'L2', age:23, statut:'Actif' },
+    { nom:'Kevin Nzamba', poste:'Gardien', club:'L1', age:29, statut:'Repos' },
+  ];
+
+  const grid = document.getElementById('athlete-grid');
+  grid.innerHTML = demo.map((a, i) => {
+    const initials = a.nom.split(' ').map(n=>n[0]).join('');
+    const avClass = AVATAR_COLORS[i % AVATAR_COLORS.length];
+    const badgeClass = a.statut.includes('Bless') ? 'badge-blessure'
+                     : a.statut.includes('Repos') ? 'badge-repos'
+                     : a.statut.includes('Test') ? 'badge-test'
+                     : 'badge-active';
+    return `
+      <div class="athlete-card">
+        <div class="athlete-avatar ${avClass}">${initials}</div>
+        <div class="athlete-info">
+          <div class="athlete-name">${a.nom}</div>
+          <div class="athlete-meta">${a.poste} · ${a.club} · ${a.age} ans</div>
+        </div>
+        <span class="badge ${badgeClass}">${a.statut}</span>
+      </div>`;
+  }).join('');
+
+  ['kpi-count','kpi-matchs','kpi-tests','kpi-blessures'].forEach(id => {
+    document.getElementById(id).classList.remove('skeleton');
+  });
+
+  document.getElementById('kpi-count').textContent = 6;
+  document.getElementById('kpi-count-sub').textContent = 'sur 10 maximum (démo)';
+  document.getElementById('kpi-blessures').textContent = 1;
+  document.getElementById('kpi-blessures-sub').textContent = 'Lorenzo Mancini';
+  document.getElementById('kpi-matchs').textContent = '—';
+  document.getElementById('kpi-tests').textContent = '—';
+  document.getElementById('capa-fill').style.width = '60%';
+  document.getElementById('capa-count').textContent = '6 / 10';
+  document.getElementById('capa-places').textContent = '4 places disponibles';
+  document.getElementById('roster-updated').textContent = 'Mode démo (Notion non connecté)';
+}
+
+// ══════════════════════════════════════════════
+// COMPTA — on lit la base Joueurs pour les infos financières
+// Adapte les noms de colonnes à ta vraie base Notion
+// ══════════════════════════════════════════════
+async function loadCompta() {
+  // Fallback démo — remplace par ta vraie base Notion Factures si tu en as une
+  const demo = [
+    { num:'F-2025-008', date:'15 avr. 2025', client:'M. Diallo',    prestation:'Suivi mensuel',        montant:1800, statut:'pending' },
+    { num:'F-2025-007', date:'01 avr. 2025', client:'L. Mancini',   prestation:'Bilan + rééducation',  montant:1800, statut:'late' },
+    { num:'F-2025-006', date:'15 mar. 2025', client:'S. Koffi',     prestation:'Suivi mensuel',        montant:1600, statut:'paid' },
+    { num:'F-2025-005', date:'01 mar. 2025', client:'T. Vernay',    prestation:'Bilan initial + tests', montant:2400, statut:'paid' },
+    { num:'F-2025-004', date:'15 fév. 2025', client:'A. Touré',     prestation:'Suivi mensuel',        montant:1600, statut:'paid' },
+    { num:'F-2025-003', date:'01 fév. 2025', client:'K. Nzamba',    prestation:'Suivi mensuel',        montant:1600, statut:'paid' },
+  ];
+
+  const paid    = demo.filter(f => f.statut === 'paid').reduce((s, f) => s + f.montant, 0);
+  const pending = demo.filter(f => f.statut === 'pending').reduce((s, f) => s + f.montant, 0);
+  const late    = demo.filter(f => f.statut === 'late').reduce((s, f) => s + f.montant, 0);
+  const paidCount    = demo.filter(f => f.statut === 'paid').length;
+  const pendingCount = demo.filter(f => f.statut === 'pending').length;
+  const lateCount    = demo.filter(f => f.statut === 'late').length;
+
+  const fmt = n => n.toLocaleString('fr-FR') + ' €';
+
+  document.getElementById('compta-paid').textContent = fmt(paid);
+  document.getElementById('compta-paid').classList.remove('skeleton');
+  document.getElementById('compta-paid-sub').textContent = paidCount + ' facture' + (paidCount > 1 ? 's' : '') + ' payée' + (paidCount > 1 ? 's' : '');
+
+  document.getElementById('compta-pending').textContent = fmt(pending);
+  document.getElementById('compta-pending').classList.remove('skeleton');
+  document.getElementById('compta-pending-sub').textContent = pendingCount + ' facture' + (pendingCount > 1 ? 's' : '') + ' en cours';
+
+  document.getElementById('compta-late').textContent = fmt(late);
+  document.getElementById('compta-late').classList.remove('skeleton');
+  document.getElementById('compta-late-sub').textContent = lateCount + ' facture' + (lateCount > 1 ? 's' : '') + ' en retard';
+
+  document.getElementById('chart-total').textContent = fmt(paid + pending + late);
+
+  // Chart
+  const monthly = [2400, 3200, 5800, 7000];
+  buildRevenueChart(monthly);
+
+  // Table
+  document.getElementById('invoice-body').innerHTML = demo.map(f => {
+    const cls  = f.statut === 'paid' ? 'paid' : f.statut === 'pending' ? 'pending' : 'late';
+    const pill = f.statut === 'paid' ? 'Payé' : f.statut === 'pending' ? 'En attente' : 'En retard';
+    return `
+      <tr>
+        <td><span class="invoice-num">${f.num}</span><span class="invoice-date">${f.date}</span></td>
+        <td>${f.client}</td>
+        <td style="font-size:11px;color:var(--text-dim)">${f.prestation}</td>
+        <td><span class="amount-${cls}">${f.montant.toLocaleString('fr-FR')} €</span></td>
+        <td><span class="pill pill-${cls}">${pill}</span></td>
+      </tr>`;
+  }).join('');
+}
+
+function buildRevenueChart(monthly) {
+  const ctx = document.getElementById('revenueChart');
+  if (!ctx) return;
+  if (chartInstance) { chartInstance.destroy(); }
+
+  const labels = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'].slice(0, monthly.length);
+  const max = Math.max(...monthly);
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: monthly,
+        backgroundColor: monthly.map(v => v === max ? '#c9a84c' : '#252318'),
+        borderColor: '#c9a84c',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1a1912' }, ticks: { color: '#5a5544', font: { size: 11 } } },
+        y: {
+          grid: { color: '#1a1912' },
+          ticks: {
+            color: '#5a5544',
+            font: { size: 11 },
+            callback: v => Math.round(v).toLocaleString('fr-FR') + ' €'
+          }
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+// TESTS
+// ══════════════════════════════════════════════
+async function loadTests() {
+  try {
+    const data = await notionQuery(DB_TESTS, {}, [
+      { property: 'Date', direction: 'descending' }
+    ]);
+    allTests = data.results || [];
+  } catch(e) {
+    allTests = [];
+  }
+}
+
+// ══════════════════════════════════════════════
+// ALERTES (calculées depuis les données)
+// ══════════════════════════════════════════════
+function buildAlerts() {
+  const alerts = [];
+
+  // Factures en retard (hardcoded démo — connecter à base Notion Factures)
+  alerts.push({
+    type: 'red',
+    title: 'Facture F-2025-007 en retard',
+    desc: 'Lorenzo Mancini · 1 800 € · +15 jours de dépassement',
+    time: 'Depuis le 1er avril 2025',
+    priority: 'high'
+  });
+
+  // Données match incomplètes
+  alerts.push({
+    type: 'gold',
+    title: 'Données GPS manquantes',
+    desc: 'Thomas Vernay · Match du 22 avr. · Distance, sprints, Vmax non renseignés',
+    time: 'Il y a 4 jours',
+    priority: 'high'
+  });
+
+  // Tests à venir (depuis allTests si dispo)
+  alerts.push({
+    type: 'blue',
+    title: 'Test physique à venir',
+    desc: 'Sébastien Koffi · CMJ / VMA / Vmax · Dans 3 jours (30 avril)',
+    time: 'Planifié',
+    priority: 'info'
+  });
+
+  document.getElementById('alert-count').textContent = alerts.length;
+  document.getElementById('al-total').textContent = alerts.length;
+  document.getElementById('al-high').textContent = alerts.filter(a => a.priority === 'high').length;
+  document.getElementById('al-info').textContent = alerts.filter(a => a.priority === 'info').length;
+
+  document.getElementById('alerts-list').innerHTML = alerts.map(a => `
+    <div class="alert-item">
+      <div class="alert-dot ${a.type}"></div>
+      <div class="alert-body">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-desc">${a.desc}</div>
+        <div class="alert-time">${a.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function switchTab(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

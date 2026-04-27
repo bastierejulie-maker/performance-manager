@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Portal — Julie Bastière Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f7f4;--bg-card:#fff;--bg-surf:#f2f0eb;
+  --border:rgba(0,0,0,.08);--border-med:rgba(0,0,0,.14);
+  --gold:#a07828;--gold-l:#c9a84c;--gold-bg:#faf7ef;--gold-b:rgba(160,120,40,.2);
+  --txt:#1a1814;--txt-m:#6b6455;--txt-d:#9a907e;
+  --green:#2d7a4f;--green-bg:#eef8f2;
+  --orange:#a06428;--orange-bg:#fdf5ec;
+  --red:#8c3030;--red-bg:#fdf0f0;
+  --blue:#2a4a7a;--blue-bg:#eef3fc;
+  --r:12px;--rs:8px;
+  --sh:0 1px 4px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04)
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:14px;line-height:1.5}
+
+/* HEADER */
+.hdr{background:#1a1814;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:200}
+.logo{font-family:'Playfair Display',serif;font-size:17px;color:#c9a84c;display:flex;align-items:baseline;gap:10px}
+.logo-sep{color:rgba(201,168,76,.3)}
+.logo-sub{font-family:'Outfit',sans-serif;font-size:10px;font-weight:300;color:rgba(201,168,76,.45);letter-spacing:.14em;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.ag-pill{display:flex;align-items:center;gap:8px;background:rgba(201,168,76,.1);border:.5px solid rgba(201,168,76,.2);border-radius:20px;padding:5px 12px;font-size:12px;color:#c9a84c}
+.ag-av{width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#c9a84c}
+.sync-i{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.3);font-weight:300}
+.sync-d{width:6px;height:6px;border-radius:50%;background:#5d9b5d;animation:pulse 2s infinite}
+.sync-d.loading{background:#c9a84c}.sync-d.error{background:#9b5d5d;animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* BANNER */
+.bnr{background:#1a1814;padding:22px 28px 18px;border-bottom:1px solid rgba(201,168,76,.08);display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.bnr-title{font-family:'Playfair Display',serif;font-size:20px;color:#f0ede6;margin-bottom:3px}
+.bnr-sub{font-size:12px;color:rgba(240,237,230,.35);font-weight:300}
+.bnr-date{font-size:11px;color:rgba(201,168,76,.5);text-align:right;white-space:nowrap}
+
+/* FILTER BAR */
+.fbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none}
+.fbar::-webkit-scrollbar{display:none}
+.f-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-d);font-weight:400;white-space:nowrap;padding-right:16px;border-right:1px solid var(--border);margin-right:12px;flex-shrink:0;height:46px;display:flex;align-items:center}
+.f-chip{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:400;color:var(--txt-m);padding:0 14px;height:46px;border-bottom:2px solid transparent;cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap;flex-shrink:0;user-select:none}
+.f-chip:hover:not(.active){color:var(--txt)}
+.f-chip.active{color:var(--gold);border-bottom-color:var(--gold)}
+.f-chip .cav{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.call{width:24px;height:24px;border-radius:50%;background:var(--bg-surf);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.bst{display:inline-block;font-size:9px;font-weight:500;padding:1px 6px;border-radius:10px}
+.bst-ok{background:var(--green-bg);color:var(--green)}
+.bst-bl{background:var(--red-bg);color:var(--red)}
+.bst-rp{background:var(--bg-surf);color:var(--txt-d)}
+
+/* NAV */
+.nav{background:#fff;border-bottom:1px solid var(--border);display:flex;padding:0 28px}
+.nav-t{font-size:12px;font-weight:400;color:var(--txt-d);padding:11px 18px 10px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.04em;white-space:nowrap;user-select:none}
+.nav-t.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-t:hover:not(.active){color:var(--txt-m)}
+
+/* MAIN */
+.main{padding:24px 28px;max-width:1100px}
+.sec{display:none}.sec.active{display:block}
+
+/* ATHLETE HEADER */
+.ath-hdr{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;display:flex;align-items:center;gap:16px;margin-bottom:18px;box-shadow:var(--sh)}
+.ath-hdr-av{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500;flex-shrink:0}
+.ath-hdr-name{font-family:'Playfair Display',serif;font-size:19px;color:var(--txt);margin-bottom:3px}
+.ath-hdr-meta{font-size:12px;color:var(--txt-m);font-weight:300}
+.ath-hdr-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+
+/* KPI */
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:10px;margin-bottom:18px}
+.kc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sh)}
+.kl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-d);margin-bottom:8px}
+.kv{font-family:'Playfair Display',serif;font-size:26px;line-height:1;color:var(--txt)}
+.kv.gold{color:var(--gold)}.kv.green{color:var(--green)}.kv.orange{color:var(--orange)}.kv.red{color:var(--red)}
+.ks{font-size:11px;color:var(--txt-d);margin-top:5px;font-weight:300}
+
+/* TAGS / CHIPS */
+.tag{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:400;padding:3px 10px;border-radius:20px}
+.tg{background:var(--gold-bg);border:1px solid var(--gold-b);color:var(--gold)}
+.tgr{background:var(--green-bg);color:var(--green)}
+.trd{background:var(--red-bg);color:var(--red)}
+.tgy{background:var(--bg-surf);color:var(--txt-d)}
+
+/* SECTION TITLE */
+.st{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-d);font-weight:400;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sep{height:1px;background:var(--border);margin:20px 0}
+.ro{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--txt-d);background:var(--bg-surf);border:1px solid var(--border);border-radius:20px;padding:3px 10px;letter-spacing:.06em}
+.ro-d{width:5px;height:5px;border-radius:50%;background:var(--txt-d)}
+
+/* NORMES */
+.ng{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:18px}
+.nc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;box-shadow:var(--sh)}
+.nl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-d);margin-bottom:7px}
+.nr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.nv{font-family:'Playfair Display',serif;font-size:20px;color:var(--txt)}
+.nt{font-size:10px;color:var(--txt-d)}
+.nb{height:3px;background:var(--bg-surf);border-radius:3px;overflow:hidden}
+.nf{height:100%;border-radius:3px;transition:width .8s ease}
+.nf.ok{background:var(--green)}.nf.warn{background:var(--orange)}.nf.nope{background:var(--red)}
+.nch{display:inline-block;font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-top:6px}
+.nch.ok{background:var(--green-bg);color:var(--green)}.nch.warn{background:var(--orange-bg);color:var(--orange)}.nch.nope{background:var(--red-bg);color:var(--red)}
+
+/* PROFIL */
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.pc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;box-shadow:var(--sh)}
+.pt{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-d);margin-bottom:6px}
+.pv{font-family:'Playfair Display',serif;font-size:18px;color:var(--txt);margin-bottom:6px}
+.pd{font-size:12px;color:var(--txt-m);font-weight:300;line-height:1.6}
+
+/* RAPPORT */
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:12px;margin-bottom:18px}
+.rc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.rh{padding:10px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--bg-surf)}
+.rt{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-d)}
+.rd{font-size:11px;color:var(--txt-m);font-weight:300}
+.rb{padding:13px 15px}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.sr:last-child{border-bottom:none}
+.sl{font-size:12px;color:var(--txt-m);font-weight:300}
+.sv{font-size:12px;font-weight:500;color:var(--txt)}
+
+/* INFO */
+.ic{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:17px 19px;box-shadow:var(--sh);margin-bottom:16px}
+.ir{display:flex;align-items:flex-start;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:16px}
+.ir:last-child{border-bottom:none}
+.il{font-size:12px;color:var(--txt-d);font-weight:300;min-width:160px}
+.iv{font-size:12px;color:var(--txt);text-align:right}
+
+/* ALL VIEW */
+.ag2{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:12px;margin-bottom:20px}
+.ac{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px}
+.act{display:flex;align-items:center;gap:13px}
+.ac-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0}
+.ac-nm{font-family:'Playfair Display',serif;font-size:16px;color:var(--txt);margin-bottom:2px}
+.ac-mt{font-size:11px;color:var(--txt-d);font-weight:300}
+.ac-sg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ms{text-align:center}
+.ms-v{font-family:'Playfair Display',serif;font-size:16px;color:var(--txt)}
+.ms-v.green{color:var(--green)}.ms-v.gold{color:var(--gold)}
+.ms-l{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-d);margin-top:2px}
+.ac-bot{display:flex;align-items:center;justify-content:space-between}
+.btn-d{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px;border:1px solid var(--gold-b);border-radius:20px;color:var(--gold);background:var(--gold-bg);cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-d:hover{background:#f0e8d0}
+
+/* CHART */
+.cc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:17px 19px;box-shadow:var(--sh);margin-bottom:16px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.cht{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-d)}
+.cw{position:relative;height:180px}
+
+/* EMPTY / SKELETON */
+.empty{background:var(--bg-card);border:1px dashed var(--border-med);border-radius:var(--r);padding:36px 20px;text-align:center;color:var(--txt-d);font-size:13px}
+.empty strong{display:block;font-size:15px;color:var(--txt-m);margin-bottom:6px;font-weight:500}
+.sk{background:linear-gradient(90deg,var(--bg-surf) 25%,#e8e4dc 50%,var(--bg-surf) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;color:transparent!important}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* AVATAR COLORS */
+.av-a{background:#dce8f5;color:#2a5080}.av-b{background:#e8dcf5;color:#4a2a80}
+.av-c{background:#dcf5e8;color:#2a6044}.av-d{background:#f5dcdc;color:#803030}
+.av-e{background:#f5f0dc;color:#806020}.av-f{background:#dcf5f5;color:#207878}
+.av-g{background:#f5dce8;color:#802a4a}.av-h{background:#e8f5dc;color:#4a7020}
+
+@media(max-width:600px){
+  .hdr,.bnr,.main{padding-left:16px;padding-right:16px}
+  .fbar,.nav{padding-left:16px;padding-right:16px}
+  .pg{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">Julie Bastière <span class="logo-sep">·</span> <span class="logo-sub">Agent Portal</span></div>
+  <div class="hdr-r">
+    <div class="sync-i"><div class="sync-d loading" id="sd"></div><span id="st">Chargement...</span></div>
+    <div class="ag-pill"><div class="ag-av" id="ag-in">A</div><span id="ag-nm">Agent</span></div>
+  </div>
+</div>
+
+<div class="bnr">
+  <div>
+    <div class="bnr-title">Tableau de bord agent</div>
+    <div class="bnr-sub">Accès lecture seule · <span id="cnt-bnr">—</span> athlète(s) sous gestion</div>
+  </div>
+  <div class="bnr-date" id="bnr-dt"></div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="fbar" id="fbar">
+  <div class="f-lbl">Athlète</div>
+  <div class="f-chip active" id="chip-all" onclick="setFilter('all')">
+    <div class="call">✦</div>
+    Tous
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-t active" data-sec="overview" onclick="switchTab('overview',this)">Vue globale</div>
+  <div class="nav-t" data-sec="rapports" onclick="switchTab('rapports',this)">Rapports match</div>
+  <div class="nav-t" data-sec="athletique" onclick="switchTab('athletique',this)">Athlétique</div>
+  <div class="nav-t" data-sec="nutrition" onclick="switchTab('nutrition',this)">Nutrition</div>
+</div>
+
+<div class="main">
+  <div class="sec active" id="tab-overview"><div class="sk" style="height:120px;border-radius:12px"></div></div>
+  <div class="sec" id="tab-rapports"><div class="empty"><strong>Sélectionnez un athlète</strong>Utilisez le filtre ci-dessus.</div></div>
+  <div class="sec" id="tab-athletique"><div class="empty"><strong>Sélectionnez un athlète</strong>Utilisez le filtre ci-dessus.</div></div>
+  <div class="sec" id="tab-nutrition"><div class="empty"><strong>Sélectionnez un athlète</strong>Utilisez le filtre ci-dessus.</div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const PROXY      = 'https://notion-proxy.bastierejulie.workers.dev';
+const DB_JOUEURS = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_STATS   = '34d69796-db3f-801c-aed5-d8cfa048dbba';
+const DB_TESTS   = '34d69796-db3f-8047-b6f9-e361371604a9';
+const AVS        = ['av-a','av-b','av-c','av-d','av-e','av-f','av-g','av-h'];
+const NORMES     = {
+  'Excentré/Ailier'  :{vmax:35,accmax:7.5,cmj:48,sj:44,vma:18},
+  'Attaquant'        :{vmax:34,accmax:7.0,cmj:46,sj:42,vma:18},
+  'Milieu offensif'  :{vmax:32.5,accmax:6.5,cmj:44,sj:40,vma:18},
+  'Milieu défensif'  :{vmax:31.5,accmax:6.5,cmj:43,sj:39,vma:18},
+  'Latéral'          :{vmax:33,accmax:7.0,cmj:45,sj:41,vma:18},
+  'Défenseur central':{vmax:31,accmax:6.0,cmj:46,sj:42,vma:18},
+  'Gardien'          :{vmax:28,accmax:6.5,cmj:55,sj:50,vma:14},
+};
+
+const P           = new URLSearchParams(location.search);
+const AGENT_NAME  = decodeURIComponent(P.get('name')||'Agent');
+const ALLOWED_IDS = (P.get('athletes')||'').split(',').filter(Boolean);
+
+let athletes=[], stats=[], tests=[], filter='all', charts={};
+
+/* ─── INIT ─── */
+document.addEventListener('DOMContentLoaded',()=>{
+  const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById('bnr-dt').textContent=new Date().toLocaleDateString('fr-FR',opts);
+  const ini=AGENT_NAME.split(' ').slice(0,2).map(n=>n[0]?.toUpperCase()||'').join('')||'AG';
+  document.getElementById('ag-in').textContent=ini;
+  document.getElementById('ag-nm').textContent=AGENT_NAME;
+  loadAll();
+});
+
+/* ─── NOTION ─── */
+async function nq(dbId,sorts=[]){
+  const body={page_size:100};
+  if(sorts.length) body.sorts=sorts;
+  const r=await fetch(`${PROXY}/v1/databases/${dbId}/query`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+function gt(page){for(const k of Object.keys(page.properties||{})){if(page.properties[k].type==='title') return page.properties[k].title?.[0]?.plain_text||'Sans nom'}return 'Sans nom'}
+function gp(page,key,type='text'){
+  const p=page.properties?.[key];if(!p) return null;
+  if(type==='text') return p.rich_text?.[0]?.plain_text||p.title?.[0]?.plain_text||null;
+  if(type==='select') return p.select?.name||null;
+  if(type==='number') return p.number??null;
+  if(type==='date') return p.date?.start||null;
+  if(type==='relation') return p.relation?.map(r=>r.id)||[];
+  return null;
+}
+
+/* ─── LOAD ─── */
+async function loadAll(){
+  sync('loading','Connexion Notion...');
+  try{
+    const [ar,sr,tr]=await Promise.all([
+      nq(DB_JOUEURS,[{property:'Nom',direction:'ascending'}]),
+      nq(DB_STATS,[{property:'Date',direction:'descending'}]),
+      nq(DB_TESTS,[{property:'Date',direction:'descending'}]),
+    ]);
+    athletes=ar.results||[];
+    if(ALLOWED_IDS.length) athletes=athletes.filter(a=>ALLOWED_IDS.includes(a.id));
+    stats=sr.results||[];tests=tr.results||[];
+    sync('ok','Notion · en direct');
+    boot();
+  }catch(e){
+    console.warn('Mode démo',e);
+    sync('error','Mode démo');
+    demo();
+  }
+}
+
+function sync(s,t){document.getElementById('sd').className='sync-d '+(s==='ok'?'':s);document.getElementById('st').textContent=t}
+
+function boot(){
+  document.getElementById('cnt-bnr').textContent=athletes.length;
+  buildBar();
+  render();
+}
+
+/* ─── FILTER BAR ─── */
+function buildBar(){
+  const bar=document.getElementById('fbar');
+  bar.querySelectorAll('.f-chip:not(#chip-all)').forEach(c=>c.remove());
+  athletes.forEach((a,i)=>{
+    const nom=gt(a);
+    const statut=gp(a,'Statut','select')||'Actif';
+    const ini=nom.split(' ').slice(0,2).map(n=>n[0]?.toUpperCase()||'').join('');
+    const av=AVS[i%AVS.length];
+    const bc=statut.toLowerCase().includes('bless')?'bst-bl':statut.toLowerCase().includes('repos')?'bst-rp':'bst-ok';
+    const c=document.createElement('div');
+    c.className='f-chip';c.id='chip-'+a.id;
+    c.onclick=()=>setFilter(a.id);
+    c.innerHTML=`<div class="cav ${av}">${ini}</div>${nom.split(' ')[0]}<span class="bst ${bc}">${statut}</span>`;
+    bar.appendChild(c);
+  });
+}
+
+function setFilter(id){
+  filter=id;
+  document.querySelectorAll('.f-chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById(id==='all'?'chip-all':'chip-'+id)?.classList.add('active');
+  render();
+}
+
+/* ─── NAV ─── */
+function switchTab(name,el){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-t').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  render();
+}
+function activeSec(){const s=document.querySelector('.sec.active');return s?s.id.replace('tab-',''):'overview'}
+function render(){const s=activeSec();if(s==='overview')ov();else if(s==='rapports')rp();else if(s==='athletique')ath();else if(s==='nutrition')nut()}
+
+function filtered(){return filter==='all'?athletes:athletes.filter(a=>a.id===filter)}
+
+/* ─── OVERVIEW ─── */
+function ov(){
+  const el=document.getElementById('tab-overview');
+  const list=filtered();
+  if(!list.length){el.innerHTML='<div class="empty"><strong>Aucun athlète</strong>Ce filtre ne correspond à aucun athlète autorisé.</div>';return}
+  if(filter==='all'){
+    el.innerHTML=`<div class="st"><span>Roster — ${list.length} athlète(s)</span><span class="ro"><span class="ro-d"></span>Lecture seule</span></div><div class="ag2">${list.map((a,i)=>allCard(a,i)).join('')}</div>`;
+  } else {
+    const i=athletes.findIndex(x=>x.id===list[0].id);
+    el.innerHTML=detail(list[0],i);
+  }
+}
+
+function allCard(a,i){
+  const nom=gt(a),poste=gp(a,'Poste','select')||'—',club=gp(a,'Club','text')||gp(a,'Club','select')||'—',statut=gp(a,'Statut','select')||'Actif';
+  const ini=nom.split(' ').slice(0,2).map(n=>n[0]?.toUpperCase()||'').join('');
+  const av=AVS[i%AVS.length];
+  const ts=tests.filter(t=>(gp(t,'Joueur','relation')||[]).includes(a.id));
+  const st=stats.filter(s=>(gp(s,'Joueur','relation')||[]).includes(a.id));
+  const lT=ts[0],lS=st[0];
+  const cmj=lT?gp(lT,'CMJ (cm)','number'):null;
+  const vma=lT?gp(lT,'VMA (km/h)','number'):null;
+  const vmax=lS?gp(lS,'Vmax','number'):null;
+  const tc=statut.toLowerCase().includes('bless')?'trd':statut.toLowerCase().includes('repos')?'tgy':'tgr';
+  return `<div class="ac">
+    <div class="act"><div class="ac-av ${av}">${ini}</div><div style="flex:1;min-width:0"><div class="ac-nm">${nom}</div><div class="ac-mt">${poste} · ${club}</div><div style="margin-top:6px"><span class="tag ${tc}">${statut}</span></div></div></div>
+    <div class="ac-sg">
+      <div class="ms"><div class="ms-v ${cmj?'green':''}">${cmj?cmj.toFixed(0):'—'}</div><div class="ms-l">CMJ cm</div></div>
+      <div class="ms"><div class="ms-v ${vma?'gold':''}">${vma?vma.toFixed(1):'—'}</div><div class="ms-l">VMA km/h</div></div>
+      <div class="ms"><div class="ms-v">${vmax?vmax.toFixed(1):'—'}</div><div class="ms-l">Vmax km/h</div></div>
+    </div>
+    <div class="ac-bot"><span style="font-size:11px;color:var(--txt-d)">${ts.length} test(s) · ${st.length} match(s)</span><button class="btn-d" onclick="setFilter('${a.id}')">Voir le détail →</button></div>
+  </div>`;
+}
+
+function detail(a,i){
+  const nom=gt(a),poste=gp(a,'Poste','select')||'—',club=gp(a,'Club','text')||gp(a,'Club','select')||'—';
+  const age=gp(a,'Âge','number')||gp(a,'Age','number'),statut=gp(a,'Statut','select')||'Actif';
+  const mot=gp(a,'Motricité','select')||gp(a,'Motricite','select')||'—';
+  const fib=gp(a,'Fibres','select')||'—';
+  const poids=gp(a,'Poids','number'),taille=gp(a,'Taille','number');
+  const ini=nom.split(' ').slice(0,2).map(n=>n[0]?.toUpperCase()||'').join('');
+  const av=AVS[i%AVS.length];
+  const ts=tests.filter(t=>(gp(t,'Joueur','relation')||[]).includes(a.id));
+  const st=stats.filter(s=>(gp(s,'Joueur','relation')||[]).includes(a.id));
+  const lT=ts[0];
+  const cmj=lT?gp(lT,'CMJ (cm)','number'):null;
+  const sj=lT?gp(lT,'SJ (cm)','number'):null;
+  const vma=lT?gp(lT,'VMA (km/h)','number'):null;
+  const acc=lT?gp(lT,'Accmax','number'):null;
+  const vmx=lT?gp(lT,'Vmax','number'):null;
+  const N=NORMES[poste]||NORMES['Milieu offensif'];
+  const tc=statut.toLowerCase().includes('bless')?'trd':statut.toLowerCase().includes('repos')?'tgy':'tgr';
+
+  const mets=[
+    {l:'Vmax',v:vmx,t:N.vmax,u:'km/h'},{l:'CMJ',v:cmj,t:N.cmj,u:'cm'},
+    {l:'SJ',v:sj,t:N.sj,u:'cm'},{l:'VMA',v:vma,t:N.vma,u:'km/h'},{l:'AccMax',v:acc,t:N.accmax,u:'m/s²'}
+  ].map(m=>{
+    if(!m.v) return `<div class="nc"><div class="nl">${m.l}</div><div class="nr"><span class="nv">—</span><span class="nt">Cible ${m.t}${m.u}</span></div><div class="nb"><div class="nf warn" style="width:0%"></div></div><span class="nch warn">Non testé</span></div>`;
+    const p=Math.min(Math.round((m.v/m.t)*100),110);
+    const c=p>=100?'ok':p>=85?'warn':'nope';
+    const l=p>=100?'Niveau élite':p>=85?'Proche cible':'En progression';
+    return `<div class="nc"><div class="nl">${m.l}</div><div class="nr"><span class="nv">${m.v.toFixed(1)}</span><span class="nt">/ ${m.t} ${m.u}</span></div><div class="nb"><div class="nf ${c}" style="width:${Math.min(p,100)}%"></div></div><span class="nch ${c}">${l} · ${p}%</span></div>`;
+  }).join('');
+
+  const motDesc=mot==='Extension'?'Exploite la chaîne extensrice. Puissance, détente et sprints explosifs.':mot==='Flexion'?'Exploite la chaîne de flexion. Endurance et répétition d\'efforts.':'À évaluer — test à planifier avec Julie.';
+  const fibDesc=fib==='Rapides'?'Prédominance fibres rapides. Joueur explosif, récupération longue.':fib==='Lentes'?'Prédominance fibres lentes. Endurance naturelle, excellente répétition.':fib==='Hybrides'?'Profil hybride. Bonne polyvalence court/long.':'Profil calculé après tests SJ/VMA.';
+
+  return `
+    <div class="ath-hdr">
+      <div class="ath-hdr-av ${av}">${ini}</div>
+      <div><div class="ath-hdr-name">${nom}</div><div class="ath-hdr-meta">${poste} · ${club}${age?' · '+age+' ans':''}</div>
+      <div class="ath-hdr-tags"><span class="tag ${tc}">${statut}</span>${ts.length?`<span class="tag tg">${ts.length} test(s)</span>`:''} ${st.length?`<span class="tag tg">${st.length} match(s)</span>`:''}</div></div>
+    </div>
+    <div class="kg">
+      <div class="kc"><div class="kl">CMJ (dernier)</div><div class="kv green">${cmj?cmj.toFixed(1)+' cm':'—'}</div><div class="ks">${lT?'Test du '+fd(gp(lT,'Date','date')):'Non testé'}</div></div>
+      <div class="kc"><div class="kl">VMA</div><div class="kv orange">${vma?vma.toFixed(1)+' km/h':'—'}</div><div class="ks">${vma&&vma>=20?'Excellent':vma&&vma>=18?'Bon niveau':vma?'À améliorer':'Non testé'}</div></div>
+      <div class="kc"><div class="kl">Vmax match</div><div class="kv">${vmx?vmx.toFixed(1)+' km/h':'—'}</div><div class="ks">${st.length} match(s)</div></div>
+      <div class="kc"><div class="kl">Poste</div><div class="kv gold" style="font-size:15px;line-height:1.3">${poste}</div><div class="ks">Norme élite CMJ : ${N.cmj} cm</div></div>
+    </div>
+    <div class="sep"></div>
+    <div class="st"><span>Profil mécanique</span></div>
+    <div class="pg"><div class="pc"><div class="pt">Motricité</div><div class="pv">${mot}</div><div class="pd">${motDesc}</div></div><div class="pc"><div class="pt">Fibres</div><div class="pv">${fib}</div><div class="pd">${fibDesc}</div></div></div>
+    <div class="sep"></div>
+    <div class="st"><span>Benchmark niveau élite · ${poste}</span></div>
+    <div class="ng">${mets}</div>
+    <div class="sep"></div>
+    <div class="st"><span>Informations</span><span class="ro"><span class="ro-d"></span>Lecture seule</span></div>
+    <div class="ic">${[['Nom complet',nom],['Poste',poste],['Club',club],['Âge',age?age+' ans':'—'],['Poids',poids?poids+' kg':'—'],['Taille',taille?taille+' cm':'—'],['Statut',statut],['Préparateur physique','Julie Bastière']].map(([l,v])=>`<div class="ir"><span class="il">${l}</span><span class="iv">${v||'—'}</span></div>`).join('')}</div>`;
+}
+
+/* ─── RAPPORTS ─── */
+function rp(){
+  const el=document.getElementById('tab-rapports');
+  const list=filtered();
+  if(filter==='all'||list.length!==1){el.innerHTML='<div class="empty"><strong>Sélectionnez un athlète</strong>Choisissez un athlète dans le filtre ci-dessus pour voir ses rapports match.</div>';return}
+  const a=list[0];
+  const nom=gt(a);
+  const st=stats.filter(s=>(gp(s,'Joueur','relation')||[]).includes(a.id));
+  if(!st.length){el.innerHTML=`<div class="empty"><strong>Aucun rapport pour ${nom}</strong>Les rapports apparaîtront ici dès que Julie renseignera des données.</div>`;return}
+  el.innerHTML=`<div class="st"><span>Rapports match — ${nom} · ${st.length} match(s)</span><span class="ro"><span class="ro-d"></span>Lecture seule</span></div>
+  <div class="rg">${st.slice(0,8).map(s=>{
+    const date=gp(s,'Date','date'),dist=gp(s,'Distance parcourue (m)','number');
+    const spr=gp(s,'Nombre de sprint','number'),vmx=gp(s,'Vmax','number');
+    const acc=gp(s,'Accmax','number'),tps=gp(s,'⏱️ Temps de jeu','text')||gp(s,'Temps de jeu','text');
+    const titu=gp(s,'Titulaire/remplaçant','select'),sd=gp(s,'Distance en sprint (m)','number');
+    return `<div class="rc"><div class="rh"><span class="rt">Match GPS</span><span class="rd">${fd(date)}</span></div><div class="rb">${titu?`<div style="margin-bottom:9px"><span class="tag tg">${titu}</span></div>`:''}<div class="sr"><span class="sl">Temps de jeu</span><span class="sv">${tps||'—'}</span></div><div class="sr"><span class="sl">Distance totale</span><span class="sv">${dist?(dist/1000).toFixed(2)+' km':'—'}</span></div><div class="sr"><span class="sl">Distance sprint</span><span class="sv">${sd?sd+' m':'—'}</span></div><div class="sr"><span class="sl">Nb sprints</span><span class="sv">${spr??'—'}</span></div><div class="sr"><span class="sl">Vmax</span><span class="sv">${vmx?vmx.toFixed(1)+' km/h':'—'}</span></div><div class="sr"><span class="sl">AccMax</span><span class="sv">${acc?acc.toFixed(2)+' m/s²':'—'}</span></div></div></div>`;
+  }).join('')}</div>`;
+}
+
+/* ─── ATHLÉTIQUE ─── */
+function ath(){
+  const el=document.getElementById('tab-athletique');
+  const list=filtered();
+  if(filter==='all'||list.length!==1){el.innerHTML='<div class="empty"><strong>Sélectionnez un athlète</strong>Choisissez un athlète dans le filtre ci-dessus.</div>';return}
+  const a=list[0];
+  const nom=gt(a);
+  const ts=tests.filter(t=>(gp(t,'Joueur','relation')||[]).includes(a.id));
+  if(!ts.length){el.innerHTML=`<div class="empty"><strong>Aucun test pour ${nom}</strong>Les données athlétiques apparaîtront ici après les tests.</div>`;return}
+  const lbs=ts.slice().reverse().map(t=>fd(gp(t,'Date','date'),true));
+  const cmjD=ts.slice().reverse().map(t=>gp(t,'CMJ (cm)','number'));
+  const vmaD=ts.slice().reverse().map(t=>gp(t,'VMA (km/h)','number'));
+  const sjD =ts.slice().reverse().map(t=>gp(t,'SJ (cm)','number'));
+  const lT=ts[0];
+  el.innerHTML=`<div class="st"><span>Évolution athlétique — ${nom}</span><span class="ro"><span class="ro-d"></span>Lecture seule</span></div>
+  <div class="kg" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+    ${[['CMJ',gp(lT,'CMJ (cm)','number'),'cm','green'],['SJ',gp(lT,'SJ (cm)','number'),'cm',''],['VMA',gp(lT,'VMA (km/h)','number'),'km/h','orange'],['Vmax',gp(lT,'Vmax','number'),'km/h','']].map(([l,v,u,c])=>`<div class="kc"><div class="kl">${l}</div><div class="kv ${c}">${v?v.toFixed(1)+' '+u:'—'}</div><div class="ks">Dernier test</div></div>`).join('')}
+  </div>
+  <div class="cc"><div class="ch"><span class="cht">Évolution CMJ · SJ · VMA</span><span style="font-size:11px;color:var(--txt-d)">${ts.length} test(s)</span></div><div class="cw"><canvas id="ath-ch" role="img" aria-label="Évolution tests athlétiques">Données tests.</canvas></div></div>
+  <div class="st"><span>Historique des tests</span></div>
+  <div class="rg">${ts.map(t=>{
+    const date=gp(t,'Date','date'),cmj=gp(t,'CMJ (cm)','number'),sj=gp(t,'SJ (cm)','number'),vma=gp(t,'VMA (km/h)','number'),vmx=gp(t,'Vmax','number'),sn=gp(t,'Saison','select')||gp(t,'Saison','text');
+    return `<div class="rc"><div class="rh"><span class="rt">Bilan tests</span><span class="rd">${fd(date)}</span></div><div class="rb">${sn?`<div style="margin-bottom:7px"><span class="tag tg">${sn}</span></div>`:''}<div class="sr"><span class="sl">CMJ</span><span class="sv">${cmj?cmj.toFixed(1)+' cm':'—'}</span></div><div class="sr"><span class="sl">SJ</span><span class="sv">${sj?sj.toFixed(1)+' cm':'—'}</span></div><div class="sr"><span class="sl">VMA</span><span class="sv">${vma?vma.toFixed(1)+' km/h':'—'}</span></div><div class="sr"><span class="sl">Vmax</span><span class="sv">${vmx?vmx.toFixed(1)+' km/h':'—'}</span></div></div></div>`;
+  }).join('')}</div>`;
+  setTimeout(()=>{
+    const ctx=document.getElementById('ath-ch');if(!ctx) return;
+    if(charts.ath) charts.ath.destroy();
+    charts.ath=new Chart(ctx,{type:'line',data:{labels:lbs,datasets:[
+      {label:'CMJ (cm)',data:cmjD,borderColor:'#2d7a4f',backgroundColor:'rgba(45,122,79,.06)',tension:.3,pointRadius:5,pointBackgroundColor:'#2d7a4f'},
+      {label:'SJ (cm)',data:sjD,borderColor:'#a07828',backgroundColor:'rgba(160,120,40,.06)',tension:.3,pointRadius:5,pointBackgroundColor:'#a07828',borderDash:[4,4]},
+      {label:'VMA (km/h)',data:vmaD,borderColor:'#2a4a7a',backgroundColor:'rgba(42,74,122,.06)',tension:.3,pointRadius:5,pointBackgroundColor:'#2a4a7a',borderDash:[2,3]},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#6b6455',font:{size:11},usePointStyle:true}}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:11}}}}}});
+  },100);
+}
+
+/* ─── NUTRITION ─── */
+function nut(){
+  const el=document.getElementById('tab-nutrition');
+  const list=filtered();
+  if(filter==='all'||list.length!==1){el.innerHTML='<div class="empty"><strong>Sélectionnez un athlète</strong>Choisissez un athlète dans le filtre ci-dessus.</div>';return}
+  const a=list[0];
+  const nom=gt(a),poids=gp(a,'Poids','number');
+  const bmr=poids?Math.round(poids*24*1.55):null;
+  const mD=bmr?Math.round(bmr*1.4):null,tD=bmr,rD=bmr?Math.round(bmr*.85):null;
+  const f=n=>n?n.toLocaleString('fr-FR')+' kcal':'—';
+  el.innerHTML=`<div class="st"><span>Suivi nutritionnel — ${nom}</span><span class="ro"><span class="ro-d"></span>Lecture seule</span></div>
+  <div class="kg" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="kc" style="border-color:rgba(45,122,79,.2)"><div class="kl">Jour de match</div><div class="kv green">${f(mD)}</div><div class="ks">Charge élevée</div></div>
+    <div class="kc" style="border-color:rgba(160,120,40,.2)"><div class="kl">Entraînement</div><div class="kv orange">${f(tD)}</div><div class="ks">Charge standard</div></div>
+    <div class="kc"><div class="kl">Récupération</div><div class="kv">${f(rD)}</div><div class="ks">Charge réduite</div></div>
+  </div>
+  <div class="sep"></div>
+  <div class="st"><span>Recommandations — par Julie Bastière</span></div>
+  <div class="ic">${[['Poids de forme',poids?poids+' kg':'À définir avec Julie'],['Protéines','1.8 – 2.2 g/kg/jour'],['Glucides — entraînement','5 – 7 g/kg'],['Glucides — jour de match','7 – 10 g/kg'],['Lipides','1.0 – 1.2 g/kg/jour'],['Hydratation','35 ml/kg/jour minimum'],['Fenêtre post-effort','30 min · Protéines + glucides rapides'],['Repas pré-match','J-3h · Glucides complexes, faible fibres'],['Compléments','Sur prescription Julie uniquement']].map(([l,v])=>`<div class="ir"><span class="il">${l}</span><span class="iv">${v}</span></div>`).join('')}</div>
+  <div class="empty" style="border-style:dashed;margin-top:4px"><strong>Journal alimentaire</strong>Les entrées quotidiennes de ${nom} apparaîtront ici dès que la base nutrition sera renseignée dans Notion.</div>`;
+}
+
+/* ─── DEMO ─── */
+function demo(){
+  athletes=[
+    {id:'d1',properties:{Nom:{type:'title',title:[{plain_text:'Marcus Diallo'}]},Poste:{select:{name:'Excentré/Ailier'}},Club:{rich_text:[{plain_text:'L2'}]},Statut:{select:{name:'Actif'}},'Âge':{number:24},Poids:{number:78},Taille:{number:182},Motricité:{select:{name:'Extension'}},Fibres:{select:{name:'Rapides'}}}},
+    {id:'d2',properties:{Nom:{type:'title',title:[{plain_text:'Sébastien Koffi'}]},Poste:{select:{name:'Milieu offensif'}},Club:{rich_text:[{plain_text:'L1'}]},Statut:{select:{name:'Actif'}},'Âge':{number:22},Poids:{number:72},Taille:{number:178},Motricité:{select:{name:'Flexion'}},Fibres:{select:{name:'Hybrides'}}}},
+    {id:'d3',properties:{Nom:{type:'title',title:[{plain_text:'Lorenzo Mancini'}]},Poste:{select:{name:'Défenseur central'}},Club:{rich_text:[{plain_text:'Serie A'}]},Statut:{select:{name:'Blessé'}},'Âge':{number:27},Poids:{number:84},Taille:{number:188}}},
+  ];
+  tests=[
+    {id:'t1',properties:{Joueur:{relation:[{id:'d1'}]},Date:{date:{start:'2025-03-15'}},'CMJ (cm)':{number:50.2},'SJ (cm)':{number:45.8},'VMA (km/h)':{number:18.5},Vmax:{number:35.2},Accmax:{number:7.4},Saison:{select:{name:'2024-2025'}}}},
+    {id:'t2',properties:{Joueur:{relation:[{id:'d1'}]},Date:{date:{start:'2024-10-10'}},'CMJ (cm)':{number:47.5},'SJ (cm)':{number:43.0},'VMA (km/h)':{number:17.8},Vmax:{number:34.1},Accmax:{number:7.0},Saison:{select:{name:'2024-2025'}}}},
+    {id:'t3',properties:{Joueur:{relation:[{id:'d2'}]},Date:{date:{start:'2025-02-20'}},'CMJ (cm)':{number:44.1},'SJ (cm)':{number:40.5},'VMA (km/h)':{number:19.2},Vmax:{number:32.8},Accmax:{number:6.6},Saison:{select:{name:'2024-2025'}}}},
+  ];
+  stats=[
+    {id:'s1',properties:{Joueur:{relation:[{id:'d1'}]},Date:{date:{start:'2025-04-20'}},'Distance parcourue (m)':{number:10842},'Nombre de sprint':{number:18},Vmax:{number:34.8},Accmax:{number:7.2},'⏱️ Temps de jeu':{rich_text:[{plain_text:'90 min'}]},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:892}}},
+    {id:'s2',properties:{Joueur:{relation:[{id:'d1'}]},Date:{date:{start:'2025-04-06'}},'Distance parcourue (m)':{number:9240},'Nombre de sprint':{number:12},Vmax:{number:33.1},Accmax:{number:6.9},'⏱️ Temps de jeu':{rich_text:[{plain_text:'72 min'}]},'Titulaire/remplaçant':{select:{name:'Remplaçant'}},'Distance en sprint (m)':{number:620}}},
+    {id:'s3',properties:{Joueur:{relation:[{id:'d2'}]},Date:{date:{start:'2025-04-19'}},'Distance parcourue (m)':{number:11200},'Nombre de sprint':{number:9},Vmax:{number:32.0},Accmax:{number:6.5},'⏱️ Temps de jeu':{rich_text:[{plain_text:'90 min'}]},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:410}}},
+  ];
+  boot();
+}
+
+/* ─── UTILS ─── */
+function fd(s,sh=false){
+  if(!s) return '—';const d=new Date(s);if(isNaN(d)) return s;
+  return d.toLocaleDateString('fr-FR',sh?{day:'2-digit',month:'short'}:{day:'numeric',month:'long',year:'numeric'});
+}
+</script>
+</body>
+</html>
