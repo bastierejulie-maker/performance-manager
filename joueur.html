@@ -13,7 +13,9 @@
   --bg:#0a0a0c;--bg2:#111114;--bg3:#16161a;
   --bdr:rgba(255,255,255,.06);--bdr2:rgba(255,255,255,.11);
   --txt:#f0ede8;--txt-m:#8a8680;--txt-d:#4a4844;
-  --gold:#c9a84c;--r:12px
+  --gold:#c9a84c;--r:12px;
+  --ov-bg:#f8f7f4;--ov-card:#ffffff;--ov-bdr:rgba(0,0,0,.08);
+  --ov-txt:#1a1814;--ov-muted:#6b6455;--ov-dim:#9a907e
 }
 /* CLUB THEMES */
 [data-club="PSG"]{--c1:#004170;--c2:#DA291C}
@@ -71,8 +73,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 .nav-t:hover:not(.active){color:var(--txt-m)}
 
 /* MAIN */
-.main{padding:24px 32px;max-width:1080px}
-#s-matchs.active,#s-performance.active,#s-nutrition.active{margin:-24px -32px;}
+.main{padding:0;max-width:1080px}
+#s-overview.active{background:var(--ov-bg);padding:24px 32px;}
+#s-matchs.active,#s-performance.active,#s-nutrition.active{padding:12px 0 0;}
 .sec{display:none;animation:fu .3s ease}.sec.active{display:block}
 @keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
@@ -282,9 +285,11 @@ async function loadAll(){
 function loadIframe(name){
   if(iframesLoaded[name]) return;
   iframesLoaded[name]=true;
+  // J.id est l'ID Notion de la page joueur (UUID avec tirets)
   const jid=J?J.id:'';
   const param=name==='nutrition'?'id':'joueur';
   const url=DASH[name]+(jid?'?'+param+'='+jid:'');
+  console.log('[Andrea] iframe '+name+' → '+url);
   const wrap=document.getElementById('wrap-'+name);
   wrap.innerHTML='';
   const iframe=document.createElement('iframe');
@@ -331,29 +336,79 @@ function hero(){
 }
 
 /* OVERVIEW — statut + 3 derniers matchs + prochains RDV */
-function ov(){
+function ov(saisonFilter){
+  // Filtre saison
+  const saisons=[...new Set(ST.map(m=>gp(m,'Saison','select')).filter(Boolean))].sort().reverse();
+  if(!saisonFilter) saisonFilter=saisons[0]||'2025-2026';
+  const mSaison=ST.filter(m=>gp(m,'Saison','select')===saisonFilter);
+  const tSaison=TS.filter(t=>gp(t,'Saison','select')===saisonFilter);
   const statut=gp(J,'Statut','select')||'Disponible';
   const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s']/g,'-');
   const ss=slug(statut);
   const statutIcon={'Disponible':'✅','Blessé':'🤕','En rééducation':'🔄','Indisponible':'⛔'}[statut]||'•';
   const statutDesc={'Disponible':'Disponible pour l\'entraînement et la compétition','Blessé':'En cours de soin — suivi médical actif','En rééducation':'Programme de rééducation en cours','Indisponible':'Indisponible temporairement'}[statut]||'';
-  const last3=ST.slice(0,3);
+  const last3=mSaison.slice(0,3);
   const matchCards=last3.length?last3.map(s=>{
     const date=gp(s,'Date','date'),dist=gp(s,'Distance parcourue (m)','number'),spr=gp(s,'Nombre de sprint','number'),vmx=gp(s,'Vmax','number'),tps=gp(s,'⏱️ Temps de jeu','number'),titu=gp(s,'Titulaire/remplaçant','select'),res=gp(s,'Résultats','select'),adv=gp(s,'Adversaire','select'),but=gp(s,'But(s) marqué(s)','number');
     const rc=res==='Victoire'?'tt':res==='Défaite'?'tm':'tg';
     return `<div class="rc"><div class="rh"><span class="rt">${adv?'vs '+adv:'Match'}</span><span class="rd">${fd(date)}</span></div><div class="rb"><div style="margin-bottom:8px;display:flex;gap:5px;flex-wrap:wrap">${titu?`<span class="tag tt">${titu}</span>`:''} ${res?`<span class="tag ${rc}">${res}</span>`:''}</div><div class="sr"><span class="sl">Temps de jeu</span><span class="sv">${tps?tps+' min':'—'}</span></div><div class="sr"><span class="sl">Distance</span><span class="sv">${dist?(dist/1000).toFixed(2)+' km':'—'}</span></div><div class="sr"><span class="sl">Sprints</span><span class="sv">${spr??'—'}</span></div><div class="sr"><span class="sl">Vmax</span><span class="sv">${vmx?vmx.toFixed(1)+' km/h':'—'}</span></div>${but?`<div class="sr"><span class="sl">But(s)</span><span class="sv">${but}</span></div>`:''}</div></div>`;
   }).join(''):`<div class="empty">Aucun match enregistré pour le moment.</div>`;
+  // Stats saison
+  const nMatchs=mSaison.length;
+  const nTitu=mSaison.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Titulaire').length;
+  const nRem=mSaison.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Remplaçant').length;
+  const nButs=mSaison.reduce((a,m)=>a+(gp(m,"But(s) marqué(s)",'number')||0),0);
+  const nPasses=mSaison.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
+  const nMins=mSaison.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
+  const nVict=mSaison.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
+  // Dernier test
+  const lastTest=tSaison[0];
+  const lastCMJ=lastTest?gp(lastTest,'CMJ (cm)','number'):null;
+  const lastVMA=lastTest?gp(lastTest,'VMA (km/h)','number'):null;
+  const saisonOptions=saisons.length?saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join(''):`<option>${saisonFilter}</option>`;
+
   document.getElementById('s-overview').innerHTML=`
-    <div class="st">État actuel</div>
-    <div class="kc" style="margin-bottom:18px;display:flex;align-items:center;gap:16px;padding:18px 20px">
-      <div style="font-size:26px">${statutIcon}</div>
-      <div><div class="statut-pill sp-${ss}" style="margin-bottom:6px;display:inline-block">${statut}</div><div style="font-size:12px;color:var(--txt-m);font-weight:300">${statutDesc}</div></div>
-    </div>
-    <div class="st">3 derniers matchs</div>
-    <div class="rg">${matchCards}</div>
-    <div class="sep"></div>
-    <div class="st">Prochains rendez-vous</div>
-    <div id="ov-rdv"><div class="empty">Les prochains événements apparaîtront ici dès que le calendrier est renseigné.</div></div>`;
+    <div style="background:var(--ov-bg);min-height:100%;padding:0">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:22px">${statutIcon}</div>
+          <div>
+            <div class="statut-pill sp-${ss}" style="display:inline-block;margin-bottom:4px">${statut}</div>
+            <div style="font-size:12px;color:var(--ov-muted);font-weight:300">${statutDesc}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600">Saison</span>
+          <select onchange="ov(this.value)" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${saisonOptions}</select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px">
+        ${[
+          ['Matchs',nMatchs,'dont '+nTitu+' tit.'],
+          ['Buts',nButs,nPasses+' passe'+(nPasses>1?'s':'')],
+          ['G + A',nButs+nPasses,'contributions'],
+          ['Minutes',nMins+"'",'temps de jeu'],
+          ['Victoires',nVict,nMatchs?Math.round(nVict/nMatchs*100)+'% win rate':'—'],
+          ['CMJ',lastCMJ?lastCMJ.toFixed(1)+' cm':'—','dernier test'],
+          ['VMA',lastVMA?lastVMA.toFixed(1)+' km/h':'—','dernier test'],
+        ].map(([l,v,s])=>`
+          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:14px 16px">
+            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-bottom:7px">${l}</div>
+            <div style="font-family:'Bebas Neue',serif;font-size:26px;line-height:1;color:var(--ov-txt)">${v}</div>
+            <div style="font-size:10px;color:var(--ov-dim);margin-top:5px;font-weight:300">${s}</div>
+          </div>`).join('')}
+      </div>
+
+      <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:10px">3 derniers matchs <span style="flex:1;height:1px;background:var(--ov-bdr);display:block"></span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:11px;margin-bottom:20px">
+        ${matchCards.replace(/var\(--bg2\)/g,'#fff').replace(/var\(--bg3\)/g,'#f8f7f4').replace(/var\(--bdr\)/g,'rgba(0,0,0,.08)').replace(/var\(--txt-m\)/g,'#6b6455').replace(/var\(--txt\)/g,'#1a1814').replace(/class="tag tt"/g,'class="tag tt" style="background:#eef3fc;color:#2a5080"').replace(/class="tag tm"/g,'class="tag tm" style="background:#fdf0f0;color:#8c3030"').replace(/class="tag tg"/g,'class="tag tg" style="background:#faf7ef;color:#a07828"') || '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--ov-dim);font-size:13px;font-style:italic">Aucun match cette saison.</div>'}
+      </div>
+
+      <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:10px">Prochains rendez-vous <span style="flex:1;height:1px;background:var(--ov-bdr);display:block"></span></div>
+      <div style="background:#fff;border:1px dashed var(--ov-bdr);border-radius:12px;padding:28px 20px;text-align:center;color:var(--ov-dim);font-size:13px;font-style:italic">Les prochains événements apparaîtront ici dès que le calendrier est renseigné.</div>
+    </div>`;
 }
 
 /* NAV */
@@ -372,7 +427,7 @@ function demo(){
   ST=[{id:'s1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-20'}},'Distance parcourue (m)':{number:10842},'Nombre de sprint':{number:18},'Vmax':{number:34.8},'Accmax':{number:7.2},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:892},'But(s) marqué(s)':{number:1},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'Lyon'}}}},{id:'s2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-06'}},'Distance parcourue (m)':{number:9240},'Nombre de sprint':{number:12},'Vmax':{number:33.1},'Accmax':{number:6.9},'⏱️ Temps de jeu':{number:72},'Titulaire/remplaçant':{select:{name:'Remplaçant'}},'Distance en sprint (m)':{number:620},'But(s) marqué(s)':{number:0},'Résultats':{select:{name:'Nul'}},'Adversaire':{select:{name:'Nice'}}}}];
   NU=[];
   document.getElementById('sync-info').textContent='Mode démo · Notion non connecté';
-  hero();ov();pf();mx();nu();
+  hero();ov();
 }
 
 function fd(s,sh=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('fr-FR',sh?{day:'2-digit',month:'short'}:{day:'numeric',month:'long',year:'numeric'})}
