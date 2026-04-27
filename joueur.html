@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace Athlète — Julie Bastière Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c1:#004170;--c2:#DA291C;
+  --bg:#0a0a0c;--bg2:#111114;--bg3:#16161a;
+  --bdr:rgba(255,255,255,.06);--bdr2:rgba(255,255,255,.11);
+  --txt:#f0ede8;--txt-m:#8a8680;--txt-d:#4a4844;
+  --gold:#c9a84c;--r:12px
+}
+/* CLUB THEMES */
+[data-club="PSG"]{--c1:#004170;--c2:#DA291C}
+[data-club="OM"],[data-club="Marseille"]{--c1:#009EDF;--c2:#FFFFFF}
+[data-club="Lens"]{--c1:#F9B000;--c2:#DA121A}
+[data-club="Lyon"]{--c1:#003D8F;--c2:#D81920}
+[data-club="Monaco"]{--c1:#E8002D;--c2:#FFFFFF}
+[data-club="Nice"]{--c1:#1D1B4E;--c2:#C8102E}
+[data-club="Lille"]{--c1:#D10A0A;--c2:#F5F5F5}
+[data-club="Rennes"]{--c1:#1B1B1B;--c2:#D21F3C}
+[data-club="Nantes"]{--c1:#F9B000;--c2:#1B5E20}
+[data-club="Bordeaux"]{--c1:#1A1A40;--c2:#FFFFFF}
+[data-club="Strasbourg"]{--c1:#003F8A;--c2:#FFFFFF}
+[data-club="Juventus"]{--c1:#1a1a1a;--c2:#FFFFFF}
+[data-club="Real Madrid"]{--c1:#FEBE10;--c2:#00529F}
+[data-club="Barcelona"]{--c1:#004D98;--c2:#A50044}
+[data-club="Arsenal"]{--c1:#EF0107;--c2:#FFFFFF}
+[data-club="Chelsea"]{--c1:#034694;--c2:#FFFFFF}
+[data-club="Bayern"]{--c1:#DC052D;--c2:#0066B2}
+[data-club="Manchester City"]{--c1:#6CABDD;--c2:#1C2C5B}
+
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+
+/* HERO */
+.hero{position:relative;min-height:320px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,var(--c1) 0%,color-mix(in srgb,var(--c1) 50%,#000) 55%,#0a0a0c 100%);z-index:0}
+.hero-glow{position:absolute;top:-80px;right:-80px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c2) 25%,transparent) 0%,transparent 70%);z-index:1}
+.hero-pattern{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 38px,rgba(255,255,255,.015) 38px,rgba(255,255,255,.015) 39px)}
+.hero-stripe{position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c1));z-index:3}
+.hero-body{position:relative;z-index:2;padding:28px 32px 32px;display:flex;align-items:flex-end;gap:24px}
+.photo-wrap{position:relative;flex-shrink:0}
+.photo{width:106px;height:106px;border-radius:50%;object-fit:cover;border:3px solid var(--c2);background:rgba(0,0,0,.4);display:block}
+.photo-init{width:106px;height:106px;border-radius:50%;border:3px solid var(--c2);background:color-mix(in srgb,var(--c1) 35%,#000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:34px;color:rgba(255,255,255,.4);letter-spacing:.05em}
+.status-dot{position:absolute;bottom:5px;right:5px;width:15px;height:15px;border-radius:50%;border:2px solid var(--bg)}
+.sd-dispo{background:#4caf7d}.sd-blesse{background:#e57373}.sd-reeda{background:#ffb74d}.sd-indispo{background:#78909c}
+.hero-info{flex:1;min-width:0}
+.club-line{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:7px}
+.club-pip{width:7px;height:7px;border-radius:50%;background:var(--c2);flex-shrink:0}
+.hero-name{font-family:'Bebas Neue',serif;font-size:clamp(34px,5.5vw,56px);line-height:.92;color:#fff;letter-spacing:.04em;margin-bottom:10px;text-shadow:0 2px 20px rgba(0,0,0,.4)}
+.htags{display:flex;flex-wrap:wrap;gap:6px}
+.htag{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.13);color:rgba(255,255,255,.65);background:rgba(255,255,255,.05)}
+.htag.hl{background:var(--c2);border-color:var(--c2);color:#fff}
+.hero-right{flex-shrink:0;text-align:right}
+.statut-pill{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:20px}
+.sp-dispo{background:rgba(76,175,125,.14);color:#4caf7d;border:1px solid rgba(76,175,125,.22)}
+.sp-blesse{background:rgba(229,115,115,.14);color:#e57373;border:1px solid rgba(229,115,115,.22)}
+.sp-reeda{background:rgba(255,183,77,.14);color:#ffb74d;border:1px solid rgba(255,183,77,.22)}
+.sp-indispo{background:rgba(120,144,156,.14);color:#78909c;border:1px solid rgba(120,144,156,.22)}
+
+/* NAV */
+.nav{background:var(--bg2);border-bottom:1px solid var(--bdr);display:flex;padding:0 32px;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:100}
+.nav::-webkit-scrollbar{display:none}
+.nav-t{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--txt-d);padding:13px 16px 12px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;user-select:none}
+.nav-t.active{color:var(--c2);border-bottom-color:var(--c2)}
+.nav-t:hover:not(.active){color:var(--txt-m)}
+
+/* MAIN */
+.main{padding:24px 32px;max-width:1080px}
+.main:has(#s-matchs.active),.main:has(#s-performance.active),.main:has(#s-nutrition.active){padding:12px 0 0;max-width:100%}
+.sec{display:none;animation:fu .3s ease}.sec.active{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* KPI */
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:18px}
+.kc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:15px 17px;position:relative;overflow:hidden;transition:border-color .2s}
+.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--c1),var(--c2));opacity:0;transition:opacity .2s}
+.kc:hover::after{opacity:1}.kc:hover{border-color:var(--bdr2)}
+.kl{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-d);font-weight:600;margin-bottom:7px}
+.kv{font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:var(--txt);letter-spacing:.02em}
+.kv.a{color:var(--c2)}.kv.g{color:var(--gold)}
+.ks{font-size:10px;color:var(--txt-d);margin-top:5px;font-weight:300}
+
+/* SECTION TITLE */
+.st{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-d);font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:10px}
+.st::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.sep{height:1px;background:var(--bdr);margin:22px 0}
+
+/* PROFIL */
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.pc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:17px 19px;position:relative;overflow:hidden}
+.pc::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--c1),var(--c2))}
+.pt{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-d);font-weight:600;margin-bottom:7px}
+.pv{font-family:'Bebas Neue',serif;font-size:20px;color:var(--txt);letter-spacing:.04em;margin-bottom:5px}
+.pd{font-size:12px;color:var(--txt-m);font-weight:300;line-height:1.6}
+
+/* NORMES */
+.ng{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:18px}
+.nc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 15px}
+.nl{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-d);font-weight:600;margin-bottom:7px}
+.nr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px}
+.nv{font-family:'Bebas Neue',serif;font-size:20px;color:var(--txt)}
+.nt{font-size:10px;color:var(--txt-d)}
+.nb{height:3px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.nf{height:100%;border-radius:3px;transition:width 1s ease}
+.nf.ok{background:linear-gradient(90deg,var(--c1),var(--c2))}.nf.warn{background:#ffb74d}.nf.nope{background:#e57373}
+.nch{display:inline-block;font-family:'Syne',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-top:6px}
+.nch.ok{background:rgba(76,175,125,.1);color:#4caf7d}.nch.warn{background:rgba(255,183,77,.1);color:#ffb74d}.nch.nope{background:rgba(229,115,115,.1);color:#e57373}
+
+/* RAPPORT */
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:11px;margin-bottom:18px}
+.rc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.rh{padding:10px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--bg3)}
+.rt{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-d);font-weight:600}
+.rd{font-size:11px;color:var(--txt-m);font-weight:300}
+.rb{padding:13px 15px}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr)}
+.sr:last-child{border-bottom:none}
+.sl{font-size:12px;color:var(--txt-m);font-weight:300}
+.sv{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--txt)}
+
+/* ENTRÉES PRO */
+.eg{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px;margin-bottom:20px}
+.ec{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:17px 18px;cursor:pointer;text-decoration:none;color:inherit;display:flex;align-items:center;gap:13px;transition:border-color .15s,transform .15s;position:relative;overflow:hidden}
+.ec::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--c1) 7%,transparent),color-mix(in srgb,var(--c2) 4%,transparent));opacity:0;transition:opacity .2s}
+.ec:hover::before{opacity:1}.ec:hover{border-color:color-mix(in srgb,var(--c2) 35%,transparent);transform:translateY(-2px)}
+.ei{width:40px;height:40px;border-radius:10px;background:color-mix(in srgb,var(--c1) 14%,transparent);border:1px solid color-mix(in srgb,var(--c1) 28%,transparent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;position:relative;z-index:1}
+.et{flex:1;min-width:0;position:relative;z-index:1}
+.el{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--txt);margin-bottom:3px;letter-spacing:.03em}
+.es{font-size:11px;color:var(--txt-d);font-weight:300}
+.ea{font-size:13px;color:var(--txt-d);position:relative;z-index:1;transition:color .15s,transform .15s}
+.ec:hover .ea{color:var(--c2);transform:translateX(3px)}
+
+/* INFO */
+.ic{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.ir{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--bdr);gap:14px}
+.ir:last-child{border-bottom:none}
+.il{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-d);font-weight:600;min-width:150px}
+.iv{font-size:12px;color:var(--txt);text-align:right}
+
+/* CHART */
+.cc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cht{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-d);font-weight:600}
+.cw{position:relative;height:175px}
+
+/* TAGS */
+.tag{display:inline-block;font-family:'Syne',sans-serif;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.tm{background:rgba(229,115,115,.1);color:#e57373}
+.tt{background:color-mix(in srgb,var(--c1) 12%,transparent);color:color-mix(in srgb,var(--c1) 90%,white)}
+.tg{background:rgba(201,168,76,.1);color:var(--gold)}
+
+/* IFRAME DASHBOARDS */
+.dash-frame{width:100%;height:calc(100vh - 130px);border:none;border-radius:var(--r);display:block;background:var(--bg2)}
+.sec.active.iframe-sec{padding:0}
+
+/* SKELETON / EMPTY */
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;color:transparent!important}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.empty{padding:36px 20px;text-align:center;color:var(--txt-d);font-size:13px;font-style:italic}
+
+/* FOOTER */
+.footer{margin-top:36px;padding:18px 32px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.fb{font-family:'Bebas Neue',serif;font-size:15px;color:var(--txt-d);letter-spacing:.06em}
+.fs{font-size:10px;color:var(--txt-d);font-weight:300;margin-top:2px}
+.fr{font-size:10px;color:var(--txt-d);text-align:right;font-weight:300}
+
+@media(max-width:600px){
+  .hero-body{padding:18px;flex-direction:column;align-items:flex-start;gap:14px}
+  .main{padding:18px 14px}.nav{padding:0 14px}
+  .pg{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="hero-wrap"></div>
+
+<div class="nav" id="main-nav">
+  <div class="nav-t active" onclick="sw('overview',this)">Vue d'ensemble</div>
+  <div class="nav-t" onclick="sw('matchs',this)">Matchs</div>
+  <div class="nav-t" onclick="sw('performance',this)">Performance</div>
+  <div class="nav-t" onclick="sw('nutrition',this)">Nutrition</div>
+</div>
+
+<div class="main">
+  <div class="sec active" id="s-overview">
+    <!-- Injecté par ov() -->
+  </div>
+
+  <div class="sec" id="s-matchs">
+    <iframe id="iframe-matchs" class="dash-frame" src="" title="Stats Match"></iframe>
+  </div>
+
+  <div class="sec" id="s-performance">
+    <iframe id="iframe-performance" class="dash-frame" src="" title="Performance Athlétique"></iframe>
+  </div>
+
+  <div class="sec" id="s-nutrition">
+    <iframe id="iframe-nutrition" class="dash-frame" src="" title="Nutrition"></iframe>
+  </div>
+</div>
+
+<div class="footer">
+  <div><div class="fb">Julie Bastière</div><div class="fs">Performance Manager</div></div>
+  <div class="fr" id="sync-info">Chargement...</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const PROXY='https://notion-proxy.bastierejulie.workers.dev';
+const DB_J='34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_S='34d69796-db3f-801c-aed5-d8cfa048dbba';
+const DB_T='34d69796-db3f-8047-b6f9-e361371604a9';
+const DB_N='f0596ef8-c95d-4c18-b35a-a647b4325378';
+
+const NORMES={
+  'Excentré':{vmax:35,accmax:7.5,cmj:48,sj:44,vma:18},
+  'Attaquant':{vmax:34,accmax:7.0,cmj:46,sj:42,vma:18},
+  'Milieu offensif':{vmax:32.5,accmax:6.5,cmj:44,sj:40,vma:18},
+  'Milieu défensif':{vmax:31.5,accmax:6.5,cmj:43,sj:39,vma:18},
+  'Latéral':{vmax:33,accmax:7.0,cmj:45,sj:41,vma:18},
+  'Défenseur central':{vmax:31,accmax:6.0,cmj:46,sj:42,vma:18},
+  'Gardien':{vmax:28,accmax:6.5,cmj:55,sj:50,vma:14},
+};
+
+const P=new URLSearchParams(location.search);
+const JID=P.get('id')||null;
+let J=null,ST=[],TS=[],NU=[],CI={};
+
+document.addEventListener('DOMContentLoaded',()=>{loadAll()});
+
+async function nq(db,sorts=[]){
+  const b={page_size:100};if(sorts.length)b.sorts=sorts;
+  const r=await fetch(`${PROXY}/v1/databases/${db}/query`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  if(!r.ok)throw new Error(r.status);return r.json();
+}
+function gt(p){for(const k of Object.keys(p.properties||{})){if(p.properties[k].type==='title')return p.properties[k].title?.[0]?.plain_text||'—'}return '—'}
+function gp(p,k,t='text'){const v=p.properties?.[k];if(!v)return null;
+  if(t==='text')return v.rich_text?.[0]?.plain_text||v.title?.[0]?.plain_text||null;
+  if(t==='select')return v.select?.name||null;
+  if(t==='number')return v.number??null;
+  if(t==='date')return v.date?.start||null;
+  if(t==='url')return v.url||null;
+  if(t==='relation')return v.relation?.map(r=>r.id)||[];
+  return null}
+
+const BASE='https://bastierejulie-maker.github.io/performance-manager';
+
+// URLs des dashboards existants — paramètre ?id= passé automatiquement
+const DASH={
+  matchs:    BASE+'/stats-match.html',
+  performance: BASE+'/athletique.html',
+  nutrition: BASE+'/nutrition.html',
+};
+
+let iframesLoaded={matchs:false,performance:false,nutrition:false};
+
+async function loadAll(){
+  try{
+    const[jr,sr,tr,nr]=await Promise.all([
+      nq(DB_J,[{property:'Nom complet',direction:'ascending'}]),
+      nq(DB_S,[{property:'Date',direction:'descending'}]),
+      nq(DB_T,[{property:'Date',direction:'descending'}]),
+      nq(DB_N,[{property:'Date',direction:'descending'}]),
+    ]);
+    const all=jr.results||[];
+    J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
+    if(!J)throw new Error('no joueur');
+    const jid=J.id;
+    const flt=arr=>arr.filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.length===0||r.includes(jid)});
+    ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);
+    hero();ov();
+    document.getElementById('sync-info').textContent='Notion · actualisé '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){console.warn('démo',e);demo()}
+}
+
+function loadIframe(name){
+  if(iframesLoaded[name]) return;
+  const jid=J?J.id:'';
+  const url=DASH[name]+(jid?'?id='+jid:'');
+  document.getElementById('iframe-'+name).src=url;
+  iframesLoaded[name]=true;
+}
+
+/* HERO */
+function hero(){
+  const nom=gt(J),club=gp(J,'Club actuel','text')||'—',poste=gp(J,'Poste','select')||'—';
+  const statut=gp(J,'Statut','select')||'Disponible',pied=gp(J,'Pied fort','select')||'—';
+  const nat=gp(J,'Nationalité sportive','text')||'—',photo=gp(J,'Photo','url');
+  const ddn=gp(J,'date de naissance','date');
+  const annee=ddn?new Date(ddn).getFullYear():'—';
+  const piedLabel=pied==='Droite'?'Droitier':pied==='Gauche'?'Gaucher':pied==='Les deux'?'Ambidextre':pied;
+  document.body.setAttribute('data-club',club);
+  const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s']/g,'-');
+  const ss=slug(statut);
+  const init=nom.split(' ').slice(0,2).map(n=>n[0]?.toUpperCase()||'').join('');
+  document.getElementById('hero-wrap').innerHTML=`
+    <div class="hero" data-club="${club}">
+      <div class="hero-bg"></div><div class="hero-glow"></div><div class="hero-pattern"></div><div class="hero-stripe"></div>
+      <div class="hero-body">
+        <div class="photo-wrap">
+          ${photo?`<img class="photo" src="${photo}" alt="${nom}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:''}
+          <div class="photo-init" ${photo?'style="display:none"':''}>${init}</div>
+          <div class="status-dot sd-${ss}"></div>
+        </div>
+        <div class="hero-info">
+          <div class="club-line"><span class="club-pip"></span>${club}</div>
+          <div class="hero-name">${nom}</div>
+          <div class="htags">
+            <span class="htag hl">${poste}</span>
+            <span class="htag">${nat}</span>
+            <span class="htag">${piedLabel}</span>
+            <span class="htag">${annee}</span>
+          </div>
+        </div>
+        <div class="hero-right"><div class="statut-pill sp-${ss}">${statut}</div></div>
+      </div>
+    </div>`;
+}
+
+/* OVERVIEW — statut + 3 derniers matchs + prochains RDV */
+function ov(){
+  const statut=gp(J,'Statut','select')||'Disponible';
+  const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s']/g,'-');
+  const ss=slug(statut);
+  const statutIcon={'Disponible':'✅','Blessé':'🤕','En rééducation':'🔄','Indisponible':'⛔'}[statut]||'•';
+  const statutDesc={'Disponible':'Disponible pour l\'entraînement et la compétition','Blessé':'En cours de soin — suivi médical actif','En rééducation':'Programme de rééducation en cours','Indisponible':'Indisponible temporairement'}[statut]||'';
+  const last3=ST.slice(0,3);
+  const matchCards=last3.length?last3.map(s=>{
+    const date=gp(s,'Date','date'),dist=gp(s,'Distance parcourue (m)','number'),spr=gp(s,'Nombre de sprint','number'),vmx=gp(s,'Vmax','number'),tps=gp(s,'⏱️ Temps de jeu','number'),titu=gp(s,'Titulaire/remplaçant','select'),res=gp(s,'Résultats','select'),adv=gp(s,'Adversaire','select'),but=gp(s,'But(s) marqué(s)','number');
+    const rc=res==='Victoire'?'tt':res==='Défaite'?'tm':'tg';
+    return `<div class="rc"><div class="rh"><span class="rt">${adv?'vs '+adv:'Match'}</span><span class="rd">${fd(date)}</span></div><div class="rb"><div style="margin-bottom:8px;display:flex;gap:5px;flex-wrap:wrap">${titu?`<span class="tag tt">${titu}</span>`:''} ${res?`<span class="tag ${rc}">${res}</span>`:''}</div><div class="sr"><span class="sl">Temps de jeu</span><span class="sv">${tps?tps+' min':'—'}</span></div><div class="sr"><span class="sl">Distance</span><span class="sv">${dist?(dist/1000).toFixed(2)+' km':'—'}</span></div><div class="sr"><span class="sl">Sprints</span><span class="sv">${spr??'—'}</span></div><div class="sr"><span class="sl">Vmax</span><span class="sv">${vmx?vmx.toFixed(1)+' km/h':'—'}</span></div>${but?`<div class="sr"><span class="sl">But(s)</span><span class="sv">${but}</span></div>`:''}</div></div>`;
+  }).join(''):`<div class="empty">Aucun match enregistré pour le moment.</div>`;
+  document.getElementById('s-overview').innerHTML=`
+    <div class="st">État actuel</div>
+    <div class="kc" style="margin-bottom:18px;display:flex;align-items:center;gap:16px;padding:18px 20px">
+      <div style="font-size:26px">${statutIcon}</div>
+      <div><div class="statut-pill sp-${ss}" style="margin-bottom:6px;display:inline-block">${statut}</div><div style="font-size:12px;color:var(--txt-m);font-weight:300">${statutDesc}</div></div>
+    </div>
+    <div class="st">3 derniers matchs</div>
+    <div class="rg">${matchCards}</div>
+    <div class="sep"></div>
+    <div class="st">Prochains rendez-vous</div>
+    <div id="ov-rdv"><div class="empty">Les prochains événements apparaîtront ici dès que le calendrier est renseigné.</div></div>`;
+}
+
+/* NAV */
+function sw(name,el){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-t').forEach(t=>t.classList.remove('active'));
+  document.getElementById('s-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='matchs'||name==='performance'||name==='nutrition') loadIframe(name);
+}
+
+/* DEMO */
+function demo(){
+  J={id:'d',properties:{'Nom complet':{type:'title',title:[{plain_text:'Joueur Template'}]},'Club actuel':{rich_text:[{plain_text:'PSG'}]},'Poste':{select:{name:'Excentré'}},'Statut':{select:{name:'Disponible'}},'Pied fort':{select:{name:'Droite'}},'Nationalité sportive':{rich_text:[{plain_text:'Française'}]},'Motricité':{select:{name:'Extension'}},'Fibres':{select:{name:'Rapides'}},'Poids (kg)':{number:78},'Taille (cm)':{number:182},'Score réflexes':{number:38},'Profil réflexes':{select:{name:'Moyen'}},'date de naissance':{date:{start:'2000-04-23'}},'Photo':{url:null}}};
+  TS=[{id:'t1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-15'}},'CMJ (cm)':{number:50.2},'SJ (cm)':{number:45.8},'VMA (km/h)':{number:18.5},'Vmax':{number:35.2},'Broad jump':{number:2.65},'Saison':{select:{name:'2024-2025'}}}},{id:'t2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2024-10-10'}},'CMJ (cm)':{number:47.5},'SJ (cm)':{number:43.0},'VMA (km/h)':{number:17.8},'Vmax':{number:34.1},'Broad jump':{number:2.52},'Saison':{select:{name:'2024-2025'}}}}];
+  ST=[{id:'s1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-20'}},'Distance parcourue (m)':{number:10842},'Nombre de sprint':{number:18},'Vmax':{number:34.8},'Accmax':{number:7.2},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:892},'But(s) marqué(s)':{number:1},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'Lyon'}}}},{id:'s2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-06'}},'Distance parcourue (m)':{number:9240},'Nombre de sprint':{number:12},'Vmax':{number:33.1},'Accmax':{number:6.9},'⏱️ Temps de jeu':{number:72},'Titulaire/remplaçant':{select:{name:'Remplaçant'}},'Distance en sprint (m)':{number:620},'But(s) marqué(s)':{number:0},'Résultats':{select:{name:'Nul'}},'Adversaire':{select:{name:'Nice'}}}}];
+  NU=[];
+  document.getElementById('sync-info').textContent='Mode démo · Notion non connecté';
+  hero();ov();pf();mx();nu();
+}
+
+function fd(s,sh=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('fr-FR',sh?{day:'2-digit',month:'short'}:{day:'numeric',month:'long',year:'numeric'})}
+</script>
+</body>
+</html>
