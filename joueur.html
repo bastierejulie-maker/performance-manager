@@ -417,6 +417,14 @@ function ov(saisonFilter){
 }
 
 
+function calcDuree(b){
+  const debut=gp(b,'Date','date');
+  const reprise=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');
+  if(!debut) return null;
+  const end=reprise?new Date(reprise):new Date();
+  return Math.floor((end-new Date(debut))/(1000*60*60*24));
+}
+
 /* SANTÉ */
 function sante(saisonFilter,typeFilter,zoneFilter){
   const saisons=[...new Set(BL.map(b=>gp(b,'Saison','select')).filter(Boolean))].sort().reverse();
@@ -434,7 +442,7 @@ function sante(saisonFilter,typeFilter,zoneFilter){
 
   // Stats globales
   const nTotal=bFilt.length;
-  const durees=bFilt.filter(b=>gp(b,"Durée d'absence match",'number')).map(b=>gp(b,"Durée d'absence match",'number'));
+  const durees=bFilt.filter(b=>calcDuree(b)).map(b=>calcDuree(b));
   const dureeTotal=durees.reduce((a,v)=>a+v,0);
   const dureeMoy=durees.length?Math.round(dureeTotal/durees.length):0;
   const nRecidives=bFilt.filter(b=>b.properties?.Rechute?.checkbox).length;
@@ -550,7 +558,7 @@ function sante(saisonFilter,typeFilter,zoneFilter){
         ${last3.length?last3.map(b=>{
           const nom=gt(b),zone=gp(b,'Zone/ Localité','select')||'—',type=gp(b,'Type','select')||'—';
           const debut=gp(b,'Date','date'),retour=gp(b,'Date de retour match','date');
-          const duree=gp(b,"Durée d'absence match",'number'),gravite=gp(b,'Gravité','select')||'—';
+          const duree=calcDuree(b),gravite=gp(b,'Gravité','select')||'—';
           const meca=gp(b,'Mécanisme','select')||'—',contexte=gp(b,'Match ou entraînement','select')||'—';
           const traitement=gp(b,'Traitement','text')||'—',rechute=b.properties?.Rechute?.checkbox;
           const gCol=gravColors[gravite]||'#9a907e';
@@ -590,7 +598,7 @@ function sante(saisonFilter,typeFilter,zoneFilter){
             <tbody>
               ${bFilt.length?bFilt.map(b=>{
                 const zone=gp(b,'Zone/ Localité','select')||'—',type=gp(b,'Type','select')||'—';
-                const duree=gp(b,"Durée d'absence match",'number'),gravite=gp(b,'Gravité','select')||'—';
+                const duree=calcDuree(b),gravite=gp(b,'Gravité','select')||'—';
                 const rechute=b.properties?.Rechute?.checkbox,debut=gp(b,'Date','date');
                 const gCol=gravColors[gravite]||'#9a907e';
                 return `<tr style="border-bottom:1px solid #f0ede8">
