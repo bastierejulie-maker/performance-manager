@@ -188,6 +188,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
   <div class="nav-t" onclick="sw('matchs',this)">Matchs</div>
   <div class="nav-t" onclick="sw('performance',this)">Performance</div>
   <div class="nav-t" onclick="sw('nutrition',this)">Nutrition</div>
+  <div class="nav-t" onclick="sw('sante',this)">Santé</div>
 </div>
 
 <div class="main">
@@ -206,6 +207,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
   <div class="sec" id="s-nutrition">
     <div id="wrap-nutrition" class="dash-wrap">Chargement...</div>
   </div>
+  <div class="sec" id="s-sante" style="background:var(--ov-bg);padding:24px 32px;min-height:100%">
+    <!-- Injecté par sante() -->
+  </div>
 </div>
 
 <div class="footer">
@@ -220,6 +224,7 @@ const DB_J='34b69796-db3f-8002-9344-eba7a2c4dbe4';
 const DB_S='34d69796-db3f-801c-aed5-d8cfa048dbba';
 const DB_T='34d69796-db3f-8047-b6f9-e361371604a9';
 const DB_N='f0596ef8-c95d-4c18-b35a-a647b4325378';
+const DB_B='34d69796-db3f-80ec-8721-c4ec84c7bc53';
 
 const NORMES={
   'Excentré':{vmax:35,accmax:7.5,cmj:48,sj:44,vma:18},
@@ -233,7 +238,7 @@ const NORMES={
 
 const P=new URLSearchParams(location.search);
 const JID=P.get('id')||null;
-let J=null,ST=[],TS=[],NU=[],CI={};
+let J=null,ST=[],TS=[],NU=[],BL=[],CI={};
 
 document.addEventListener('DOMContentLoaded',()=>{loadAll()});
 
@@ -265,18 +270,19 @@ let iframesLoaded={matchs:false,performance:false,nutrition:false};
 
 async function loadAll(){
   try{
-    const[jr,sr,tr,nr]=await Promise.all([
+    const[jr,sr,tr,nr,br]=await Promise.all([
       nq(DB_J,[{property:'Nom complet',direction:'ascending'}]),
       nq(DB_S,[{property:'Date',direction:'descending'}]),
       nq(DB_T,[{property:'Date',direction:'descending'}]),
       nq(DB_N,[{property:'Date',direction:'descending'}]),
+      nq(DB_B,[{property:'Date',direction:'descending'}]),
     ]);
     const all=jr.results||[];
     J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
     if(!J)throw new Error('no joueur');
     const jid=J.id;
     const flt=arr=>arr.filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.length===0||r.includes(jid)});
-    ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);
+    ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
     hero();ov();
     document.getElementById('sync-info').textContent='Notion · actualisé '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   }catch(e){console.warn('démo',e);demo()}
@@ -410,6 +416,214 @@ function ov(saisonFilter){
     </div>`;
 }
 
+
+/* SANTÉ */
+function sante(saisonFilter,typeFilter,zoneFilter){
+  const saisons=[...new Set(BL.map(b=>gp(b,'Saison','select')).filter(Boolean))].sort().reverse();
+  if(!saisonFilter) saisonFilter='all';
+
+  let bFilt=BL;
+  if(saisonFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Saison','select')===saisonFilter);
+  if(typeFilter&&typeFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Type','select')===typeFilter);
+  if(zoneFilter&&zoneFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Zone/ Localité','select')===zoneFilter);
+
+  // Jours depuis dernière blessure
+  const sorted=BL.filter(b=>gp(b,'Date de retour match','date')).sort((a,b2)=>gp(b2,'Date retour','date')?.localeCompare(gp(a,'Date retour','date')));
+  const lastReturn=sorted[0]?gp(sorted[0],'Date retour','date'):null;
+  const joursSans=lastReturn?Math.floor((new Date()-new Date(lastReturn))/(1000*60*60*24)):null;
+
+  // Stats globales
+  const nTotal=bFilt.length;
+  const durees=bFilt.filter(b=>gp(b,"Durée d'absence match",'number')).map(b=>gp(b,"Durée d'absence match",'number'));
+  const dureeTotal=durees.reduce((a,v)=>a+v,0);
+  const dureeMoy=durees.length?Math.round(dureeTotal/durees.length):0;
+  const nRecidives=bFilt.filter(b=>b.properties?.Rechute?.checkbox).length;
+
+  // Par saison pour ratio
+  const parSaison={};
+  BL.forEach(b=>{const s=gp(b,'Saison','select')||'?';parSaison[s]=(parSaison[s]||0)+1;});
+
+  // Par zone pour camembert
+  const parZone={};
+  bFilt.forEach(b=>{const z=gp(b,'Zone/ Localité','select')||'Autre';parZone[z]=(parZone[z]||0)+1;});
+
+  // Par type
+  const parType={};
+  bFilt.forEach(b=>{const t=gp(b,'Type','select')||'Autre';parType[t]=(parType[t]||0)+1;});
+
+  // Prévention — zones à risque (zones avec 2+ blessures)
+  const zonesRisque=Object.entries(parZone).filter(([z,n])=>n>=1).sort((a,b2)=>b2[1]-a[1]);
+
+  const saisonOpts=['all',...saisons].map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s==='all'?'Toutes saisons':s}</option>`).join('');
+  const types=[...new Set(BL.map(b=>gp(b,'Type','select')).filter(Boolean))];
+  const zones=[...new Set(BL.map(b=>gp(b,'Zone/ Localité','select')).filter(Boolean))];
+  const typeOpts=['all',...types].map(t=>`<option value="${t}" ${t===(typeFilter||'all')?'selected':''}>${t==='all'?'Tous types':t}</option>`).join('');
+  const zoneOpts=['all',...zones].map(z=>`<option value="${z}" ${z===(zoneFilter||'all')?'selected':''}>${z==='all'?'Toutes zones':z}</option>`).join('');
+
+  // 3 dernières blessures
+  const last3=bFilt.slice(0,3);
+
+  const gravColors={'Légère < 7j':'#2d7a4f','Modérée 7-28j':'#a06428','Sévère > 28j':'#8c3030','Très sévère > 84j':'#6a1a1a'};
+  const typeColors={'Musculaire':'#e57373','Articulaire':'#ffb74d','Osseuse':'#ffd54f','Ligamentaire':'#ef5350','Tendineuse':'#ffa726','Contusion':'#64b5f6','Autre':'#90a4ae'};
+
+  const zoneColors=['#e57373','#ffb74d','#64b5f6','#81c784','#ba68c8','#4db6ac','#ff8a65','#a1887f','#90a4ae'];
+
+  document.getElementById('s-sante').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">Suivi Santé & Épidémiologie</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select onchange="sante(this.value,'${typeFilter||'all'}','${zoneFilter||'all'}')" style="font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${saisonOpts}</select>
+        <select onchange="sante('${saisonFilter}',this.value,'${zoneFilter||'all'}')" style="font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${typeOpts}</select>
+        <select onchange="sante('${saisonFilter}','${typeFilter||'all'}',this.value)" style="font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${zoneOpts}</select>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <!-- COLONNE GAUCHE -->
+      <div>
+        <!-- KPIs -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:${joursSans===null?'#9a907e':joursSans>90?'#2d7a4f':joursSans>30?'#a06428':'#8c3030'}">${joursSans===null?'—':joursSans}</div>
+            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Jours sans blessure</div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:var(--ov-txt)">${nTotal}</div>
+            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Blessures (filtre actif)</div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:var(--ov-txt)">${dureeMoy}<span style="font-size:16px">j</span></div>
+            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Durée moyenne</div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:${nRecidives>0?'#8c3030':'#2d7a4f'}">${nRecidives}</div>
+            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Récidives</div>
+          </div>
+        </div>
+
+        <!-- PRÉVENTION -->
+        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;margin-bottom:16px">
+          <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Zones à surveiller</div>
+          ${zonesRisque.length?zonesRisque.slice(0,6).map(([z,n],i)=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ov-bdr)">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:8px;height:8px;border-radius:50%;background:${zoneColors[i%zoneColors.length]};flex-shrink:0"></div>
+                <span style="font-size:13px;color:var(--ov-txt);font-weight:400">${z}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="height:4px;width:60px;background:#f0ede8;border-radius:4px;overflow:hidden">
+                  <div style="height:100%;width:${Math.round(n/nTotal*100)}%;background:${zoneColors[i%zoneColors.length]};border-radius:4px"></div>
+                </div>
+                <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--ov-txt)">${n}</span>
+              </div>
+            </div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--ov-dim);font-size:13px;font-style:italic">Aucune donnée</div>'}
+        </div>
+
+        <!-- RATIO PAR SAISON -->
+        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;margin-bottom:16px">
+          <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Blessures par saison</div>
+          ${Object.entries(parSaison).sort((a,b2)=>b2[0].localeCompare(a[0])).map(([s,n])=>`
+            <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--ov-bdr)">
+              <span style="font-size:12px;color:var(--ov-muted);min-width:80px">${s}</span>
+              <div style="flex:1;height:4px;background:#f0ede8;border-radius:4px;overflow:hidden">
+                <div style="height:100%;width:${Math.round(n/Math.max(...Object.values(parSaison))*100)}%;background:color-mix(in srgb,var(--c2) 70%,transparent);border-radius:4px"></div>
+              </div>
+              <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--ov-txt);min-width:20px;text-align:right">${n}</span>
+            </div>`).join('')}
+        </div>
+
+        <!-- CAMEMBERT -->
+        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px">
+          <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Répartition par type</div>
+          <div style="position:relative;height:180px"><canvas id="pie-sante" role="img" aria-label="Répartition des blessures par type">Données blessures.</canvas></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+            ${Object.entries(parType).map(([t,n],i)=>`<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${(Object.values(typeColors)[i%7])}22;color:${(Object.values(typeColors)[i%7])};font-family:'Syne',sans-serif;font-weight:600">${t} (${n})</span>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- COLONNE DROITE -->
+      <div>
+        <!-- 3 DERNIÈRES BLESSURES -->
+        <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">3 dernières blessures</div>
+        ${last3.length?last3.map(b=>{
+          const nom=gt(b),zone=gp(b,'Zone/ Localité','select')||'—',type=gp(b,'Type','select')||'—';
+          const debut=gp(b,'Date','date'),retour=gp(b,'Date de retour match','date');
+          const duree=gp(b,"Durée d'absence match",'number'),gravite=gp(b,'Gravité','select')||'—';
+          const meca=gp(b,'Mécanisme','select')||'—',contexte=gp(b,'Match ou entraînement','select')||'—';
+          const traitement=gp(b,'Traitement','text')||'—',rechute=b.properties?.Rechute?.checkbox;
+          const gCol=gravColors[gravite]||'#9a907e';
+          return `<div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;overflow:hidden;margin-bottom:12px">
+            <div style="padding:10px 14px;background:#f8f7f4;border-bottom:1px solid var(--ov-bdr);display:flex;align-items:center;justify-content:space-between">
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--ov-txt)">${zone} — ${type}</span>
+              <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${gCol}18;color:${gCol};font-family:'Syne',sans-serif;font-weight:600">${gravite}</span>
+            </div>
+            <div style="padding:12px 14px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Début</div><div style="font-size:12px;color:var(--ov-txt)">${debut?new Date(debut).toLocaleDateString('fr-FR'):'—'}</div></div>
+                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Retour</div><div style="font-size:12px;color:var(--ov-txt)">${retour?new Date(retour).toLocaleDateString('fr-FR'):'En cours'}</div></div>
+                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Durée</div><div style="font-size:12px;color:var(--ov-txt);font-weight:500">${duree?duree+'j':'—'}</div></div>
+                
+                
+                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Récidive</div><div style="font-size:12px;color:${rechute?'#8c3030':'#2d7a4f'};font-weight:500">${rechute?'Oui':'Non'}</div></div>
+              </div>
+              
+            </div>
+          </div>`;
+        }).join(''):`<div style="background:#fff;border:1px dashed var(--ov-bdr);border-radius:12px;padding:30px;text-align:center;color:var(--ov-dim);font-size:13px;font-style:italic">Aucune blessure enregistrée</div>`}
+
+        <!-- TABLEAU ÉPIDÉMIO -->
+        <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px;margin-top:4px">Tableau épidémiologique</div>
+        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead>
+              <tr style="background:#f8f7f4">
+                <th style="padding:10px 12px;text-align:left;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Blessure</th>
+                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Zone</th>
+                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Type</th>
+                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Durée</th>
+                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Gravité</th>
+                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Récidive</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bFilt.length?bFilt.map(b=>{
+                const zone=gp(b,'Zone/ Localité','select')||'—',type=gp(b,'Type','select')||'—';
+                const duree=gp(b,"Durée d'absence match",'number'),gravite=gp(b,'Gravité','select')||'—';
+                const rechute=b.properties?.Rechute?.checkbox,debut=gp(b,'Date','date');
+                const gCol=gravColors[gravite]||'#9a907e';
+                return `<tr style="border-bottom:1px solid #f0ede8">
+                  <td style="padding:9px 12px;color:var(--ov-txt);font-weight:500">${debut?new Date(debut).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
+                  <td style="padding:9px 8px;text-align:center;color:var(--ov-muted)">${zone}</td>
+                  <td style="padding:9px 8px;text-align:center;color:var(--ov-muted)">${type}</td>
+                  <td style="padding:9px 8px;text-align:center;font-weight:500;color:var(--ov-txt)">${duree?duree+'j':'—'}</td>
+                  <td style="padding:9px 8px;text-align:center"><span style="font-size:9px;padding:2px 7px;border-radius:20px;background:${gCol}18;color:${gCol};font-family:'Syne',sans-serif;font-weight:600">${gravite.split(' ')[0]}</span></td>
+                  <td style="padding:9px 8px;text-align:center;color:${rechute?'#8c3030':'#2d7a4f'};font-weight:500">${rechute?'Oui':'Non'}</td>
+                </tr>`;
+              }).join(''):`<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--ov-dim);font-style:italic">Aucune blessure pour ce filtre</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+
+  // Camembert
+  setTimeout(()=>{
+    const ctx=document.getElementById('pie-sante');
+    if(!ctx||!Object.keys(parType).length) return;
+    if(CI.pie) CI.pie.destroy();
+    CI.pie=new Chart(ctx,{
+      type:'doughnut',
+      data:{
+        labels:Object.keys(parType),
+        datasets:[{data:Object.values(parType),backgroundColor:Object.keys(parType).map((_,i)=>Object.values(typeColors)[i%7]+'cc'),borderWidth:2,borderColor:'#fff'}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+' ('+Math.round(c.parsed/Object.values(parType).reduce((a,v)=>a+v,0)*100)+'%)'}}},cutout:'60%'}
+    });
+  },100);
+}
+
 /* NAV */
 function sw(name,el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
@@ -417,6 +631,7 @@ function sw(name,el){
   document.getElementById('s-'+name).classList.add('active');
   el.classList.add('active');
   if(name==='matchs'||name==='performance'||name==='nutrition') loadIframe(name);
+  if(name==='sante') sante();
 }
 
 /* DEMO */
