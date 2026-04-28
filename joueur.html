@@ -254,7 +254,7 @@ function gp(p,k,t='text'){const v=p.properties?.[k];if(!v)return null;
   if(t==='number')return v.number??null;
   if(t==='date')return v.date?.start||null;
   if(t==='url')return v.url||null;
-  if(t==='relation')return v.relation?.map(r=>r.id)||[];
+  if(t==='relation'){const rel=v.relation||[];return rel.map(r=>r.id||r.url||'').map(id=>id.replace('https://www.notion.so/','').replace(/-/g,''));}
   return null}
 
 const BASE='https://bastierejulie-maker.github.io/performance-manager';
@@ -280,7 +280,7 @@ async function loadAll(){
     const all=jr.results||[];
     J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
     if(!J)throw new Error('no joueur');
-    const jid=J.id;
+    const jid=J.id.replace(/-/g,'');
     const flt=arr=>arr.filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.length===0||r.includes(jid)});
     ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
     hero();ov();
