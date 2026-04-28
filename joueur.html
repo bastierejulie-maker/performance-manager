@@ -280,8 +280,20 @@ async function loadAll(){
     const all=jr.results||[];
     J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
     if(!J)throw new Error('no joueur');
-    const jid=J.id.replace(/-/g,'');
-    const flt=arr=>arr.filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.length===0||r.includes(jid)});
+    const jid=J.id;
+    const jid_nd=jid.replace(/-/g,'');
+    const flt=arr=>{
+      const withRel=arr.filter(x=>{
+        const r=gp(x,'Joueur','relation')||[];
+        if(r.length===0) return false;
+        return r.some(id=>{
+          const id_nd=id.replace(/-/g,'');
+          return id===jid||id_nd===jid_nd||id===jid_nd||id_nd===jid.replace(/-/g,'');
+        });
+      });
+      // Si aucune entrée reliée, on prend tout (base est sous-page du joueur)
+      return withRel.length>0?withRel:arr;
+    };
     ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
     hero();ov();
     document.getElementById('sync-info').textContent='Notion · actualisé '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
