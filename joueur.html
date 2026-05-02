@@ -441,10 +441,38 @@ function sante(saisonFilter,typeFilter,zoneFilter){
   if(typeFilter&&typeFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Type','select')===typeFilter);
   if(zoneFilter&&zoneFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Zone/ Localité','select')===zoneFilter);
 
-  // Jours depuis dernière blessure
-  const sorted=BL.filter(b=>gp(b,'Date de retour match','date')).sort((a,b2)=>gp(b2,'Date de retour match','date')?.localeCompare(gp(a,'Date de retour match','date')));
-  const lastReturn=sorted[0]?gp(sorted[0],'Date de retour match','date'):null;
-  const joursSans=lastReturn?Math.floor((new Date()-new Date(lastReturn))/(1000*60*60*24)):null;
+  // Jours sans blessure = Date de reprise entraînement de la dernière blessure → aujourd'hui
+  // Si blessure active en cours → jours depuis le début de cette blessure (compteur négatif = temps hors terrain)
+  const today=new Date();
+  today.setHours(0,0,0,0);
+
+  // Blessure active = pas de date de reprise entraînement encore
+  const blessureActive=BL.find(b=>{
+    const s=gp(b,'Statut','select')||'';
+    return s.includes('En cours')||s.includes('rééducation');
+  });
+
+  let joursSans=null;
+
+  if(blessureActive){
+    // Afficher depuis quand la blessure a commencé
+    const debut=gp(blessureActive,'Date','date');
+    if(debut){
+      const diff=Math.floor((today-new Date(debut))/(1000*60*60*24));
+      joursSans=-Math.max(0,diff); // négatif = blessure active, valeur = jours depuis le début
+    } else {
+      joursSans=-1;
+    }
+  } else {
+    // Pas de blessure active → trier par Date de reprise entraînement desc
+    const sorted=BL.filter(b=>gp(b,'Date de reprise entrainement','date'))
+      .sort((a,b2)=>gp(b2,'Date de reprise entrainement','date').localeCompare(gp(a,'Date de reprise entrainement','date')));
+    const lastReprise=sorted[0]?gp(sorted[0],'Date de reprise entrainement','date'):null;
+    if(lastReprise){
+      const diff=Math.floor((today-new Date(lastReprise))/(1000*60*60*24));
+      joursSans=Math.max(0,diff);
+    }
+  }
 
   // Stats globales
   const nTotal=bFilt.length;
@@ -499,8 +527,8 @@ function sante(saisonFilter,typeFilter,zoneFilter){
         <!-- KPIs -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
           <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
-            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:${joursSans===null?'#9a907e':joursSans>90?'#2d7a4f':joursSans>30?'#a06428':'#8c3030'}">${joursSans===null?'—':joursSans}</div>
-            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Jours sans blessure</div>
+            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:${joursSans===null?'#9a907e':joursSans<0?'#8c3030':joursSans>90?'#2d7a4f':joursSans>30?'#a06428':'#8c3030'}">${joursSans===null?'—':joursSans<0?Math.abs(joursSans):joursSans}</div>
+            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">${joursSans<0?'Jours hors terrain':'Jours sans blessure'}</div>
           </div>
           <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
             <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:var(--ov-txt)">${nTotal}</div>
