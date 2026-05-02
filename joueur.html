@@ -476,14 +476,83 @@ function renderMatchs(saisonFilter){
   if(!saisonFilter) saisonFilter=saisons[0]||'2025-2026';
   const mS=ST.filter(m=>gp(m,'Saison','select')===saisonFilter);
   const sOpts=saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join('');
-  const nM=mS.length,nT=mS.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Titulaire').length;
+  const nM=mS.length;
+  const nT=mS.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Titulaire').length;
   const nB=mS.reduce((a,m)=>a+(gp(m,"But(s) marqué(s)",'number')||0),0);
   const nP=mS.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
   const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
   const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
-  const avgDist=nM?Math.round(mS.reduce((a,m)=>a+(gp(m,'Distance parcourue (m)','number')||0),0)/nM):0;
-  const avgSpr=nM?Math.round(mS.reduce((a,m)=>a+(gp(m,'Nombre de sprint','number')||0),0)/nM):0;
-  const maxVmax=mS.reduce((mx,m)=>Math.max(mx,gp(m,'Vmax','number')||0),0);
+
+  const matchCards=mS.length?mS.map(m=>{
+    const adv=gp(m,'Adversaire','select')||'Match';
+    const date=gp(m,'Date','date');
+    const res=gp(m,'Résultats','select');
+    const titu=gp(m,'Titulaire/remplaçant','select');
+    const tps=gp(m,'⏱️ Temps de jeu','number');
+    const dist=gp(m,'Distance parcourue (m)','number');
+    const spr=gp(m,'Nombre de sprint','number');
+    const vmx=gp(m,'Vmax','number');
+    const acc=gp(m,'Accmax','number');
+    const but=gp(m,'But(s) marqué(s)','number');
+    const passe=gp(m,'Passe décissive','number');
+    const dspr=gp(m,'Distance en sprint (m)','number');
+    const rapportFiles=m.properties?.['Rapport match ']?.files||[];
+    const rapport=rapportFiles[0]?.file?.url||rapportFiles[0]?.external?.url||null;
+    const rc=res==='Victoire'?'tag-b':res==='Défaite'?'tag-d':'tag-n';
+    return `<div class="lcard mb">
+      <div class="lcard-h">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="lcard-ht">vs ${adv}</span>
+          ${res?`<span class="tag ${rc}">${res}</span>`:''}
+          ${titu?`<span class="tag ${titu==='Titulaire'?'tag-b':'tag-n'}">${titu}</span>`:''}
+        </div>
+        <span style="font-size:10px;color:var(--ov-dim)">${fd(date,true)}</span>
+      </div>
+      <div class="lcard-p">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+          ${but?`<span class="tag tag-v">${but} but${but>1?'s':''}</span>`:''}
+          ${passe?`<span class="tag tag-v">${passe} passe${passe>1?'s':''} D.</span>`:''}
+        </div>
+        <div class="mcard-grid">
+          <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${tps?tps+"'":"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">Temps</div></div>
+          <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dist?(dist/1000).toFixed(2):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">km</div></div>
+          <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${spr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">Sprints</div></div>
+          <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${vmx?vmx.toFixed(1):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">Vmax</div></div>
+          <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${acc?acc.toFixed(1):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">AccMax</div></div>
+          <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dspr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">m sprint</div></div>
+        </div>
+        ${rapport?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--ov-bdr)">
+          <a href="${rapport}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DA291C;text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">📄 Rapport analyste</a>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join(''):`<div class="lempty">Aucun match cette saison.</div>`;
+
+  const clipsSection=CLI.length?`
+    <div class="lst mb" style="margin-top:4px">Vidéos analyste</div>
+    ${CLI.map(c=>{
+      const titre=gp(c,'Titre','text')||'Clip';
+      const url=gp(c,'userDefined:URL','url');
+      const type=gp(c,'Type','select')||'';
+      const match=gp(c,'Match / Contexte','text')||'';
+      const desc=gp(c,'Description','text')||'';
+      const date=gp(c,'Date','date');
+      return `<div class="lcard mb">
+        <div class="lcard-h">
+          <span class="lcard-ht">${titre}</span>
+          <span style="font-size:10px;color:var(--ov-dim)">${fd(date,true)}</span>
+        </div>
+        <div class="lcard-p">
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+            ${type?`<span class="tag tag-b">${type}</span>`:''}
+            ${match?`<span style="font-size:10px;color:var(--ov-muted)">vs ${match}</span>`:''}
+          </div>
+          ${desc?`<div style="font-size:11px;color:var(--ov-muted);font-weight:300;margin-bottom:10px;line-height:1.5">${desc}</div>`:''}
+          ${url?`<a href="${url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DA291C;text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">▶ Voir le clip</a>`:''}
+        </div>
+      </div>`;
+    }).join('')}
+  `:'';
 
   const el=document.getElementById('s-matchs');
   el.innerHTML=`
@@ -491,93 +560,26 @@ function renderMatchs(saisonFilter){
       <div class="lst" style="margin-bottom:0;flex:1">Saison</div>
       <select class="lsel" onchange="renderMatchs(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
     </div>
-
-    <!-- KPIs saison -->
     <div class="g-auto mb2">
-      ${[['Matchs',nM,nT+' tit.'],['Buts',nB,''],['Passes D.',nP,''],['Minutes',nMins+"'",''],['Victoires',nV,nM?Math.round(nV/nM*100)+'% win':''],['Dist. moy.',(avgDist/1000).toFixed(1)+'km','/ match']].map(([l,v,s])=>`
+      ${[['Matchs',nM,nT+' tit.'],['Buts',nB,''],['Passes D.',nP,''],['Minutes',nMins+"'",''],['Victoires',nV,nM?Math.round(nV/nM*100)+'% win':'']].map(([l,v,s])=>`
       <div class="lkpi">
-        <div class="lkpi-l">${l}</div>
         <div class="lkpi-v" style="color:var(--ov-txt)">${v}</div>
+        <div class="lkpi-l">${l}</div>
         ${s?`<div style="font-size:9px;color:var(--ov-dim);margin-top:2px;font-weight:300">${s}</div>`:''}
       </div>`).join('')}
     </div>
-
-    <!-- Chart évolution Vmax + Distance -->
     <div class="lst mb">Évolution de la saison</div>
     <div class="lcard mb2">
       <div class="lcard-h"><span class="lcard-ht">Distance & Vmax par match</span></div>
       <div class="lcard-p" style="padding:14px 16px 10px">
-        <div class="chart-wrap" style="height:180px"><canvas id="chart-matchs"></canvas></div>
+        <div style="position:relative;height:180px"><canvas id="chart-matchs"></canvas></div>
       </div>
     </div>
-
-    <!-- Liste matchs -->
     <div class="lst mb">Tous les matchs</div>
-    ${mS.length?mS.map(m=>{
-      const adv=gp(m,'Adversaire','select')||'Match',date=gp(m,'Date','date');
-      const res=gp(m,'Résultats','select'),titu=gp(m,'Titulaire/remplaçant','select');
-      const tps=gp(m,'⏱️ Temps de jeu','number'),dist=gp(m,'Distance parcourue (m)','number');
-      const spr=gp(m,'Nombre de sprint','number'),vmx=gp(m,'Vmax','number');
-      const acc=gp(m,'Accmax','number'),but=gp(m,'But(s) marqué(s)','number'),passe=gp(m,'Passe décissive','number');
-      const dspr=gp(m,'Distance en sprint (m)','number');
-      const rapportFiles=m.properties?.['Rapport match ']?.files||[];
-      const rapport=rapportFiles[0]?.file?.url||rapportFiles[0]?.external?.url||null;
-      const rc=res==='Victoire'?'tag-b':res==='Défaite'?'tag-d':'tag-n';
-      return `<div class="lcard mb">
-        <div class="lcard-h">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--ov-txt)">vs ${adv}</span>
-            ${res?`<span class="tag ${rc}">${res}</span>`:''}
-            ${titu?`<span class="tag ${titu==='Titulaire'?'tag-b':'tag-n'}">${titu}</span>`:''}
-          </div>
-          <span style="font-size:10px;color:var(--ov-muted)">${fd(date,true)}</span>
-        </div>
-        <div class="lcard-p">
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
-            ${but?`<span class="tag tag-v">${but} but${but>1?'s':''}</span>`:''}
-            ${passe?`<span class="tag tag-v">${passe} passe${passe>1?'s':''} D.</span>`:''}
-          </div>
-          <div class="mcard-grid">
-            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${tps?tps+"'":"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">Temps</div></div>
-            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dist?(dist/1000).toFixed(2):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">km</div></div>
-            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${spr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">Sprints</div></div>
-            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${vmx?vmx.toFixed(1):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">Vmax</div></div>
-            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${acc?acc.toFixed(1):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">AccMax</div></div>
-            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dspr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">m sprint</div></div>
-          </div>
-        </div>
-      </div>`;
-      // Rapport PDF si dispo
-      ${rapport?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--ov-bdr)"><a href="${rapport}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c2,#DA291C);text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">📄 Rapport analyste</a></div>`:''}
-    </div>`;
-    }).join(''):`<div class="lempty">Aucun match cette saison.</div>`}
+    ${matchCards}
+    ${clipsSection}
+  `;
 
-    <!-- Clips analyste -->
-    ${CLI.length?`
-    <div class="lst mb" style="margin-top:20px">Vidéos analyste</div>
-    ${CLI.map(c=>{
-      const titre=gp(c,'Titre','text')||'Clip',url=gp(c,'userDefined:URL','url')||gp(c,'URL','url');
-      const type=gp(c,'Type','select')||'',match=gp(c,'Match / Contexte','text')||'',desc=gp(c,'Description','text')||'';
-      const date=gp(c,'Date','date');
-      const typeColor={'Clip match':'tag-d','Analyse tactique':'tag-b','Séquence offensive':'tag-n','Séquence défensive':'tag-b','Phases arrêtées':'tag-v','Autre':''}[type]||'';
-      return \`<div class="lcard mb">
-        <div class="lcard-h">
-          <span class="lcard-ht">\${titre}</span>
-          <span style="font-size:10px;color:var(--ov-dim)">\${fd(date,true)}</span>
-        </div>
-        <div class="lcard-p">
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
-            \${type?\`<span class="tag \${typeColor}">\${type}</span>\`:''}
-            \${match?\`<span style="font-size:10px;color:var(--ov-muted)">vs \${match}</span>\`:''}
-          </div>
-          \${desc?\`<div style="font-size:11px;color:var(--ov-muted);font-weight:300;margin-bottom:10px;line-height:1.5">\${desc}</div>\`:''}
-          \${url?\`<a href="\${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c2,#DA291C);text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">▶ Voir le clip</a>\`:''}
-        </div>
-      </div>\`;
-    }).join('')}
-    `:''}`;
-
-  // Chart matchs
   setTimeout(()=>{
     const ctx=document.getElementById('chart-matchs');
     if(!ctx||!mS.length)return;
@@ -588,8 +590,8 @@ function renderMatchs(saisonFilter){
     CI.matchs=new Chart(ctx,{
       type:'bar',
       data:{labels,datasets:[
-        {label:'Distance (m)',data:dists,backgroundColor:'color-mix(in srgb,var(--c1,#004170) 60%,transparent)',borderRadius:4,yAxisID:'y'},
-        {label:'Vmax (km/h)',data:vmaxs,type:'line',borderColor:'var(--c2,#DA291C)',backgroundColor:'transparent',pointBackgroundColor:'var(--c2,#DA291C)',tension:.4,yAxisID:'y2',pointRadius:3}
+        {label:'Distance (m)',data:dists,backgroundColor:'rgba(0,65,112,0.5)',borderRadius:4,yAxisID:'y'},
+        {label:'Vmax',data:vmaxs,type:'line',borderColor:'#DA291C',backgroundColor:'transparent',pointBackgroundColor:'#DA291C',tension:.4,yAxisID:'y2',pointRadius:3}
       ]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
         y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}},
@@ -730,121 +732,110 @@ function renderPerf(saisonFilter){
 /* ══ NUTRITION ══ */
 function renderNutrition(){
   const el=document.getElementById('s-nutrition');
-  const lastMet=MET[0]; // Dernier bilan diet
+  const lastMet=MET[0];
   const poids=gp(J,'Poids (kg)','number');
   const taille=gp(J,'Taille (cm)','number');
-  const objectif=lastMet?gp(lastMet,'Objectif actuel','select'):null;
-  const conseils=lastMet?gp(lastMet,'Recommandations','text'):null;
-  const complem=lastMet?gp(lastMet,'Compléments conseillés','text'):null;
-  // Note: champ dans la base suivi métriques peut être "Recommandations" ou dans compte rendu
-  const compteRendu=lastMet?gp(lastMet,'Compte rendu','text'):null;
-  const prochainRDV=lastMet?gp(lastMet,'Prochaine RDV','date'):null;
 
-  // Macros cibles par type de journée
   const MACROS={
-    'Jour de match':    {kcal:'3200–3500',prot:'2.0g/kg',gluc:'7–9g/kg',lip:'1.0g/kg',note:'Privilégier glucides complexes au déjeuner, protéines légères le soir'},
-    'Entraînement':     {kcal:'2800–3200',prot:'1.8–2.0g/kg',gluc:'5–7g/kg',lip:'1.2g/kg',note:'Récupération post-séance : 40g protéines + glucides dans les 30 min'},
-    'Récupération':     {kcal:'2400–2800',prot:'2.0–2.2g/kg',gluc:'4–5g/kg',lip:'1.3g/kg',note:'Hydratation renforcée, anti-inflammatoires naturels (oméga-3, curcuma)'},
-    'Repos':            {kcal:'2000–2400',prot:'1.6g/kg',gluc:'3–4g/kg',lip:'1.2g/kg',note:'Légèreté digestive, réduire les sucres simples'},
+    'Jour de match':   {kcal:'3200–3500',prot:'2.0g/kg',gluc:'7–9g/kg',lip:'1.0g/kg',note:'Privilégier glucides complexes au déjeuner, protéines légères le soir'},
+    'Entraînement':    {kcal:'2800–3200',prot:'1.8–2.0g/kg',gluc:'5–7g/kg',lip:'1.2g/kg',note:'Récupération post-séance : 40g protéines + glucides dans les 30 min'},
+    'Récupération':    {kcal:'2400–2800',prot:'2.0–2.2g/kg',gluc:'4–5g/kg',lip:'1.3g/kg',note:'Hydratation renforcée, anti-inflammatoires naturels (oméga-3, curcuma)'},
+    'Repos':           {kcal:'2000–2400',prot:'1.6g/kg',gluc:'3–4g/kg',lip:'1.2g/kg',note:'Légèreté digestive, réduire les sucres simples'},
   };
 
-  // Recettes groupées par type de journée
-  const recByType={};
-  REC.forEach(r=>{
-    const t=gp(r,'Type de jour','select')||'Toutes journées';
-    if(!recByType[t]) recByType[t]=[];
-    recByType[t].push(r);
-  });
+  const typeColors={'Jour de match':'#e57373','Entraînement':'#ffb74d','Récupération':'#4caf7d','Repos':'#90a4ae'};
 
-  const typeColors={'Jour de match':'#e57373','Entraînement':'#ffb74d','Récupération':'#4caf7d','Repos':'#90a4ae','Toutes journées':'#64b5f6'};
-
-  const recipeCard=(r)=>{
-    const nom=gp(r,'Nom','text')||'Recette',moment=gp(r,'Moment','select')||'';
-    const cal=gp(r,'Calories (kcal)','number'),prot=gp(r,'Protéines (g)','number');
-    const gluc=gp(r,'Glucides (g)','number'),lip=gp(r,'Lipides (g)','number');
-    const ingr=gp(r,'Ingrédients','text')||'',prep=gp(r,'Préparation','text')||'';
+  function recCard(r){
+    const nom=gp(r,'Nom','text')||'Recette';
+    const moment=gp(r,'Moment','select')||'';
+    const cal=gp(r,'Calories (kcal)','number');
+    const prot=gp(r,'Protéines (g)','number');
+    const gluc=gp(r,'Glucides (g)','number');
+    const lip=gp(r,'Lipides (g)','number');
+    const ingr=(gp(r,'Ingrédients','text')||'').replace(/\n/g,'<br>');
+    const prep=(gp(r,'Préparation','text')||'').replace(/\n/g,'<br>');
     const comp=gp(r,'Compléments conseillés','text')||'';
-    const id='rec-'+Math.random().toString(36).slice(2,7);
-    return \`<div class="lcard mb">
-      <div class="lcard-h" style="cursor:pointer" onclick="document.getElementById('\${id}').style.display=document.getElementById('\${id}').style.display==='none'?'block':'none'">
-        <div>
-          <span class="lcard-ht">\${nom}</span>
-          \${moment?\`<span style="font-size:9px;color:var(--ov-dim);margin-left:8px">\${moment}</span>\`:''}
-        </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          \${cal?\`<span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--ov-txt)">\${cal} kcal</span>\`:''}
-          <span style="font-size:10px;color:var(--ov-dim)">▾</span>
-        </div>
-      </div>
-      <div id="\${id}" style="display:none">
-        <div class="lcard-p">
-          \${(cal||prot||gluc||lip)?\`<div class="g-auto" style="gap:8px;text-align:center;margin-bottom:12px">
-            \${cal?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${cal}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">kcal</div></div>\`:''}
-            \${prot?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${prot}g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Prot.</div></div>\`:''}
-            \${gluc?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${gluc}g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Gluc.</div></div>\`:''}
-            \${lip?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${lip}g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Lip.</div></div>\`:''}
-          </div>\`:''}
-          \${ingr?\`<div style="margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Ingrédients</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${ingr.replace(/\n/g,'<br>')}</div></div>\`:''}
-          \${prep?\`<div style="margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Préparation</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${prep.replace(/\n/g,'<br>')}</div></div>\`:''}
-          \${comp?\`<div style="background:#f8f7f4;border-radius:8px;padding:10px 12px;font-size:11px;color:var(--ov-muted);font-style:italic">💊 \${comp}</div>\`:''}
-        </div>
-      </div>
-    </div>\`;
-  };
+    const uid='r'+Math.random().toString(36).slice(2,8);
+    let macroHtml='';
+    if(cal||prot||gluc||lip){
+      macroHtml='<div class="g-auto" style="gap:6px;text-align:center;margin-bottom:10px">';
+      if(cal) macroHtml+='<div class="lkpi" style="padding:6px 8px"><div style="font-family:Bebas Neue,serif;font-size:16px;color:var(--ov-txt)">'+cal+'</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">kcal</div></div>';
+      if(prot) macroHtml+='<div class="lkpi" style="padding:6px 8px"><div style="font-family:Bebas Neue,serif;font-size:16px;color:var(--ov-txt)">'+prot+'g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">Prot.</div></div>';
+      if(gluc) macroHtml+='<div class="lkpi" style="padding:6px 8px"><div style="font-family:Bebas Neue,serif;font-size:16px;color:var(--ov-txt)">'+gluc+'g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">Gluc.</div></div>';
+      if(lip) macroHtml+='<div class="lkpi" style="padding:6px 8px"><div style="font-family:Bebas Neue,serif;font-size:16px;color:var(--ov-txt)">'+lip+'g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">Lip.</div></div>';
+      macroHtml+='</div>';
+    }
+    return '<div class="lcard mb">'
+      +'<div class="lcard-h" style="cursor:pointer" onclick="var d=document.getElementById(\''+uid+'\');d.style.display=d.style.display===\'none\'?\'block\':\'none\'">'
+      +'<div><span class="lcard-ht">'+nom+'</span>'+(moment?' <span style="font-size:9px;color:var(--ov-dim)">'+moment+'</span>':'')+'</div>'
+      +(cal?'<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:700;color:var(--ov-txt)">'+cal+' kcal</span>':'')
+      +'</div>'
+      +'<div id="'+uid+'" style="display:none"><div class="lcard-p">'
+      +macroHtml
+      +(ingr?'<div style="margin-bottom:8px"><div style="font-family:Syne,sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:4px">Ingrédients</div><div style="font-size:11px;color:var(--ov-txt);line-height:1.6;font-weight:300">'+ingr+'</div></div>':'')
+      +(prep?'<div style="margin-bottom:8px"><div style="font-family:Syne,sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:4px">Préparation</div><div style="font-size:11px;color:var(--ov-txt);line-height:1.6;font-weight:300">'+prep+'</div></div>':'')
+      +(comp?'<div style="background:#f8f7f4;border-radius:8px;padding:8px 10px;font-size:11px;color:var(--ov-muted);font-style:italic">💊 '+comp+'</div>':'')
+      +'</div></div></div>';
+  }
 
-  const typeSections=Object.keys(MACROS).map(type=>{
-    const recs=[...(recByType[type]||[]),...(recByType['Toutes journées']||[])];
+  function macroSection(type){
     const m=MACROS[type];
     const col=typeColors[type]||'#9a907e';
-    return \`
-    <div class="lcard mb2">
-      <div class="lcard-h" style="background:\${col}12;border-bottom:1px solid \${col}22">
-        <span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:\${col}">\${type}</span>
-      </div>
-      <div class="lcard-p">
-        <!-- Macros cibles -->
-        <div style="margin-bottom:12px">
-          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:8px">Apports cibles</div>
-          <div class="g-auto" style="gap:8px;text-align:center">
-            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.kcal}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">kcal</div></div>
-            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.prot}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Prot.</div></div>
-            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.gluc}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Gluc.</div></div>
-            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.lip}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Lip.</div></div>
-          </div>
-          <div style="margin-top:8px;font-size:11px;color:var(--ov-muted);font-style:italic;line-height:1.5">\${m.note}</div>
-        </div>
-        <!-- Recettes -->
-        \${recs.length?\`<div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:8px">Recettes</div>\${recs.map(recipeCard).join('')}\`:''}
-      </div>
-    </div>\`;
-  }).join('');
+    const recs=REC.filter(r=>gp(r,'Type de jour','select')===type||gp(r,'Type de jour','select')==='Toutes journées');
+    let html='<div class="lcard mb2">'
+      +'<div class="lcard-h" style="background:'+col+'14;border-bottom:1px solid '+col+'22">'
+      +'<span style="font-family:Syne,sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:'+col+'">'+type+'</span>'
+      +'</div><div class="lcard-p">'
+      +'<div style="font-family:Syne,sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:8px">Apports cibles</div>'
+      +'<div class="g-auto" style="gap:6px;text-align:center;margin-bottom:10px">'
+      +'<div class="lkpi" style="padding:7px 8px"><div style="font-family:Bebas Neue,serif;font-size:13px;color:var(--ov-txt)">'+m.kcal+'</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">kcal</div></div>'
+      +'<div class="lkpi" style="padding:7px 8px"><div style="font-family:Bebas Neue,serif;font-size:13px;color:var(--ov-txt)">'+m.prot+'</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">Prot.</div></div>'
+      +'<div class="lkpi" style="padding:7px 8px"><div style="font-family:Bebas Neue,serif;font-size:13px;color:var(--ov-txt)">'+m.gluc+'</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">Gluc.</div></div>'
+      +'<div class="lkpi" style="padding:7px 8px"><div style="font-family:Bebas Neue,serif;font-size:13px;color:var(--ov-txt)">'+m.lip+'</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">Lip.</div></div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--ov-muted);font-style:italic;line-height:1.5;margin-bottom:'+(recs.length?'12px':'0')+'">'+m.note+'</div>'
+      +(recs.length?'<div style="font-family:Syne,sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:8px">Recettes</div>'+recs.map(recCard).join(''):'')
+      +'</div></div>';
+    return html;
+  }
 
-  el.innerHTML=\`
-    <!-- Infos corporelles -->
-    <div class="lst mb">Corps</div>
-    <div class="g2 mb2">
-      <div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">\${poids||'—'}</div><div class="lkpi-l">Poids (kg)</div></div>
-      <div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">\${taille||'—'}</div><div class="lkpi-l">Taille (cm)</div></div>
-    </div>
+  let html='';
 
-    <!-- Conseils du diet -->
-    \${lastMet?\`
-    <div class="lst mb">Conseils du nutritionniste</div>
-    <div class="lcard mb2">
-      \${objectif?\`<div class="lcard-h"><span class="lcard-ht">Objectif actuel</span><span style="font-size:11px;font-weight:600;color:var(--ov-txt)">\${objectif}</span></div>\`:''}
-      <div class="lcard-p">
-        \${conseils?\`<div style="margin-bottom:12px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:6px">Recommandations</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${conseils}</div></div>\`:''}
-        \${compteRendu&&!conseils?\`<div style="margin-bottom:12px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:6px">Compte rendu</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${compteRendu}</div></div>\`:''}
-        \${complem?\`<div style="background:#f8f7f4;border-radius:8px;padding:10px 12px;margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Compléments alimentaires</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${complem}</div></div>\`:''}
-        \${prochainRDV?\`<div style="font-size:11px;color:var(--ov-muted)">Prochain RDV : <strong style="color:var(--ov-txt)">\${fd(prochainRDV)}</strong></div>\`:''}
-      </div>
-    </div>
-    \`:\`<div class="lempty mb2">Les conseils du nutritionniste apparaîtront ici dès qu'un bilan est renseigné.</div>\`}
+  // Corps
+  html+='<div class="lst mb">Corps</div>'
+    +'<div class="g2 mb2">'
+    +'<div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">'+(poids||'—')+'</div><div class="lkpi-l">Poids (kg)</div></div>'
+    +'<div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">'+(taille||'—')+'</div><div class="lkpi-l">Taille (cm)</div></div>'
+    +'</div>';
 
-    <!-- Macros & Recettes par type de journée -->
-    <div class="lst mb">Macros & Recettes par type de journée</div>
-    \${typeSections}
-  \`;
+  // Conseils diet
+  if(lastMet){
+    const objectif=gp(lastMet,'Objectif actuel','select');
+    const conseils=gp(lastMet,'Recommandations','text');
+    const compteRendu=gp(lastMet,'Compte rendu','text');
+    const complem=gp(lastMet,'Compléments conseillés','text');
+    const prochainRDV=gp(lastMet,'Prochaine RDV','date');
+    html+='<div class="lst mb">Conseils du nutritionniste</div>'
+      +'<div class="lcard mb2">'
+      +(objectif?'<div class="lcard-h"><span class="lcard-ht">Objectif</span><span style="font-size:11px;font-weight:600;color:var(--ov-txt)">'+objectif+'</span></div>':'')
+      +'<div class="lcard-p">'
+      +(conseils?'<div style="margin-bottom:10px"><div style="font-family:Syne,sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Recommandations</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">'+conseils+'</div></div>':'')
+      +(!conseils&&compteRendu?'<div style="margin-bottom:10px"><div style="font-family:Syne,sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Compte rendu</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">'+compteRendu+'</div></div>':'')
+      +(complem?'<div style="background:#f8f7f4;border-radius:8px;padding:10px 12px;margin-bottom:10px"><div style="font-family:Syne,sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:4px">Compléments</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">'+complem+'</div></div>':'')
+      +(prochainRDV?'<div style="font-size:11px;color:var(--ov-muted)">Prochain RDV : <strong style="color:var(--ov-txt)">'+fd(prochainRDV)+'</strong></div>':'')
+      +'</div></div>';
+  } else {
+    html+='<div class="lempty mb2">Les conseils du nutritionniste apparaîtront ici une fois le bilan renseigné.</div>';
+  }
+
+  // Macros & Recettes
+  html+='<div class="lst mb">Macros & Recettes par type de journée</div>';
+  html+=macroSection('Jour de match');
+  html+=macroSection('Entraînement');
+  html+=macroSection('Récupération');
+  html+=macroSection('Repos');
+
+  el.innerHTML=html;
 }
 
 /* ══ SANTÉ ══ */
