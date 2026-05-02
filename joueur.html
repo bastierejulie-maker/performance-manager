@@ -226,16 +226,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 <div id="hero-wrap"></div>
 
 <div class="nav" id="main-nav">
-  <div class="nav-t active" onclick="sw('overview',this)"><span class="ni">⚡</span><span class="nav-label">Aperçu</span></div>
-  <div class="nav-t" onclick="sw('matchs',this)"><span class="ni">⚽</span><span class="nav-label">Matchs</span></div>
-  <div class="nav-t" onclick="sw('perf',this)"><span class="ni">📈</span><span class="nav-label">Physique</span></div>
-  <div class="nav-t" onclick="sw('nutrition',this)"><span class="ni">🥗</span><span class="nav-label">Nutrition</span></div>
-  <div class="nav-t" onclick="sw('sante',this)"><span class="ni">🏥</span><span class="nav-label">Santé</span></div>
+  <div class="nav-t active" onclick="sw('overview',this)">Aperçu</div>
+  <div class="nav-t" onclick="sw('matchs',this)">Matchs</div>
+  <div class="nav-t" onclick="sw('perf',this)">Physique</div>
+  <div class="nav-t" onclick="sw('nutrition',this)">Nutrition</div>
+  <div class="nav-t" onclick="sw('sante',this)">Santé</div>
 </div>
 
 <div id="s-overview" class="sec active sec-light"></div>
-<div id="s-matchs"   class="sec sec-dark"></div>
-<div id="s-perf"     class="sec sec-dark"></div>
+<div id="s-matchs"   class="sec sec-light"></div>
+<div id="s-perf"     class="sec sec-light"></div>
 <div id="s-nutrition" class="sec sec-light"></div>
 <div id="s-sante"    class="sec sec-light"></div>
 
@@ -252,6 +252,9 @@ const DB_S='34d69796-db3f-801c-aed5-d8cfa048dbba';
 const DB_T='34d69796-db3f-8047-b6f9-e361371604a9';
 const DB_N='f0596ef8-c95d-4c18-b35a-a647b4325378';
 const DB_B='34d69796-db3f-80ec-8721-c4ec84c7bc53';
+const DB_MET='34d69796-db3f-8051-afd1-d25038dfc12e'; // Suivi métriques (poids/MG/conseils diet)
+const DB_REC='6e70e21a-fcb0-40a1-af75-c93c24fb9627'; // Recettes globales
+const DB_CLI='726d3b94-8089-464f-8d62-e4100a59b1c0'; // Clips analyste
 
 const NORMES={
   'Excentré':{vmax:35,accmax:7.5,cmj:48,sj:44,vma:18},
@@ -265,7 +268,7 @@ const NORMES={
 
 const P=new URLSearchParams(location.search);
 const JID=P.get('id')||null;
-let J=null,ST=[],TS=[],NU=[],BL=[],CI={};
+let J=null,ST=[],TS=[],NU=[],BL=[],CI={},MET=[],REC=[],CLI=[];
 
 document.addEventListener('DOMContentLoaded',()=>loadAll());
 
@@ -288,12 +291,15 @@ function fd(s,short=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))re
 
 async function loadAll(){
   try{
-    const[jr,sr,tr,nr,br]=await Promise.all([
+    const[jr,sr,tr,nr,br,mr,rr,cr]=await Promise.all([
       nq(DB_J,[{property:'Nom complet',direction:'ascending'}]),
       nq(DB_S,[{property:'Date',direction:'descending'}]),
       nq(DB_T,[{property:'Date',direction:'descending'}]),
       nq(DB_N,[{property:'Date',direction:'descending'}]),
       nq(DB_B,[{property:'Date',direction:'descending'}]),
+      nq(DB_MET,[{property:'Date',direction:'descending'}]),
+      nq(DB_REC,[]),
+      nq(DB_CLI,[{property:'Date',direction:'descending'}]),
     ]);
     const all=jr.results||[];
     J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
@@ -304,6 +310,9 @@ async function loadAll(){
       return r.some(id=>id===jid_nd);
     });
     ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
+    MET=flt(mr.results||[]);
+    CLI=flt(cr.results||[]);
+    REC=rr.results||[]; // Recettes globales — pas de filtre joueur
     hero();renderOverview();
     document.getElementById('sync-info').textContent='Notion · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   }catch(e){console.warn('démo',e);demo()}
@@ -473,31 +482,31 @@ function renderMatchs(saisonFilter){
   const el=document.getElementById('s-matchs');
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="st" style="margin-bottom:0;flex:1">Saison</div>
-      <select class="sel" onchange="renderMatchs(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
+      <div class="lst" style="margin-bottom:0;flex:1">Saison</div>
+      <select class="lsel" onchange="renderMatchs(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
     </div>
 
     <!-- KPIs saison -->
     <div class="g-auto mb2">
       ${[['Matchs',nM,nT+' tit.'],['Buts',nB,''],['Passes D.',nP,''],['Minutes',nMins+"'",''],['Victoires',nV,nM?Math.round(nV/nM*100)+'% win':''],['Dist. moy.',(avgDist/1000).toFixed(1)+'km','/ match']].map(([l,v,s])=>`
-      <div class="kpi">
-        <div class="kpi-l">${l}</div>
-        <div class="kpi-v">${v}</div>
-        ${s?`<div class="kpi-s">${s}</div>`:''}
+      <div class="lkpi">
+        <div class="lkpi-l">${l}</div>
+        <div class="lkpi-v" style="color:var(--ov-txt)">${v}</div>
+        ${s?`<div style="font-size:9px;color:var(--ov-dim);margin-top:2px;font-weight:300">${s}</div>`:''}
       </div>`).join('')}
     </div>
 
     <!-- Chart évolution Vmax + Distance -->
-    <div class="st mb">Évolution de la saison</div>
-    <div class="card mb2">
-      <div class="card-h"><span class="card-ht">Distance & Vmax par match</span></div>
-      <div class="card-p" style="padding:14px 16px 10px">
+    <div class="lst mb">Évolution de la saison</div>
+    <div class="lcard mb2">
+      <div class="lcard-h"><span class="lcard-ht">Distance & Vmax par match</span></div>
+      <div class="lcard-p" style="padding:14px 16px 10px">
         <div class="chart-wrap" style="height:180px"><canvas id="chart-matchs"></canvas></div>
       </div>
     </div>
 
     <!-- Liste matchs -->
-    <div class="st mb">Tous les matchs</div>
+    <div class="lst mb">Tous les matchs</div>
     ${mS.length?mS.map(m=>{
       const adv=gp(m,'Adversaire','select')||'Match',date=gp(m,'Date','date');
       const res=gp(m,'Résultats','select'),titu=gp(m,'Titulaire/remplaçant','select');
@@ -505,32 +514,62 @@ function renderMatchs(saisonFilter){
       const spr=gp(m,'Nombre de sprint','number'),vmx=gp(m,'Vmax','number');
       const acc=gp(m,'Accmax','number'),but=gp(m,'But(s) marqué(s)','number'),passe=gp(m,'Passe décissive','number');
       const dspr=gp(m,'Distance en sprint (m)','number');
+      const rapportFiles=m.properties?.['Rapport match ']?.files||[];
+      const rapport=rapportFiles[0]?.file?.url||rapportFiles[0]?.external?.url||null;
       const rc=res==='Victoire'?'tag-b':res==='Défaite'?'tag-d':'tag-n';
-      return `<div class="mcard">
-        <div class="mcard-h">
+      return `<div class="lcard mb">
+        <div class="lcard-h">
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--txt)">vs ${adv}</span>
+            <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--ov-txt)">vs ${adv}</span>
             ${res?`<span class="tag ${rc}">${res}</span>`:''}
             ${titu?`<span class="tag ${titu==='Titulaire'?'tag-b':'tag-n'}">${titu}</span>`:''}
           </div>
-          <span style="font-size:10px;color:var(--txt-m)">${fd(date,true)}</span>
+          <span style="font-size:10px;color:var(--ov-muted)">${fd(date,true)}</span>
         </div>
-        <div class="mcard-b">
+        <div class="lcard-p">
           <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
             ${but?`<span class="tag tag-v">${but} but${but>1?'s':''}</span>`:''}
             ${passe?`<span class="tag tag-v">${passe} passe${passe>1?'s':''} D.</span>`:''}
           </div>
           <div class="mcard-grid">
-            <div class="mstat"><div class="mstat-v">${tps?tps+"'":"—"}</div><div class="mstat-l">Temps</div></div>
-            <div class="mstat"><div class="mstat-v">${dist?(dist/1000).toFixed(2):"—"}</div><div class="mstat-l">km</div></div>
-            <div class="mstat"><div class="mstat-v">${spr??'—'}</div><div class="mstat-l">Sprints</div></div>
-            <div class="mstat"><div class="mstat-v">${vmx?vmx.toFixed(1):"—"}</div><div class="mstat-l">Vmax</div></div>
-            <div class="mstat"><div class="mstat-v">${acc?acc.toFixed(1):"—"}</div><div class="mstat-l">AccMax</div></div>
-            <div class="mstat"><div class="mstat-v">${dspr??'—'}</div><div class="mstat-l">m sprint</div></div>
+            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${tps?tps+"'":"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">Temps</div></div>
+            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dist?(dist/1000).toFixed(2):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">km</div></div>
+            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${spr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">Sprints</div></div>
+            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${vmx?vmx.toFixed(1):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">Vmax</div></div>
+            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${acc?acc.toFixed(1):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">AccMax</div></div>
+            <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dspr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">m sprint</div></div>
           </div>
         </div>
       </div>`;
-    }).join(''):`<div class="empty">Aucun match cette saison.</div>`}`;
+      // Rapport PDF si dispo
+      ${rapport?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--ov-bdr)"><a href="${rapport}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c2,#DA291C);text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">📄 Rapport analyste</a></div>`:''}
+    </div>`;
+    }).join(''):`<div class="lempty">Aucun match cette saison.</div>`}
+
+    <!-- Clips analyste -->
+    ${CLI.length?`
+    <div class="lst mb" style="margin-top:20px">Vidéos analyste</div>
+    ${CLI.map(c=>{
+      const titre=gp(c,'Titre','text')||'Clip',url=gp(c,'userDefined:URL','url')||gp(c,'URL','url');
+      const type=gp(c,'Type','select')||'',match=gp(c,'Match / Contexte','text')||'',desc=gp(c,'Description','text')||'';
+      const date=gp(c,'Date','date');
+      const typeColor={'Clip match':'tag-d','Analyse tactique':'tag-b','Séquence offensive':'tag-n','Séquence défensive':'tag-b','Phases arrêtées':'tag-v','Autre':''}[type]||'';
+      return \`<div class="lcard mb">
+        <div class="lcard-h">
+          <span class="lcard-ht">\${titre}</span>
+          <span style="font-size:10px;color:var(--ov-dim)">\${fd(date,true)}</span>
+        </div>
+        <div class="lcard-p">
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+            \${type?\`<span class="tag \${typeColor}">\${type}</span>\`:''}
+            \${match?\`<span style="font-size:10px;color:var(--ov-muted)">vs \${match}</span>\`:''}
+          </div>
+          \${desc?\`<div style="font-size:11px;color:var(--ov-muted);font-weight:300;margin-bottom:10px;line-height:1.5">\${desc}</div>\`:''}
+          \${url?\`<a href="\${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c2,#DA291C);text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">▶ Voir le clip</a>\`:''}
+        </div>
+      </div>\`;
+    }).join('')}
+    `:''}`;
 
   // Chart matchs
   setTimeout(()=>{
@@ -547,9 +586,9 @@ function renderMatchs(saisonFilter){
         {label:'Vmax (km/h)',data:vmaxs,type:'line',borderColor:'var(--c2,#DA291C)',backgroundColor:'transparent',pointBackgroundColor:'var(--c2,#DA291C)',tension:.4,yAxisID:'y2',pointRadius:3}
       ]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}},
-        y2:{position:'right',grid:{display:false},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}},
-        x:{grid:{display:false},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}}
+        y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}},
+        y2:{position:'right',grid:{display:false},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}},
+        x:{grid:{display:false},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}}
       }}
     });
   },100);
@@ -566,17 +605,17 @@ function renderPerf(saisonFilter){
   const lastT=tS[0];
 
   const normCard=(label,val,ref,unit)=>{
-    if(val===null)return `<div class="norme"><div class="norme-top"><span class="norme-l">${label}</span><span class="badge badge-warn">—</span></div><div style="font-size:11px;color:var(--txt-d);font-style:italic">Non testé</div></div>`;
+    if(val===null)return `<div class="lcard" style="padding:12px 14px"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><span style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">${label}</span><span class="badge badge-warn">—</span></div><div style="font-size:11px;color:var(--txt-d);font-style:italic">Non testé</div></div>`;
     const pct=Math.min(100,Math.round(val/ref*100));
     const cls=pct>=100?'norme-ok':pct>=85?'norme-warn':'norme-nope';
     const bcls=pct>=100?'badge-ok':pct>=85?'badge-warn':'badge-nope';
     const blabel=pct>=100?'Norme ✓':pct>=85?'Proche':'Sous norme';
-    return `<div class="norme">
-      <div class="norme-top">
-        <span class="norme-l">${label}</span>
-        <div class="norme-vals"><span class="norme-v">${val.toFixed(1)}</span><span class="norme-ref">${unit} / réf ${ref}</span></div>
+    return `<div class="lcard" style="padding:12px 14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">${label}</span>
+        <div style="display:flex;align-items:baseline;gap:4px"><span style="font-family:'Bebas Neue',serif;font-size:22px;color:var(--ov-txt)">${val.toFixed(1)}</span><span style="font-size:9px;color:var(--ov-dim)">${unit} / réf ${ref}</span></div>
       </div>
-      <div class="norme-track"><div class="norme-fill ${cls}" style="width:${pct}%"></div></div>
+      <div style="height:4px;background:#f0ede8;border-radius:4px;overflow:hidden;margin-bottom:5px"><div class="norme-fill ${cls}" style="width:${pct}%"></div></div>
       <span class="badge ${bcls}">${blabel}</span>
     </div>`;
   };
@@ -584,12 +623,12 @@ function renderPerf(saisonFilter){
   const el=document.getElementById('s-perf');
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="st" style="margin-bottom:0;flex:1">Tests — ${poste}</div>
-      <select class="sel" onchange="renderPerf(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
+      <div class="lst" style="margin-bottom:0;flex:1">Tests — ${poste}</div>
+      <select class="lsel" onchange="renderPerf(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
     </div>
 
     <!-- Normes poste -->
-    <div class="st mb">Benchmarks niveau élite</div>
+    <div class="lst mb">Benchmarks niveau élite</div>
     ${lastT?`
     <div class="g2 mb2">
       ${normCard('Vmax',gp(lastT,'Vmax','number'),norme.vmax,'km/h')}
@@ -597,66 +636,66 @@ function renderPerf(saisonFilter){
       ${normCard('SJ',gp(lastT,'SJ (cm)','number'),norme.sj,'cm')}
       ${normCard('VMA',gp(lastT,'VMA (km/h)','number'),norme.vma,'km/h')}
     </div>
-    `:`<div class="empty mb2">Aucun test enregistré pour cette saison.</div>`}
+    `:`<div class="lempty mb2">Aucun test enregistré pour cette saison.</div>`}
 
     <!-- Profil mécanique -->
-    <div class="st mb">Profil biomécanique</div>
+    <div class="lst mb">Profil biomécanique</div>
     <div class="g2 mb2">
-      <div class="pcard">
-        <div class="pcard-t">Motricité</div>
-        <div class="pcard-v">${gp(J,'Motricité','select')||'—'}</div>
-        <div class="pcard-d">${gp(J,'Motricité','select')==='Extension'?'Système puissance / explosivité extension':'Système vitesse / explosivité flexion'}</div>
+      <div class="lcard">
+        <div class="lcard-h" style="padding:10px 14px;border-bottom:1px solid var(--ov-bdr);background:#f8f7f4"><span style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">Motricité</div>
+        <div style="font-family:'Bebas Neue',serif;font-size:22px;color:var(--ov-txt);margin-bottom:4px;padding:14px 14px 0">${gp(J,'Motricité','select')||'—'}</div>
+        <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5;padding:0 14px 14px">${gp(J,'Motricité','select')==='Extension'?'Système puissance / explosivité extension':'Système vitesse / explosivité flexion'}</div>
       </div>
-      <div class="pcard">
-        <div class="pcard-t">Fibres dominantes</div>
-        <div class="pcard-v">${gp(J,'Fibres','select')||'—'}</div>
-        <div class="pcard-d">${{'Rapides':'Pic de puissance court — explosivité max','Lentes':'Endurance effort — maintien long','Hybrides':'Équilibre puissance/endurance','Indéterminées':'Profil à affiner'}[gp(J,'Fibres','select')]||'—'}</div>
+      <div class="lcard">
+        <div class="lcard-h" style="padding:10px 14px;border-bottom:1px solid var(--ov-bdr);background:#f8f7f4"><span style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">Fibres dominantes</div>
+        <div style="font-family:'Bebas Neue',serif;font-size:22px;color:var(--ov-txt);margin-bottom:4px;padding:14px 14px 0">${gp(J,'Fibres','select')||'—'}</div>
+        <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5;padding:0 14px 14px">${{'Rapides':'Pic de puissance court — explosivité max','Lentes':'Endurance effort — maintien long','Hybrides':'Équilibre puissance/endurance','Indéterminées':'Profil à affiner'}[gp(J,'Fibres','select')]||'—'}</div>
       </div>
-      <div class="pcard">
-        <div class="pcard-t">Réflexes archaïques</div>
-        <div class="pcard-v">${gp(J,'Score réflexes','number')!==null?gp(J,'Score réflexes','number')+' / 60':'—'}</div>
-        <div class="pcard-d">Profil : ${gp(J,'Profil réflexes','select')||'—'}</div>
+      <div class="lcard">
+        <div class="lcard-h" style="padding:10px 14px;border-bottom:1px solid var(--ov-bdr);background:#f8f7f4"><span style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">Réflexes archaïques</div>
+        <div style="font-family:'Bebas Neue',serif;font-size:22px;color:var(--ov-txt);margin-bottom:4px;padding:14px 14px 0">${gp(J,'Score réflexes','number')!==null?gp(J,'Score réflexes','number')+' / 60':'—'}</div>
+        <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5;padding:0 14px 14px">Profil : ${gp(J,'Profil réflexes','select')||'—'}</div>
       </div>
-      <div class="pcard">
-        <div class="pcard-t">Poids / Taille</div>
-        <div class="pcard-v">${gp(J,'Poids (kg)','number')||'—'} kg</div>
-        <div class="pcard-d">${gp(J,'Taille (cm)','number')||'—'} cm</div>
+      <div class="lcard">
+        <div class="lcard-h" style="padding:10px 14px;border-bottom:1px solid var(--ov-bdr);background:#f8f7f4"><span style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">Poids / Taille</div>
+        <div style="font-family:'Bebas Neue',serif;font-size:22px;color:var(--ov-txt);margin-bottom:4px;padding:14px 14px 0">${gp(J,'Poids (kg)','number')||'—'} kg</div>
+        <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5;padding:0 14px 14px">${gp(J,'Taille (cm)','number')||'—'} cm</div>
       </div>
     </div>
 
     <!-- Évolution tests -->
     ${tS.length>=2?`
-    <div class="st mb">Évolution</div>
-    <div class="card mb2">
-      <div class="card-h"><span class="card-ht">CMJ — SJ — VMA</span></div>
-      <div class="card-p" style="padding:14px 16px 10px">
+    <div class="lst mb">Évolution</div>
+    <div class="lcard mb2">
+      <div class="lcard-h"><span class="lcard-ht">CMJ — SJ — VMA</span></div>
+      <div class="lcard-p" style="padding:14px 16px 10px">
         <div class="chart-wrap" style="height:180px"><canvas id="chart-perf"></canvas></div>
       </div>
     </div>
     `:''}
 
     <!-- Tous les tests -->
-    <div class="st mb">Historique tests</div>
+    <div class="lst mb">Historique tests</div>
     ${tS.length?tS.map(t=>{
       const cmj=gp(t,'CMJ (cm)','number'),sj=gp(t,'SJ (cm)','number'),vma=gp(t,'VMA (km/h)','number');
       const vmx=gp(t,'Vmax','number'),bj=gp(t,'Broad jump','number');
-      return `<div class="card mb">
-        <div class="card-h">
-          <span class="card-ht">${gp(t,'Test - date','text')||'Test'}</span>
+      return `<div class="lcard mb">
+        <div class="lcard-h">
+          <span class="lcard-ht">${gp(t,'Test - date','text')||'Test'}</span>
           <span style="font-size:10px;color:var(--txt-m)">${fd(gp(t,'Date','date'),true)}</span>
         </div>
-        <div class="card-p">
+        <div class="lcard-p">
           <div class="g3" style="gap:10px;text-align:center">
-            <div><div class="mstat-v">${cmj?cmj.toFixed(1):'—'}</div><div class="mstat-l">CMJ cm</div></div>
-            <div><div class="mstat-v">${sj?sj.toFixed(1):'—'}</div><div class="mstat-l">SJ cm</div></div>
-            <div><div class="mstat-v">${vma?vma.toFixed(1):'—'}</div><div class="mstat-l">VMA</div></div>
-            <div><div class="mstat-v">${vmx?vmx.toFixed(1):'—'}</div><div class="mstat-l">Vmax</div></div>
-            <div><div class="mstat-v">${bj?bj.toFixed(2):'—'}</div><div class="mstat-l">Broad J.</div></div>
+            <div><div class="mstat-v" style="color:var(--ov-txt)">${cmj?cmj.toFixed(1):'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">CMJ cm</div></div>
+            <div><div class="mstat-v" style="color:var(--ov-txt)">${sj?sj.toFixed(1):'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">SJ cm</div></div>
+            <div><div class="mstat-v" style="color:var(--ov-txt)">${vma?vma.toFixed(1):'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">VMA</div></div>
+            <div><div class="mstat-v" style="color:var(--ov-txt)">${vmx?vmx.toFixed(1):'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">Vmax</div></div>
+            <div><div class="mstat-v" style="color:var(--ov-txt)">${bj?bj.toFixed(2):'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">Broad J.</div></div>
           </div>
           ${gp(t,'Notes','text')?`<div style="margin-top:10px;font-size:11px;color:var(--txt-m);font-style:italic;line-height:1.5;padding-top:10px;border-top:1px solid var(--bdr)">${gp(t,'Notes','text')}</div>`:''}
         </div>
       </div>`;
-    }).join(''):`<div class="empty">Aucun test cette saison.</div>`}`;
+    }).join(''):`<div class="lempty">Aucun test cette saison.</div>`}`;
 
   // Chart perf
   if(tS.length>=2){
@@ -674,8 +713,8 @@ function renderPerf(saisonFilter){
           {label:'VMA',data:ordered.map(t=>gp(t,'VMA (km/h)','number')),borderColor:'#4caf7d',backgroundColor:'transparent',tension:.4,pointRadius:4}
         ]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8a8680',font:{size:9},boxWidth:10,padding:12}}},scales:{
-          y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}},
-          x:{grid:{display:false},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}}
+          y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}},
+          x:{grid:{display:false},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}}
         }}
       });
     },100);
@@ -684,61 +723,122 @@ function renderPerf(saisonFilter){
 
 /* ══ NUTRITION ══ */
 function renderNutrition(){
+  const el=document.getElementById('s-nutrition');
+  const lastMet=MET[0]; // Dernier bilan diet
   const poids=gp(J,'Poids (kg)','number');
   const taille=gp(J,'Taille (cm)','number');
-  const lastNU=NU[0];
-  const el=document.getElementById('s-nutrition');
+  const objectif=lastMet?gp(lastMet,'Objectif actuel','select'):null;
+  const conseils=lastMet?gp(lastMet,'Recommandations','text'):null;
+  const complem=lastMet?gp(lastMet,'Compléments conseillés','text'):null;
+  // Note: champ dans la base suivi métriques peut être "Recommandations" ou dans compte rendu
+  const compteRendu=lastMet?gp(lastMet,'Compte rendu','text'):null;
+  const prochainRDV=lastMet?gp(lastMet,'Prochaine RDV','date'):null;
 
-  // Données récentes (7 derniers jours)
-  const recent7=NU.slice(0,7);
-  const avgCal=recent7.length?Math.round(recent7.reduce((a,n)=>a+(gp(n,'Calories (kcal)','number')||0),0)/recent7.length):null;
-  const avgProt=recent7.length?Math.round(recent7.reduce((a,n)=>a+(gp(n,'Protéines (g)','number')||0),0)/recent7.length):null;
+  // Macros cibles par type de journée
+  const MACROS={
+    'Jour de match':    {kcal:'3200–3500',prot:'2.0g/kg',gluc:'7–9g/kg',lip:'1.0g/kg',note:'Privilégier glucides complexes au déjeuner, protéines légères le soir'},
+    'Entraînement':     {kcal:'2800–3200',prot:'1.8–2.0g/kg',gluc:'5–7g/kg',lip:'1.2g/kg',note:'Récupération post-séance : 40g protéines + glucides dans les 30 min'},
+    'Récupération':     {kcal:'2400–2800',prot:'2.0–2.2g/kg',gluc:'4–5g/kg',lip:'1.3g/kg',note:'Hydratation renforcée, anti-inflammatoires naturels (oméga-3, curcuma)'},
+    'Repos':            {kcal:'2000–2400',prot:'1.6g/kg',gluc:'3–4g/kg',lip:'1.2g/kg',note:'Légèreté digestive, réduire les sucres simples'},
+  };
 
-  el.innerHTML=`
-    <!-- Données corporelles -->
-    <div class="lst mb">Données corporelles</div>
-    <div class="g2 mb2">
-      <div class="lkpi">
-        <div class="lkpi-v" style="color:var(--ov-txt)">${poids||'—'}</div>
-        <div class="lkpi-l">Poids (kg)</div>
-      </div>
-      <div class="lkpi">
-        <div class="lkpi-v" style="color:var(--ov-txt)">${taille||'—'}</div>
-        <div class="lkpi-l">Taille (cm)</div>
-      </div>
-    </div>
+  // Recettes groupées par type de journée
+  const recByType={};
+  REC.forEach(r=>{
+    const t=gp(r,'Type de jour','select')||'Toutes journées';
+    if(!recByType[t]) recByType[t]=[];
+    recByType[t].push(r);
+  });
 
-    ${NU.length?`
-    <!-- Moyennes -->
-    <div class="lst mb">Moyennes 7 jours</div>
-    <div class="g2 mb2">
-      <div class="lkpi">
-        <div class="lkpi-v" style="color:var(--ov-txt)">${avgCal||'—'}</div>
-        <div class="lkpi-l">Kcal / jour</div>
-      </div>
-      <div class="lkpi">
-        <div class="lkpi-v" style="color:var(--ov-txt)">${avgProt||'—'}</div>
-        <div class="lkpi-l">Protéines g</div>
-      </div>
-    </div>
+  const typeColors={'Jour de match':'#e57373','Entraînement':'#ffb74d','Récupération':'#4caf7d','Repos':'#90a4ae','Toutes journées':'#64b5f6'};
 
-    <!-- Journal récent -->
-    <div class="lst mb">Journal récent</div>
-    ${recent7.map(n=>{
-      const date=gp(n,'Date','date'),cal=gp(n,'Calories (kcal)','number'),prot=gp(n,'Protéines (g)','number');
-      const gluc=gp(n,'Glucides (g)','number'),lip=gp(n,'Lipides (g)','number');
-      return `<div class="lcard mb">
-        <div class="lcard-h"><span class="lcard-ht">${fd(date,true)}</span>${cal?`<span style="font-size:11px;color:var(--ov-txt);font-weight:600">${cal} kcal</span>`:''}</div>
-        <div class="lcard-p">
-          <div class="g3" style="gap:8px;text-align:center">
-            <div><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">${prot||'—'}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Prot. g</div></div>
-            <div><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">${gluc||'—'}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Gluc. g</div></div>
-            <div><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">${lip||'—'}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Lip. g</div></div>
-          </div>
+  const recipeCard=(r)=>{
+    const nom=gp(r,'Nom','text')||'Recette',moment=gp(r,'Moment','select')||'';
+    const cal=gp(r,'Calories (kcal)','number'),prot=gp(r,'Protéines (g)','number');
+    const gluc=gp(r,'Glucides (g)','number'),lip=gp(r,'Lipides (g)','number');
+    const ingr=gp(r,'Ingrédients','text')||'',prep=gp(r,'Préparation','text')||'';
+    const comp=gp(r,'Compléments conseillés','text')||'';
+    const id='rec-'+Math.random().toString(36).slice(2,7);
+    return \`<div class="lcard mb">
+      <div class="lcard-h" style="cursor:pointer" onclick="document.getElementById('\${id}').style.display=document.getElementById('\${id}').style.display==='none'?'block':'none'">
+        <div>
+          <span class="lcard-ht">\${nom}</span>
+          \${moment?\`<span style="font-size:9px;color:var(--ov-dim);margin-left:8px">\${moment}</span>\`:''}
         </div>
-      </div>`;
-    }).join('')}
-    `:`<div class="lempty">Le suivi nutritionnel apparaîtra ici dès que les données sont renseignées.</div>`}`;
+        <div style="display:flex;align-items:center;gap:6px">
+          \${cal?\`<span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--ov-txt)">\${cal} kcal</span>\`:''}
+          <span style="font-size:10px;color:var(--ov-dim)">▾</span>
+        </div>
+      </div>
+      <div id="\${id}" style="display:none">
+        <div class="lcard-p">
+          \${(cal||prot||gluc||lip)?\`<div class="g-auto" style="gap:8px;text-align:center;margin-bottom:12px">
+            \${cal?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${cal}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">kcal</div></div>\`:''}
+            \${prot?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${prot}g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Prot.</div></div>\`:''}
+            \${gluc?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${gluc}g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Gluc.</div></div>\`:''}
+            \${lip?\`<div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">\${lip}g</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Lip.</div></div>\`:''}
+          </div>\`:''}
+          \${ingr?\`<div style="margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Ingrédients</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${ingr.replace(/\n/g,'<br>')}</div></div>\`:''}
+          \${prep?\`<div style="margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Préparation</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${prep.replace(/\n/g,'<br>')}</div></div>\`:''}
+          \${comp?\`<div style="background:#f8f7f4;border-radius:8px;padding:10px 12px;font-size:11px;color:var(--ov-muted);font-style:italic">💊 \${comp}</div>\`:''}
+        </div>
+      </div>
+    </div>\`;
+  };
+
+  const typeSections=Object.keys(MACROS).map(type=>{
+    const recs=[...(recByType[type]||[]),...(recByType['Toutes journées']||[])];
+    const m=MACROS[type];
+    const col=typeColors[type]||'#9a907e';
+    return \`
+    <div class="lcard mb2">
+      <div class="lcard-h" style="background:\${col}12;border-bottom:1px solid \${col}22">
+        <span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:\${col}">\${type}</span>
+      </div>
+      <div class="lcard-p">
+        <!-- Macros cibles -->
+        <div style="margin-bottom:12px">
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:8px">Apports cibles</div>
+          <div class="g-auto" style="gap:8px;text-align:center">
+            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.kcal}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">kcal</div></div>
+            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.prot}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Prot.</div></div>
+            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.gluc}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Gluc.</div></div>
+            <div class="lkpi" style="padding:8px 10px"><div style="font-family:'Bebas Neue',serif;font-size:14px;color:var(--ov-txt)">\${m.lip}</div><div style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700">Lip.</div></div>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--ov-muted);font-style:italic;line-height:1.5">\${m.note}</div>
+        </div>
+        <!-- Recettes -->
+        \${recs.length?\`<div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:8px">Recettes</div>\${recs.map(recipeCard).join('')}\`:''}
+      </div>
+    </div>\`;
+  }).join('');
+
+  el.innerHTML=\`
+    <!-- Infos corporelles -->
+    <div class="lst mb">Corps</div>
+    <div class="g2 mb2">
+      <div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">\${poids||'—'}</div><div class="lkpi-l">Poids (kg)</div></div>
+      <div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">\${taille||'—'}</div><div class="lkpi-l">Taille (cm)</div></div>
+    </div>
+
+    <!-- Conseils du diet -->
+    \${lastMet?\`
+    <div class="lst mb">Conseils du nutritionniste</div>
+    <div class="lcard mb2">
+      \${objectif?\`<div class="lcard-h"><span class="lcard-ht">Objectif actuel</span><span style="font-size:11px;font-weight:600;color:var(--ov-txt)">\${objectif}</span></div>\`:''}
+      <div class="lcard-p">
+        \${conseils?\`<div style="margin-bottom:12px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:6px">Recommandations</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${conseils}</div></div>\`:''}
+        \${compteRendu&&!conseils?\`<div style="margin-bottom:12px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:6px">Compte rendu</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${compteRendu}</div></div>\`:''}
+        \${complem?\`<div style="background:#f8f7f4;border-radius:8px;padding:10px 12px;margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:5px">Compléments alimentaires</div><div style="font-size:12px;color:var(--ov-txt);line-height:1.6;font-weight:300">\${complem}</div></div>\`:''}
+        \${prochainRDV?\`<div style="font-size:11px;color:var(--ov-muted)">Prochain RDV : <strong style="color:var(--ov-txt)">\${fd(prochainRDV)}</strong></div>\`:''}
+      </div>
+    </div>
+    \`:\`<div class="lempty mb2">Les conseils du nutritionniste apparaîtront ici dès qu'un bilan est renseigné.</div>\`}
+
+    <!-- Macros & Recettes par type de journée -->
+    <div class="lst mb">Macros & Recettes par type de journée</div>
+    \${typeSections}
+  \`;
 }
 
 /* ══ SANTÉ ══ */
@@ -762,7 +862,7 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
     if(lastReprise) joursSans=Math.max(0,Math.floor((today-new Date(lastReprise))/(1000*60*60*24)));
   }
 
-  const calcDuree=b=>{const d=gp(b,'Date','date'),r=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');if(!d)return null;return Math.floor((r?new Date(r):new Date()-new Date(d))/(1000*60*60*24));};
+  const calcDuree=b=>{const d=gp(b,'Date','date'),r=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');if(!d)return null;const end=r?new Date(r):new Date();return Math.max(0,Math.floor((end-new Date(d))/(1000*60*60*24)));};
   const nTotal=bFilt.length;
   const durees=bFilt.filter(b=>calcDuree(b)).map(b=>calcDuree(b));
   const dureeMoy=durees.length?Math.round(durees.reduce((a,v)=>a+v,0)/durees.length):0;
@@ -887,7 +987,7 @@ function demo(){
   TS=[{id:'t1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-15'}},'Test - date':{title:[{plain_text:'Bilan mars 2025'}]},'CMJ (cm)':{number:52.4},'SJ (cm)':{number:48.2},'VMA (km/h)':{number:19.2},'Vmax':{number:36.4},'Broad jump':{number:2.71},'Saison':{select:{name:'2024-2025'}},'Notes':{rich_text:[{plain_text:'Progression nette vs octobre. SJ ratio confirme profil fibres rapides.'}]}}},{id:'t2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2024-10-05'}},'Test - date':{title:[{plain_text:'Bilan octobre 2024'}]},'CMJ (cm)':{number:49.8},'SJ (cm)':{number:45.5},'VMA (km/h)':{number:18.6},'Vmax':{number:35.1},'Broad jump':{number:2.58},'Saison':{select:{name:'2024-2025'}},'Notes':{rich_text:[{plain_text:'Premier bilan saison. Bonne base explosivité.'}]}}}];
   ST=[{id:'s1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-20'}},'Distance parcourue (m)':{number:11340},'Nombre de sprint':{number:22},'Vmax':{number:36.4},'Accmax':{number:7.8},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:1024},'But(s) marqué(s)':{number:2},'Passe décissive':{number:1},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'PSG'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-06'}},'Distance parcourue (m)':{number:10820},'Nombre de sprint':{number:18},'Vmax':{number:35.9},'Accmax':{number:7.4},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:890},'But(s) marqué(s)':{number:1},'Passe décissive':{number:0},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'Lyon'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s3',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-22'}},'Distance parcourue (m)':{number:9650},'Nombre de sprint':{number:14},'Vmax':{number:35.2},'Accmax':{number:7.1},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:740},'But(s) marqué(s)':{number:0},'Passe décissive':{number:1},'Résultats':{select:{name:'Nul'}},'Adversaire':{select:{name:'OM'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s4',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-08'}},'Distance parcourue (m)':{number:8920},'Nombre de sprint':{number:11},'Vmax':{number:34.7},'Accmax':{number:6.9},'⏱️ Temps de jeu':{number:58},'Titulaire/remplaçant':{select:{name:'Remplaçant'}},'Distance en sprint (m)':{number:610},'But(s) marqué(s)':{number:0},'Passe décissive':{number:0},'Résultats':{select:{name:'Défaite'}},'Adversaire':{select:{name:'SCO'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s5',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-02-22'}},'Distance parcourue (m)':{number:11100},'Nombre de sprint':{number:20},'Vmax':{number:36.1},'Accmax':{number:7.6},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:960},'But(s) marqué(s)':{number:1},'Passe décissive':{number:1},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'Nice'}},'Saison':{select:{name:'2024-2025'}}}}];
   BL=[{id:'b1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2024-11-18'}},'Date de reprise entrainement':{date:{start:'2024-12-02'}},'Date de retour match':{date:{start:'2024-12-14'}},'Type':{select:{name:'Musculaire'}},'Zone/ Localité':{select:{name:'Ischio-jambier'}},'Gravité':{select:{name:'🟡 Modéré'}},'Statut':{select:{name:'🟢 Terminé'}},'Rechute':{checkbox:false},'Saison':{select:{name:'2024-2025'}},'Type + localisation + mois année':{title:[{plain_text:'Musculaire ischio-jambier — nov 2024'}]}}},{id:'b2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-01-19'}},'Date de reprise entrainement':{date:{start:'2025-01-28'}},'Date de retour match':{date:{start:'2025-02-08'}},'Type':{select:{name:'Ligamentaire'}},'Zone/ Localité':{select:{name:'Cheville'}},'Gravité':{select:{name:'🟢 Légère'}},'Statut':{select:{name:'🟢 Terminé'}},'Rechute':{checkbox:false},'Saison':{select:{name:'2024-2025'}},'Type + localisation + mois année':{title:[{plain_text:'Entorse cheville droite — jan 2025'}]}}}];
-  NU=[];
+  NU=[];MET=[];REC=[];CLI=[];
   document.getElementById('sync-info').textContent='Mode démo · Notion non connecté';
   hero();renderOverview();
 }
