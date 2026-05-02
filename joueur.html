@@ -291,15 +291,13 @@ function fd(s,short=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))re
 
 async function loadAll(){
   try{
-    const[jr,sr,tr,nr,br,mr,rr,cr]=await Promise.all([
+    // Requêtes principales — si une échoue, tout bascule en démo
+    const[jr,sr,tr,nr,br]=await Promise.all([
       nq(DB_J,[{property:'Nom complet',direction:'ascending'}]),
       nq(DB_S,[{property:'Date',direction:'descending'}]),
       nq(DB_T,[{property:'Date',direction:'descending'}]),
       nq(DB_N,[{property:'Date',direction:'descending'}]),
       nq(DB_B,[{property:'Date',direction:'descending'}]),
-      nq(DB_MET,[{property:'Date',direction:'descending'}]),
-      nq(DB_REC,[]),
-      nq(DB_CLI,[{property:'Date',direction:'descending'}]),
     ]);
     const all=jr.results||[];
     J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
@@ -310,9 +308,17 @@ async function loadAll(){
       return r.some(id=>id===jid_nd);
     });
     ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
+
+    // Requêtes optionnelles — erreur silencieuse, ne bloque pas le chargement
+    const safeNq=async(db,sorts=[])=>{try{const r=await nq(db,sorts);return r;}catch(e){console.warn('Requête optionnelle échouée:',db,e);return {results:[]};}}
+    const[mr,rr,cr]=await Promise.all([
+      safeNq(DB_MET,[{property:'Date',direction:'descending'}]),
+      safeNq(DB_REC,[]),
+      safeNq(DB_CLI,[{property:'Date',direction:'descending'}]),
+    ]);
     MET=flt(mr.results||[]);
     CLI=flt(cr.results||[]);
-    REC=rr.results||[]; // Recettes globales — pas de filtre joueur
+    REC=rr.results||[];
     hero();renderOverview();
     document.getElementById('sync-info').textContent='Notion · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   }catch(e){console.warn('démo',e);demo()}
