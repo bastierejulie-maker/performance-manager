@@ -2,180 +2,222 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Espace Athlète — Julie Bastière Performance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --c1:#004170;--c2:#DA291C;
   --bg:#0a0a0c;--bg2:#111114;--bg3:#16161a;
-  --bdr:rgba(255,255,255,.06);--bdr2:rgba(255,255,255,.11);
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
   --txt:#f0ede8;--txt-m:#8a8680;--txt-d:#4a4844;
-  --gold:#c9a84c;--r:12px;
-  --ov-bg:#f8f7f4;--ov-card:#ffffff;--ov-bdr:rgba(0,0,0,.08);
-  --ov-txt:#1a1814;--ov-muted:#6b6455;--ov-dim:#9a907e
+  --gold:#c9a84c;--r:14px;
+  --ov-bg:#f5f3ef;--ov-card:#ffffff;--ov-bdr:rgba(0,0,0,.07);
+  --ov-txt:#1a1814;--ov-muted:#6b6455;--ov-dim:#9a907e;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
-/* CLUB THEMES */
 [data-club="PSG"]{--c1:#004170;--c2:#DA291C}
-[data-club="OM"],[data-club="Marseille"]{--c1:#009EDF;--c2:#FFFFFF}
+[data-club="OM"],[data-club="Marseille"]{--c1:#009EDF;--c2:#2C9DC9}
 [data-club="Lens"]{--c1:#F9B000;--c2:#DA121A}
 [data-club="Lyon"]{--c1:#003D8F;--c2:#D81920}
-[data-club="Monaco"]{--c1:#E8002D;--c2:#FFFFFF}
+[data-club="Monaco"],[data-club="AS Monaco"]{--c1:#E8002D;--c2:#b8001f}
 [data-club="Nice"]{--c1:#1D1B4E;--c2:#C8102E}
-[data-club="Lille"]{--c1:#D10A0A;--c2:#F5F5F5}
+[data-club="Lille"]{--c1:#D10A0A;--c2:#a00808}
 [data-club="Rennes"]{--c1:#1B1B1B;--c2:#D21F3C}
-[data-club="Nantes"]{--c1:#F9B000;--c2:#1B5E20}
-[data-club="Bordeaux"]{--c1:#1A1A40;--c2:#FFFFFF}
-[data-club="Strasbourg"]{--c1:#003F8A;--c2:#FFFFFF}
-[data-club="Juventus"]{--c1:#1a1a1a;--c2:#FFFFFF}
-[data-club="Real Madrid"]{--c1:#FEBE10;--c2:#00529F}
+[data-club="Juventus"]{--c1:#1a1a1a;--c2:#c8aa6e}
+[data-club="Real Madrid"]{--c1:#00529F;--c2:#FEBE10}
 [data-club="Barcelona"]{--c1:#004D98;--c2:#A50044}
-[data-club="Arsenal"]{--c1:#EF0107;--c2:#FFFFFF}
-[data-club="Chelsea"]{--c1:#034694;--c2:#FFFFFF}
+[data-club="Arsenal"]{--c1:#EF0107;--c2:#c0392b}
+[data-club="Chelsea"]{--c1:#034694;--c2:#034694}
 [data-club="Bayern"]{--c1:#DC052D;--c2:#0066B2}
-[data-club="Manchester City"]{--c1:#6CABDD;--c2:#1C2C5B}
 
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
-/* HERO */
-.hero{position:relative;min-height:320px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,var(--c1) 0%,color-mix(in srgb,var(--c1) 50%,#000) 55%,#0a0a0c 100%);z-index:0}
-.hero-glow{position:absolute;top:-80px;right:-80px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c2) 25%,transparent) 0%,transparent 70%);z-index:1}
-.hero-pattern{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 38px,rgba(255,255,255,.015) 38px,rgba(255,255,255,.015) 39px)}
-.hero-stripe{position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c1));z-index:3}
-.hero-body{position:relative;z-index:2;padding:28px 32px 32px;display:flex;align-items:flex-end;gap:24px}
+/* ── HERO ── */
+.hero{position:relative;min-height:280px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(145deg,var(--c1) 0%,color-mix(in srgb,var(--c1) 55%,#000) 50%,#080809 100%);z-index:0}
+.hero-glow{position:absolute;top:-60px;right:-60px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c2) 30%,transparent) 0%,transparent 65%);z-index:1;pointer-events:none}
+.hero-pattern{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 36px,rgba(255,255,255,.012) 36px,rgba(255,255,255,.012) 37px);pointer-events:none}
+.hero-stripe{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--c2),var(--c1),transparent);z-index:3}
+.hero-body{position:relative;z-index:2;padding:24px 20px 28px;display:flex;align-items:flex-end;gap:18px}
 .photo-wrap{position:relative;flex-shrink:0}
-.photo{width:106px;height:106px;border-radius:50%;object-fit:cover;border:3px solid var(--c2);background:rgba(0,0,0,.4);display:block}
-.photo-init{width:106px;height:106px;border-radius:50%;border:3px solid var(--c2);background:color-mix(in srgb,var(--c1) 35%,#000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:34px;color:rgba(255,255,255,.4);letter-spacing:.05em}
-.status-dot{position:absolute;bottom:5px;right:5px;width:15px;height:15px;border-radius:50%;border:2px solid var(--bg)}
-.sd-dispo{background:#4caf7d}.sd-blesse{background:#e57373}.sd-reeda{background:#ffb74d}.sd-indispo{background:#78909c}
+.photo{width:88px;height:88px;border-radius:50%;object-fit:cover;border:2.5px solid var(--c2);background:rgba(0,0,0,.4);display:block}
+.photo-init{width:88px;height:88px;border-radius:50%;border:2.5px solid rgba(255,255,255,.15);background:color-mix(in srgb,var(--c1) 40%,#000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:30px;color:rgba(255,255,255,.35);letter-spacing:.05em}
+.status-dot{position:absolute;bottom:4px;right:4px;width:14px;height:14px;border-radius:50%;border:2px solid #0a0a0c}
+.sd-disponible{background:#4caf7d}.sd-blesse{background:#e57373}.sd-en-reeducation{background:#ffb74d}.sd-indisponible{background:#78909c}
 .hero-info{flex:1;min-width:0}
-.club-line{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:7px}
-.club-pip{width:7px;height:7px;border-radius:50%;background:var(--c2);flex-shrink:0}
-.hero-name{font-family:'Bebas Neue',serif;font-size:clamp(34px,5.5vw,56px);line-height:.92;color:#fff;letter-spacing:.04em;margin-bottom:10px;text-shadow:0 2px 20px rgba(0,0,0,.4)}
-.htags{display:flex;flex-wrap:wrap;gap:6px}
-.htag{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.13);color:rgba(255,255,255,.65);background:rgba(255,255,255,.05)}
+.club-line{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:600}
+.club-pip{width:6px;height:6px;border-radius:50%;background:var(--c2);flex-shrink:0}
+.hero-name{font-family:'Bebas Neue',serif;font-size:clamp(30px,6vw,52px);line-height:.9;color:#fff;letter-spacing:.03em;margin-bottom:10px;text-shadow:0 2px 24px rgba(0,0,0,.5)}
+.htags{display:flex;flex-wrap:wrap;gap:5px}
+.htag{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);font-family:'Syne',sans-serif}
 .htag.hl{background:var(--c2);border-color:var(--c2);color:#fff}
-.hero-right{flex-shrink:0;text-align:right}
-.statut-pill{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:20px}
-.sp-dispo{background:rgba(76,175,125,.14);color:#4caf7d;border:1px solid rgba(76,175,125,.22)}
-.sp-blesse{background:rgba(229,115,115,.14);color:#e57373;border:1px solid rgba(229,115,115,.22)}
-.sp-reeda{background:rgba(255,183,77,.14);color:#ffb74d;border:1px solid rgba(255,183,77,.22)}
-.sp-indispo{background:rgba(120,144,156,.14);color:#78909c;border:1px solid rgba(120,144,156,.22)}
+.hero-top-right{position:absolute;top:16px;right:16px;z-index:4}
+.statut-pill{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:20px;font-family:'Syne',sans-serif;white-space:nowrap}
+.sp-disponible{background:rgba(76,175,125,.15);color:#4caf7d;border:1px solid rgba(76,175,125,.25)}
+.sp-blesse{background:rgba(229,115,115,.15);color:#e57373;border:1px solid rgba(229,115,115,.25)}
+.sp-en-reeducation{background:rgba(255,183,77,.15);color:#ffb74d;border:1px solid rgba(255,183,77,.25)}
+.sp-indisponible{background:rgba(120,144,156,.15);color:#78909c;border:1px solid rgba(120,144,156,.25)}
 
-/* NAV */
-.nav{background:var(--bg2);border-bottom:1px solid var(--bdr);display:flex;padding:0 32px;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:100}
+/* ── NAV ── */
+.nav{background:var(--bg2);border-bottom:1px solid var(--bdr);display:flex;padding:0 4px;overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:100;-webkit-overflow-scrolling:touch}
 .nav::-webkit-scrollbar{display:none}
-.nav-t{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--txt-d);padding:13px 16px 12px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;user-select:none}
+.nav-t{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--txt-d);padding:12px 14px 11px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;user-select:none;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.nav-t .ni{font-size:13px;line-height:1}
 .nav-t.active{color:var(--c2);border-bottom-color:var(--c2)}
 .nav-t:hover:not(.active){color:var(--txt-m)}
+.nav-label{display:inline}
 
-/* MAIN */
-.main{padding:0;max-width:1080px}
-#s-overview.active{background:var(--ov-bg);padding:24px 32px;}
-#s-matchs.active,#s-performance.active,#s-nutrition.active{padding:12px 0 0;}
-.sec{display:none;animation:fu .3s ease}.sec.active{display:block}
-@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* ── SECTIONS ── */
+.sec{display:none;animation:fu .25s ease}.sec.active{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-/* KPI */
-.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:18px}
-.kc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:15px 17px;position:relative;overflow:hidden;transition:border-color .2s}
-.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--c1),var(--c2));opacity:0;transition:opacity .2s}
-.kc:hover::after{opacity:1}.kc:hover{border-color:var(--bdr2)}
-.kl{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-d);font-weight:600;margin-bottom:7px}
-.kv{font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:var(--txt);letter-spacing:.02em}
-.kv.a{color:var(--c2)}.kv.g{color:var(--gold)}
-.ks{font-size:10px;color:var(--txt-d);margin-top:5px;font-weight:300}
+/* Dark sections */
+.sec-dark{background:var(--bg);padding:20px 16px;min-height:60vh}
+/* Light sections */
+.sec-light{background:var(--ov-bg);padding:20px 16px;min-height:60vh}
 
-/* SECTION TITLE */
-.st{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-d);font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:10px}
+/* ── CARDS DARK ── */
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;position:relative}
+.card-p{padding:16px}
+.card-h{padding:11px 16px;border-bottom:1px solid var(--bdr);background:var(--bg3);display:flex;align-items:center;justify-content:space-between}
+.card-ht{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--txt-d);font-weight:700}
+
+/* ── CARDS LIGHT ── */
+.lcard{background:#fff;border:1px solid var(--ov-bdr);border-radius:var(--r);overflow:hidden}
+.lcard-p{padding:14px 16px}
+.lcard-h{padding:10px 14px;border-bottom:1px solid var(--ov-bdr);background:#f8f7f4;display:flex;align-items:center;justify-content:space-between}
+.lcard-ht{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.g-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.mb{margin-bottom:14px}
+.mb2{margin-bottom:20px}
+
+/* ── KPI DARK ── */
+.kpi{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 15px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--c1),var(--c2));opacity:.5}
+.kpi-l{font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--txt-d);font-weight:700;margin-bottom:6px}
+.kpi-v{font-family:'Bebas Neue',serif;font-size:26px;line-height:1;color:var(--txt);letter-spacing:.02em}
+.kpi-v.accent{color:var(--c2)}.kpi-v.gold{color:var(--gold)}.kpi-v.green{color:#4caf7d}.kpi-v.warn{color:#ffb74d}.kpi-v.red{color:#e57373}
+.kpi-s{font-size:10px;color:var(--txt-d);margin-top:4px;font-weight:300}
+
+/* ── KPI LIGHT ── */
+.lkpi{background:#fff;border:1px solid var(--ov-bdr);border-radius:var(--r);padding:14px 15px;text-align:center}
+.lkpi-v{font-family:'Bebas Neue',serif;font-size:36px;line-height:1}
+.lkpi-l{font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:5px}
+
+/* ── SECTION TITLE ── */
+.st{font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--txt-d);font-weight:700;margin-bottom:11px;display:flex;align-items:center;gap:10px}
 .st::after{content:'';flex:1;height:1px;background:var(--bdr)}
-.sep{height:1px;background:var(--bdr);margin:22px 0}
+.lst{font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:11px;display:flex;align-items:center;gap:10px}
+.lst::after{content:'';flex:1;height:1px;background:var(--ov-bdr)}
 
-/* PROFIL */
-.pg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
-.pc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:17px 19px;position:relative;overflow:hidden}
-.pc::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--c1),var(--c2))}
-.pt{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-d);font-weight:600;margin-bottom:7px}
-.pv{font-family:'Bebas Neue',serif;font-size:20px;color:var(--txt);letter-spacing:.04em;margin-bottom:5px}
-.pd{font-size:12px;color:var(--txt-m);font-weight:300;line-height:1.6}
+/* ── PROFIL BARS ── */
+.pbar{margin-bottom:12px}
+.pbar-top{display:flex;justify-content:space-between;margin-bottom:5px}
+.pbar-l{font-size:11px;color:var(--txt-m);font-weight:400}
+.pbar-v{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--txt)}
+.pbar-track{height:4px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--c1),var(--c2));transition:width 1s cubic-bezier(.4,0,.2,1)}
+.pbar-fill.warn{background:#ffb74d}.pbar-fill.nope{background:#e57373}.pbar-fill.ok{background:linear-gradient(90deg,var(--c1),var(--c2))}
 
-/* NORMES */
-.ng{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:18px}
-.nc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 15px}
-.nl{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-d);font-weight:600;margin-bottom:7px}
-.nr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px}
-.nv{font-family:'Bebas Neue',serif;font-size:20px;color:var(--txt)}
-.nt{font-size:10px;color:var(--txt-d)}
-.nb{height:3px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
-.nf{height:100%;border-radius:3px;transition:width 1s ease}
-.nf.ok{background:linear-gradient(90deg,var(--c1),var(--c2))}.nf.warn{background:#ffb74d}.nf.nope{background:#e57373}
-.nch{display:inline-block;font-family:'Syne',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-top:6px}
-.nch.ok{background:rgba(76,175,125,.1);color:#4caf7d}.nch.warn{background:rgba(255,183,77,.1);color:#ffb74d}.nch.nope{background:rgba(229,115,115,.1);color:#e57373}
+/* ── ROW ── */
+.row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bdr)}
+.row:last-child{border-bottom:none}
+.row-l{font-size:11px;color:var(--txt-m);font-weight:300}
+.row-v{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--txt)}
+.lrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--ov-bdr)}
+.lrow:last-child{border-bottom:none}
+.lrow-l{font-size:11px;color:var(--ov-muted);font-weight:300}
+.lrow-v{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--ov-txt)}
 
-/* RAPPORT */
-.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:11px;margin-bottom:18px}
-.rc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
-.rh{padding:10px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--bg3)}
-.rt{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-d);font-weight:600}
-.rd{font-size:11px;color:var(--txt-m);font-weight:300}
-.rb{padding:13px 15px}
-.sr{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr)}
-.sr:last-child{border-bottom:none}
-.sl{font-size:12px;color:var(--txt-m);font-weight:300}
-.sv{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--txt)}
+/* ── TAGS ── */
+.tag{display:inline-block;font-family:'Syne',sans-serif;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px}
+.tag-v{background:rgba(76,175,125,.1);color:#4caf7d;border:1px solid rgba(76,175,125,.15)}
+.tag-w{background:rgba(255,183,77,.1);color:#ffb74d;border:1px solid rgba(255,183,77,.15)}
+.tag-d{background:rgba(229,115,115,.1);color:#e57373;border:1px solid rgba(229,115,115,.15)}
+.tag-n{background:rgba(255,183,77,.12);color:#d4a04a;border:1px solid rgba(255,183,77,.15)}
+.tag-b{background:color-mix(in srgb,var(--c1) 12%,transparent);color:color-mix(in srgb,var(--c1) 80%,white);border:1px solid color-mix(in srgb,var(--c1) 25%,transparent)}
 
-/* ENTRÉES PRO */
-.eg{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px;margin-bottom:20px}
-.ec{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:17px 18px;cursor:pointer;text-decoration:none;color:inherit;display:flex;align-items:center;gap:13px;transition:border-color .15s,transform .15s;position:relative;overflow:hidden}
-.ec::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--c1) 7%,transparent),color-mix(in srgb,var(--c2) 4%,transparent));opacity:0;transition:opacity .2s}
-.ec:hover::before{opacity:1}.ec:hover{border-color:color-mix(in srgb,var(--c2) 35%,transparent);transform:translateY(-2px)}
-.ei{width:40px;height:40px;border-radius:10px;background:color-mix(in srgb,var(--c1) 14%,transparent);border:1px solid color-mix(in srgb,var(--c1) 28%,transparent);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;position:relative;z-index:1}
-.et{flex:1;min-width:0;position:relative;z-index:1}
-.el{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--txt);margin-bottom:3px;letter-spacing:.03em}
-.es{font-size:11px;color:var(--txt-d);font-weight:300}
-.ea{font-size:13px;color:var(--txt-d);position:relative;z-index:1;transition:color .15s,transform .15s}
-.ec:hover .ea{color:var(--c2);transform:translateX(3px)}
+/* ── CHART ── */
+.chart-wrap{position:relative}
 
-/* INFO */
-.ic{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
-.ir{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--bdr);gap:14px}
-.ir:last-child{border-bottom:none}
-.il{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-d);font-weight:600;min-width:150px}
-.iv{font-size:12px;color:var(--txt);text-align:right}
+/* ── MATCH CARD ── */
+.mcard{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.mcard-h{padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.mcard-b{padding:12px 14px}
+.mcard-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.mstat{text-align:center}
+.mstat-v{font-family:'Bebas Neue',serif;font-size:20px;line-height:1;color:var(--txt)}
+.mstat-l{font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-d);font-weight:600;margin-top:3px}
 
-/* CHART */
-.cc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
-.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.cht{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-d);font-weight:600}
-.cw{position:relative;height:175px}
+/* ── SELECT STYLE ── */
+.sel{font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--bdr2);background:var(--bg3);color:var(--txt);cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;outline:none;-webkit-appearance:none;appearance:none}
+.lsel{font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;outline:none}
 
-/* TAGS */
-.tag{display:inline-block;font-family:'Syne',sans-serif;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
-.tm{background:rgba(229,115,115,.1);color:#e57373}
-.tt{background:color-mix(in srgb,var(--c1) 12%,transparent);color:color-mix(in srgb,var(--c1) 90%,white)}
-.tg{background:rgba(201,168,76,.1);color:var(--gold)}
+/* ── NORMES BAR ── */
+.norme{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px}
+.norme-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.norme-l{font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--txt-d);font-weight:700}
+.norme-vals{display:flex;align-items:baseline;gap:4px}
+.norme-v{font-family:'Bebas Neue',serif;font-size:22px;color:var(--txt)}
+.norme-ref{font-size:9px;color:var(--txt-d)}
+.norme-track{height:4px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;margin-bottom:5px}
+.norme-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.norme-ok{background:linear-gradient(90deg,var(--c1),var(--c2))}
+.norme-warn{background:#ffb74d}.norme-nope{background:#e57373}
+.badge{display:inline-block;font-family:'Syne',sans-serif;font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px}
+.badge-ok{background:rgba(76,175,125,.1);color:#4caf7d}
+.badge-warn{background:rgba(255,183,77,.1);color:#ffb74d}
+.badge-nope{background:rgba(229,115,115,.1);color:#e57373}
 
-/* DASH WRAPS */
-.dash-wrap{min-height:200px}
+/* ── PROFIL CARD ── */
+.pcard{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+.pcard::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--c1),var(--c2))}
+.pcard-t{font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--txt-d);font-weight:700;margin-bottom:6px}
+.pcard-v{font-family:'Bebas Neue',serif;font-size:22px;color:var(--txt);letter-spacing:.04em;margin-bottom:4px}
+.pcard-d{font-size:11px;color:var(--txt-m);font-weight:300;line-height:1.5}
 
-/* SKELETON / EMPTY */
-.sk{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;color:transparent!important}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.empty{padding:36px 20px;text-align:center;color:var(--txt-d);font-size:13px;font-style:italic}
+/* ── BLESSURE CARD ── */
+.bcard{background:#fff;border:1px solid var(--ov-bdr);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.bcard-h{padding:10px 14px;background:#f8f7f4;border-bottom:1px solid var(--ov-bdr);display:flex;align-items:center;justify-content:space-between}
+.bcard-b{padding:12px 14px}
+.bcard-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bstat-l{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-bottom:3px}
+.bstat-v{font-size:12px;color:var(--ov-txt);font-weight:500}
 
-/* FOOTER */
-.footer{margin-top:36px;padding:18px 32px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
-.fb{font-family:'Bebas Neue',serif;font-size:15px;color:var(--txt-d);letter-spacing:.06em}
-.fs{font-size:10px;color:var(--txt-d);font-weight:300;margin-top:2px}
-.fr{font-size:10px;color:var(--txt-d);text-align:right;font-weight:300}
+/* ── EMPTY ── */
+.empty{padding:40px 20px;text-align:center;color:var(--txt-d);font-size:12px;font-style:italic;font-weight:300}
+.lempty{padding:40px 20px;text-align:center;color:var(--ov-dim);font-size:12px;font-style:italic;border:1px dashed var(--ov-bdr);border-radius:var(--r)}
 
-@media(max-width:600px){
-  .hero-body{padding:18px;flex-direction:column;align-items:flex-start;gap:14px}
-  .main{padding:18px 14px}.nav{padding:0 14px}
-  .pg{grid-template-columns:1fr}
+/* ── FOOTER ── */
+.footer{padding:16px 20px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding-bottom:calc(16px + var(--safe-bottom))}
+.fb{font-family:'Bebas Neue',serif;font-size:14px;color:var(--txt-d);letter-spacing:.06em}
+.fs{font-size:9px;color:var(--txt-d);font-weight:300;margin-top:1px}
+.fr{font-size:9px;color:var(--txt-d);text-align:right;font-weight:300}
+
+/* ── RESPONSIVE ── */
+@media(min-width:600px){
+  .hero-body{padding:28px 28px 32px;gap:22px}
+  .photo{width:100px;height:100px}.photo-init{width:100px;height:100px}
+  .sec-dark,.sec-light{padding:24px 24px}
+  .nav-t{padding:13px 18px 12px;font-size:11px}
+  .g2{gap:12px}.g3{gap:12px}
+  .mcard-grid{grid-template-columns:repeat(4,1fr)}
+}
+@media(min-width:1080px){
+  .hero-body{padding:32px 40px 36px;max-width:1080px;margin:0 auto}
+  .sec-dark,.sec-light{padding:28px 40px;max-width:1080px;margin:0 auto}
+  .nav{padding:0 40px}
+  .footer{max-width:1080px;margin:0 auto;padding-left:40px;padding-right:40px}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 }
 </style>
 </head>
@@ -184,37 +226,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 <div id="hero-wrap"></div>
 
 <div class="nav" id="main-nav">
-  <div class="nav-t active" onclick="sw('overview',this)">Vue d'ensemble</div>
-  <div class="nav-t" onclick="sw('matchs',this)">Matchs</div>
-  <div class="nav-t" onclick="sw('performance',this)">Performance</div>
-  <div class="nav-t" onclick="sw('nutrition',this)">Nutrition</div>
-  <div class="nav-t" onclick="sw('sante',this)">Santé</div>
+  <div class="nav-t active" onclick="sw('overview',this)"><span class="ni">⚡</span><span class="nav-label">Aperçu</span></div>
+  <div class="nav-t" onclick="sw('matchs',this)"><span class="ni">⚽</span><span class="nav-label">Matchs</span></div>
+  <div class="nav-t" onclick="sw('perf',this)"><span class="ni">📈</span><span class="nav-label">Physique</span></div>
+  <div class="nav-t" onclick="sw('nutrition',this)"><span class="ni">🥗</span><span class="nav-label">Nutrition</span></div>
+  <div class="nav-t" onclick="sw('sante',this)"><span class="ni">🏥</span><span class="nav-label">Santé</span></div>
 </div>
 
-<div class="main">
-  <div class="sec active" id="s-overview">
-    <!-- Injecté par ov() -->
-  </div>
-
-  <div class="sec" id="s-matchs">
-    <div id="wrap-matchs" class="dash-wrap">Chargement...</div>
-  </div>
-
-  <div class="sec" id="s-performance">
-    <div id="wrap-performance" class="dash-wrap">Chargement...</div>
-  </div>
-
-  <div class="sec" id="s-nutrition">
-    <div id="wrap-nutrition" class="dash-wrap">Chargement...</div>
-  </div>
-  <div class="sec" id="s-sante" style="background:var(--ov-bg);padding:24px 32px;min-height:100%">
-    <!-- Injecté par sante() -->
-  </div>
-</div>
+<div id="s-overview" class="sec active sec-light"></div>
+<div id="s-matchs"   class="sec sec-dark"></div>
+<div id="s-perf"     class="sec sec-dark"></div>
+<div id="s-nutrition" class="sec sec-light"></div>
+<div id="s-sante"    class="sec sec-light"></div>
 
 <div class="footer">
   <div><div class="fb">Julie Bastière</div><div class="fs">Performance Manager</div></div>
-  <div class="fr" id="sync-info">Chargement...</div>
+  <div class="fr" id="sync-info">Chargement…</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -240,7 +267,7 @@ const P=new URLSearchParams(location.search);
 const JID=P.get('id')||null;
 let J=null,ST=[],TS=[],NU=[],BL=[],CI={};
 
-document.addEventListener('DOMContentLoaded',()=>{loadAll()});
+document.addEventListener('DOMContentLoaded',()=>loadAll());
 
 async function nq(db,sorts=[]){
   const b={page_size:100};if(sorts.length)b.sorts=sorts;
@@ -255,18 +282,9 @@ function gp(p,k,t='text'){const v=p.properties?.[k];if(!v)return null;
   if(t==='date')return v.date?.start||null;
   if(t==='url')return v.url||null;
   if(t==='relation'){const rel=v.relation||[];return rel.map(r=>(r.id||'').replace(/-/g,''));}
+  if(t==='checkbox')return v.checkbox??false;
   return null}
-
-const BASE='https://bastierejulie-maker.github.io/performance-manager';
-
-// URLs des dashboards existants — paramètre ?id= passé automatiquement
-const DASH={
-  matchs:    BASE+'/stats-match.html',
-  performance: BASE+'/athletique.html',
-  nutrition: BASE+'/nutrition.html',
-};
-
-let iframesLoaded={matchs:false,performance:false,nutrition:false};
+function fd(s,short=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('fr-FR',short?{day:'2-digit',month:'short'}:{day:'numeric',month:'long',year:'numeric'})}
 
 async function loadAll(){
   try{
@@ -280,55 +298,35 @@ async function loadAll(){
     const all=jr.results||[];
     J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
     if(!J)throw new Error('no joueur');
-    const jid=J.id;
-    const jid_nd=jid.replace(/-/g,'');
-    // flt : filtre les entrées reliées au joueur courant
-    // gp(x,'Joueur','relation') retourne des IDs sans tirets — on compare à jid_nd
+    const jid_nd=J.id.replace(/-/g,'');
     const flt=arr=>arr.filter(x=>{
       const r=gp(x,'Joueur','relation')||[];
       return r.some(id=>id===jid_nd);
     });
     ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
-    hero();ov();
-    document.getElementById('sync-info').textContent='Notion · actualisé '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    hero();renderOverview();
+    document.getElementById('sync-info').textContent='Notion · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   }catch(e){console.warn('démo',e);demo()}
 }
 
-function loadIframe(name){
-  if(iframesLoaded[name]) return;
-  iframesLoaded[name]=true;
-  // J.id est l'ID Notion de la page joueur (UUID avec tirets)
-  const jid=J?J.id:'';
-  const param=name==='nutrition'?'id':'joueur';
-  const url=DASH[name]+(jid?'?'+param+'='+jid:'');
-  console.log('[Andrea] iframe '+name+' → '+url);
-  const wrap=document.getElementById('wrap-'+name);
-  wrap.innerHTML='';
-  const iframe=document.createElement('iframe');
-  iframe.style.cssText='width:100%;height:calc(100vh - 130px);border:none;border-radius:12px;display:block;background:#f4f5f7';
-  iframe.src=url;
-  iframe.setAttribute('loading','lazy');
-  wrap.appendChild(iframe);
-}
-
-/* HERO */
+/* ══ HERO ══ */
 function hero(){
   const nom=gt(J),club=gp(J,'Club actuel','text')||'—',poste=gp(J,'Poste','select')||'—';
   const statut=gp(J,'Statut','select')||'Disponible',pied=gp(J,'Pied fort','select')||'—';
   const nat=gp(J,'Nationalité sportive','text')||'—',photo=gp(J,'Photo','url');
   const ddn=gp(J,'date de naissance','date');
-  const annee=ddn?new Date(ddn).getFullYear():'—';
-  const piedLabel=pied==='Droite'?'Droitier':pied==='Gauche'?'Gaucher':pied==='Les deux'?'Ambidextre':pied;
-  document.body.setAttribute('data-club',club);
-  const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s']/g,'-');
+  const age=ddn?Math.floor((new Date()-new Date(ddn))/31557600000)+'ans':'—';
+  const piedLabel={'Droite':'Droitier','Gauche':'Gaucher','Les deux':'Ambidextre'}[pied]||pied;
   const ss=slug(statut);
   const init=nom.split(' ').slice(0,2).map(n=>n[0]?.toUpperCase()||'').join('');
+  document.body.setAttribute('data-club',club);
   document.getElementById('hero-wrap').innerHTML=`
     <div class="hero" data-club="${club}">
       <div class="hero-bg"></div><div class="hero-glow"></div><div class="hero-pattern"></div><div class="hero-stripe"></div>
+      <div class="hero-top-right"><div class="statut-pill sp-${ss}">${statut}</div></div>
       <div class="hero-body">
         <div class="photo-wrap">
-          ${photo?`<img class="photo" src="${photo}" alt="${nom}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:''}
+          ${photo?`<img class="photo" src="${photo}" alt="${nom}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:``}
           <div class="photo-init" ${photo?'style="display:none"':''}>${init}</div>
           <div class="status-dot sd-${ss}"></div>
         </div>
@@ -339,354 +337,560 @@ function hero(){
             <span class="htag hl">${poste}</span>
             <span class="htag">${nat}</span>
             <span class="htag">${piedLabel}</span>
-            <span class="htag">${annee}</span>
+            <span class="htag">${age}</span>
           </div>
         </div>
-        <div class="hero-right"><div class="statut-pill sp-${ss}">${statut}</div></div>
       </div>
     </div>`;
 }
 
-/* OVERVIEW — statut + 3 derniers matchs + prochains RDV */
-function ov(saisonFilter){
-  // Filtre saison
+function slug(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s']/g,'-')}
+
+/* ══ OVERVIEW ══ */
+function renderOverview(saisonFilter){
   const saisons=[...new Set(ST.map(m=>gp(m,'Saison','select')).filter(Boolean))].sort().reverse();
   if(!saisonFilter) saisonFilter=saisons[0]||'2025-2026';
-  const mSaison=ST.filter(m=>gp(m,'Saison','select')===saisonFilter);
-  const tSaison=TS.filter(t=>gp(t,'Saison','select')===saisonFilter);
+  const mS=ST.filter(m=>gp(m,'Saison','select')===saisonFilter);
+  const tS=TS.filter(t=>gp(t,'Saison','select')===saisonFilter);
   const statut=gp(J,'Statut','select')||'Disponible';
-  const slug=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s']/g,'-');
   const ss=slug(statut);
-  const statutIcon={'Disponible':'✅','Blessé':'🤕','En rééducation':'🔄','Indisponible':'⛔'}[statut]||'•';
   const statutDesc={'Disponible':'Disponible pour l\'entraînement et la compétition','Blessé':'En cours de soin — suivi médical actif','En rééducation':'Programme de rééducation en cours','Indisponible':'Indisponible temporairement'}[statut]||'';
-  const last3=mSaison.slice(0,3);
-  const matchCards=last3.length?last3.map(s=>{
-    const date=gp(s,'Date','date'),dist=gp(s,'Distance parcourue (m)','number'),spr=gp(s,'Nombre de sprint','number'),vmx=gp(s,'Vmax','number'),tps=gp(s,'⏱️ Temps de jeu','number'),titu=gp(s,'Titulaire/remplaçant','select'),res=gp(s,'Résultats','select'),adv=gp(s,'Adversaire','select'),but=gp(s,'But(s) marqué(s)','number');
-    const rc=res==='Victoire'?'tt':res==='Défaite'?'tm':'tg';
-    return `<div class="rc"><div class="rh"><span class="rt">${adv?'vs '+adv:'Match'}</span><span class="rd">${fd(date)}</span></div><div class="rb"><div style="margin-bottom:8px;display:flex;gap:5px;flex-wrap:wrap">${titu?`<span class="tag tt">${titu}</span>`:''} ${res?`<span class="tag ${rc}">${res}</span>`:''}</div><div class="sr"><span class="sl">Temps de jeu</span><span class="sv">${tps?tps+' min':'—'}</span></div><div class="sr"><span class="sl">Distance</span><span class="sv">${dist?(dist/1000).toFixed(2)+' km':'—'}</span></div><div class="sr"><span class="sl">Sprints</span><span class="sv">${spr??'—'}</span></div><div class="sr"><span class="sl">Vmax</span><span class="sv">${vmx?vmx.toFixed(1)+' km/h':'—'}</span></div>${but?`<div class="sr"><span class="sl">But(s)</span><span class="sv">${but}</span></div>`:''}</div></div>`;
-  }).join(''):`<div class="empty">Aucun match enregistré pour le moment.</div>`;
-  // Stats saison
-  const nMatchs=mSaison.length;
-  const nTitu=mSaison.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Titulaire').length;
-  const nRem=mSaison.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Remplaçant').length;
-  const nButs=mSaison.reduce((a,m)=>a+(gp(m,"But(s) marqué(s)",'number')||0),0);
-  const nPasses=mSaison.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
-  const nMins=mSaison.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
-  const nVict=mSaison.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
-  // Dernier test
-  const lastTest=tSaison[0];
-  const lastCMJ=lastTest?gp(lastTest,'CMJ (cm)','number'):null;
-  const lastVMA=lastTest?gp(lastTest,'VMA (km/h)','number'):null;
-  const saisonOptions=saisons.length?saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join(''):`<option>${saisonFilter}</option>`;
+  const nM=mS.length,nT=mS.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Titulaire').length;
+  const nB=mS.reduce((a,m)=>a+(gp(m,"But(s) marqué(s)",'number')||0),0);
+  const nP=mS.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
+  const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
+  const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
+  const lastT=tS[0];
+  const motricite=gp(J,'Motricité','select')||'—';
+  const fibres=gp(J,'Fibres','select')||'—';
+  const scoreRef=gp(J,'Score réflexes','number');
+  const profilRef=gp(J,'Profil réflexes','select')||'—';
+  const sOpts=saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join('');
+  const last3=mS.slice(0,3);
+
+  const mCards=last3.length?last3.map(m=>{
+    const adv=gp(m,'Adversaire','select')||'Match',date=gp(m,'Date','date');
+    const res=gp(m,'Résultats','select'),titu=gp(m,'Titulaire/remplaçant','select');
+    const tps=gp(m,'⏱️ Temps de jeu','number'),dist=gp(m,'Distance parcourue (m)','number');
+    const spr=gp(m,'Nombre de sprint','number'),vmx=gp(m,'Vmax','number'),but=gp(m,'But(s) marqué(s)','number');
+    const rc=res==='Victoire'?'tag-b':res==='Défaite'?'tag-d':'tag-n';
+    return `<div class="lcard mb">
+      <div class="lcard-h"><span class="lcard-ht">vs ${adv}</span><span style="font-size:10px;color:var(--ov-dim)">${fd(date,true)}</span></div>
+      <div class="lcard-p">
+        <div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap">
+          ${titu?`<span class="tag ${titu==='Titulaire'?'tag-b':'tag-n'}">${titu}</span>`:''}
+          ${res?`<span class="tag ${rc}">${res}</span>`:''}
+          ${but?`<span class="tag tag-v">${but} but${but>1?'s':''}</span>`:''}
+        </div>
+        <div class="g3" style="gap:8px;text-align:center">
+          <div><div style="font-family:'Bebas Neue',serif;font-size:20px;color:var(--ov-txt)">${tps?tps+"'":"—"}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Temps</div></div>
+          <div><div style="font-family:'Bebas Neue',serif;font-size:20px;color:var(--ov-txt)">${dist?(dist/1000).toFixed(1):"—"}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">km</div></div>
+          <div><div style="font-family:'Bebas Neue',serif;font-size:20px;color:var(--ov-txt)">${vmx?vmx.toFixed(1):"—"}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Vmax</div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join(''):`<div class="lempty">Aucun match cette saison.</div>`;
 
   document.getElementById('s-overview').innerHTML=`
-    <div style="background:var(--ov-bg);min-height:100%;padding:0">
+    <!-- Statut -->
+    <div class="lcard mb2">
+      <div class="lcard-p" style="display:flex;align-items:center;gap:12px">
+        <div class="statut-pill sp-${ss}" style="font-size:11px;padding:6px 14px">${statut}</div>
+        <div style="font-size:12px;color:var(--ov-muted);font-weight:300;flex:1">${statutDesc}</div>
+      </div>
+    </div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="font-size:22px">${statutIcon}</div>
-          <div>
-            <div class="statut-pill sp-${ss}" style="display:inline-block;margin-bottom:4px">${statut}</div>
-            <div style="font-size:12px;color:var(--ov-muted);font-weight:300">${statutDesc}</div>
-          </div>
+    <!-- Saison picker + KPIs -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="lst" style="margin-bottom:0;flex:1">Saison</div>
+      <select class="lsel" onchange="renderOverview(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
+    </div>
+    <div class="g-auto mb2">
+      ${[['Matchs',nM,nT+' tit.'],['Buts',nB,nP+' passe'+(nP>1?'s':'')],['G+A',nB+nP,'contrib.'],['Minutes',nMins+"'",'temps de jeu'],['Victoires',nV,nM?Math.round(nV/nM*100)+'%':'—']].map(([l,v,s])=>`
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:var(--ov-txt)">${v}</div>
+        <div class="lkpi-l">${l}</div>
+        <div style="font-size:9px;color:var(--ov-dim);margin-top:2px;font-weight:300">${s}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- 3 derniers matchs -->
+    <div class="lst mb">3 derniers matchs</div>
+    ${mCards}
+
+    <!-- Profil biomécanique -->
+    <div class="lst mb">Profil biomécanique</div>
+    <div class="g2 mb2">
+      <div class="lcard">
+        <div class="lcard-h"><span class="lcard-ht">Motricité</span></div>
+        <div class="lcard-p">
+          <div style="font-family:'Bebas Neue',serif;font-size:24px;color:var(--ov-txt);margin-bottom:4px">${motricite}</div>
+          <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5">${motricite==='Extension'?'Système d\'exploitation puissance — explosivité en extension':motricite==='Flexion'?'Système d\'exploitation vitesse — explosivité en flexion':'—'}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600">Saison</span>
-          <select onchange="ov(this.value)" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${saisonOptions}</select>
+      </div>
+      <div class="lcard">
+        <div class="lcard-h"><span class="lcard-ht">Fibres</span></div>
+        <div class="lcard-p">
+          <div style="font-family:'Bebas Neue',serif;font-size:24px;color:var(--ov-txt);margin-bottom:4px">${fibres}</div>
+          <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5">${{'Rapides':'Profil explosif — pic de puissance court','Lentes':'Profil endurant — maintien effort long','Hybrides':'Profil polyvalent — équilibre puissance/endurance','Indéterminées':'Profil à préciser — bilan complet requis'}[fibres]||'—'}</div>
         </div>
       </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px">
-        ${[
-          ['Matchs',nMatchs,'dont '+nTitu+' tit.'],
-          ['Buts',nButs,nPasses+' passe'+(nPasses>1?'s':'')],
-          ['G + A',nButs+nPasses,'contributions'],
-          ['Minutes',nMins+"'",'temps de jeu'],
-          ['Victoires',nVict,nMatchs?Math.round(nVict/nMatchs*100)+'% win rate':'—'],
-
-        ].map(([l,v,s])=>`
-          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:14px 16px">
-            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-bottom:7px">${l}</div>
-            <div style="font-family:'Bebas Neue',serif;font-size:26px;line-height:1;color:var(--ov-txt)">${v}</div>
-            <div style="font-size:10px;color:var(--ov-dim);margin-top:5px;font-weight:300">${s}</div>
-          </div>`).join('')}
+      <div class="lcard">
+        <div class="lcard-h"><span class="lcard-ht">Réflexes archaïques</span></div>
+        <div class="lcard-p">
+          <div style="font-family:'Bebas Neue',serif;font-size:24px;color:var(--ov-txt);margin-bottom:4px">${scoreRef!==null?scoreRef+' / 60':'—'}</div>
+          <div style="font-size:11px;color:var(--ov-muted);font-weight:300">${profilRef}</div>
+        </div>
       </div>
-
-      <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:10px">3 derniers matchs <span style="flex:1;height:1px;background:var(--ov-bdr);display:block"></span></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:11px;margin-bottom:20px">
-        ${matchCards.replace(/var\(--bg2\)/g,'#fff').replace(/var\(--bg3\)/g,'#f8f7f4').replace(/var\(--bdr\)/g,'rgba(0,0,0,.08)').replace(/var\(--txt-m\)/g,'#6b6455').replace(/var\(--txt\)/g,'#1a1814').replace(/class="tag tt"/g,'class="tag tt" style="background:#eef3fc;color:#2a5080"').replace(/class="tag tm"/g,'class="tag tm" style="background:#fdf0f0;color:#8c3030"').replace(/class="tag tg"/g,'class="tag tg" style="background:#faf7ef;color:#a07828"') || '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--ov-dim);font-size:13px;font-style:italic">Aucun match cette saison.</div>'}
+      <div class="lcard">
+        <div class="lcard-h"><span class="lcard-ht">Dernier test physique</span></div>
+        <div class="lcard-p">
+          ${lastT?`
+          <div class="lrow"><span class="lrow-l">CMJ</span><span class="lrow-v">${gp(lastT,'CMJ (cm)','number')||'—'} cm</span></div>
+          <div class="lrow"><span class="lrow-l">VMA</span><span class="lrow-v">${gp(lastT,'VMA (km/h)','number')||'—'} km/h</span></div>
+          <div style="font-size:9px;color:var(--ov-dim);margin-top:8px">${fd(gp(lastT,'Date','date'),true)}</div>
+          `:`<div style="font-size:12px;color:var(--ov-dim);font-style:italic;padding:4px 0">Aucun test enregistré</div>`}
+        </div>
       </div>
-
-      <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:10px">Prochains rendez-vous <span style="flex:1;height:1px;background:var(--ov-bdr);display:block"></span></div>
-      <div style="background:#fff;border:1px dashed var(--ov-bdr);border-radius:12px;padding:28px 20px;text-align:center;color:var(--ov-dim);font-size:13px;font-style:italic">Les prochains événements apparaîtront ici dès que le calendrier est renseigné.</div>
     </div>`;
 }
 
+/* ══ MATCHS ══ */
+function renderMatchs(saisonFilter){
+  const saisons=[...new Set(ST.map(m=>gp(m,'Saison','select')).filter(Boolean))].sort().reverse();
+  if(!saisonFilter) saisonFilter=saisons[0]||'2025-2026';
+  const mS=ST.filter(m=>gp(m,'Saison','select')===saisonFilter);
+  const sOpts=saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join('');
+  const nM=mS.length,nT=mS.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Titulaire').length;
+  const nB=mS.reduce((a,m)=>a+(gp(m,"But(s) marqué(s)",'number')||0),0);
+  const nP=mS.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
+  const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
+  const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
+  const avgDist=nM?Math.round(mS.reduce((a,m)=>a+(gp(m,'Distance parcourue (m)','number')||0),0)/nM):0;
+  const avgSpr=nM?Math.round(mS.reduce((a,m)=>a+(gp(m,'Nombre de sprint','number')||0),0)/nM):0;
+  const maxVmax=mS.reduce((mx,m)=>Math.max(mx,gp(m,'Vmax','number')||0),0);
 
-function calcDuree(b){
-  const debut=gp(b,'Date','date');
-  const reprise=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');
-  if(!debut) return null;
-  const end=reprise?new Date(reprise):new Date();
-  return Math.floor((end-new Date(debut))/(1000*60*60*24));
+  const el=document.getElementById('s-matchs');
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="st" style="margin-bottom:0;flex:1">Saison</div>
+      <select class="sel" onchange="renderMatchs(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
+    </div>
+
+    <!-- KPIs saison -->
+    <div class="g-auto mb2">
+      ${[['Matchs',nM,nT+' tit.'],['Buts',nB,''],['Passes D.',nP,''],['Minutes',nMins+"'",''],['Victoires',nV,nM?Math.round(nV/nM*100)+'% win':''],['Dist. moy.',(avgDist/1000).toFixed(1)+'km','/ match']].map(([l,v,s])=>`
+      <div class="kpi">
+        <div class="kpi-l">${l}</div>
+        <div class="kpi-v">${v}</div>
+        ${s?`<div class="kpi-s">${s}</div>`:''}
+      </div>`).join('')}
+    </div>
+
+    <!-- Chart évolution Vmax + Distance -->
+    <div class="st mb">Évolution de la saison</div>
+    <div class="card mb2">
+      <div class="card-h"><span class="card-ht">Distance & Vmax par match</span></div>
+      <div class="card-p" style="padding:14px 16px 10px">
+        <div class="chart-wrap" style="height:180px"><canvas id="chart-matchs"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Liste matchs -->
+    <div class="st mb">Tous les matchs</div>
+    ${mS.length?mS.map(m=>{
+      const adv=gp(m,'Adversaire','select')||'Match',date=gp(m,'Date','date');
+      const res=gp(m,'Résultats','select'),titu=gp(m,'Titulaire/remplaçant','select');
+      const tps=gp(m,'⏱️ Temps de jeu','number'),dist=gp(m,'Distance parcourue (m)','number');
+      const spr=gp(m,'Nombre de sprint','number'),vmx=gp(m,'Vmax','number');
+      const acc=gp(m,'Accmax','number'),but=gp(m,'But(s) marqué(s)','number'),passe=gp(m,'Passe décissive','number');
+      const dspr=gp(m,'Distance en sprint (m)','number');
+      const rc=res==='Victoire'?'tag-b':res==='Défaite'?'tag-d':'tag-n';
+      return `<div class="mcard">
+        <div class="mcard-h">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--txt)">vs ${adv}</span>
+            ${res?`<span class="tag ${rc}">${res}</span>`:''}
+            ${titu?`<span class="tag ${titu==='Titulaire'?'tag-b':'tag-n'}">${titu}</span>`:''}
+          </div>
+          <span style="font-size:10px;color:var(--txt-m)">${fd(date,true)}</span>
+        </div>
+        <div class="mcard-b">
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+            ${but?`<span class="tag tag-v">${but} but${but>1?'s':''}</span>`:''}
+            ${passe?`<span class="tag tag-v">${passe} passe${passe>1?'s':''} D.</span>`:''}
+          </div>
+          <div class="mcard-grid">
+            <div class="mstat"><div class="mstat-v">${tps?tps+"'":"—"}</div><div class="mstat-l">Temps</div></div>
+            <div class="mstat"><div class="mstat-v">${dist?(dist/1000).toFixed(2):"—"}</div><div class="mstat-l">km</div></div>
+            <div class="mstat"><div class="mstat-v">${spr??'—'}</div><div class="mstat-l">Sprints</div></div>
+            <div class="mstat"><div class="mstat-v">${vmx?vmx.toFixed(1):"—"}</div><div class="mstat-l">Vmax</div></div>
+            <div class="mstat"><div class="mstat-v">${acc?acc.toFixed(1):"—"}</div><div class="mstat-l">AccMax</div></div>
+            <div class="mstat"><div class="mstat-v">${dspr??'—'}</div><div class="mstat-l">m sprint</div></div>
+          </div>
+        </div>
+      </div>`;
+    }).join(''):`<div class="empty">Aucun match cette saison.</div>`}`;
+
+  // Chart matchs
+  setTimeout(()=>{
+    const ctx=document.getElementById('chart-matchs');
+    if(!ctx||!mS.length)return;
+    if(CI.matchs)CI.matchs.destroy();
+    const labels=mS.map(m=>gp(m,'Adversaire','select')||'?').reverse();
+    const dists=mS.map(m=>gp(m,'Distance parcourue (m)','number')||0).reverse();
+    const vmaxs=mS.map(m=>gp(m,'Vmax','number')||0).reverse();
+    CI.matchs=new Chart(ctx,{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:'Distance (m)',data:dists,backgroundColor:'color-mix(in srgb,var(--c1,#004170) 60%,transparent)',borderRadius:4,yAxisID:'y'},
+        {label:'Vmax (km/h)',data:vmaxs,type:'line',borderColor:'var(--c2,#DA291C)',backgroundColor:'transparent',pointBackgroundColor:'var(--c2,#DA291C)',tension:.4,yAxisID:'y2',pointRadius:3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}},
+        y2:{position:'right',grid:{display:false},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}},
+        x:{grid:{display:false},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}}
+      }}
+    });
+  },100);
 }
 
-/* SANTÉ */
-function sante(saisonFilter,typeFilter,zoneFilter){
+/* ══ PERFORMANCE ══ */
+function renderPerf(saisonFilter){
+  const saisons=[...new Set(TS.map(t=>gp(t,'Saison','select')).filter(Boolean))].sort().reverse();
+  if(!saisonFilter) saisonFilter=saisons[0]||'2025-2026';
+  const tS=TS.filter(t=>gp(t,'Saison','select')===saisonFilter);
+  const sOpts=saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join('');
+  const poste=gp(J,'Poste','select')||'Excentré';
+  const norme=NORMES[poste]||NORMES['Excentré'];
+  const lastT=tS[0];
+
+  const normCard=(label,val,ref,unit)=>{
+    if(val===null)return `<div class="norme"><div class="norme-top"><span class="norme-l">${label}</span><span class="badge badge-warn">—</span></div><div style="font-size:11px;color:var(--txt-d);font-style:italic">Non testé</div></div>`;
+    const pct=Math.min(100,Math.round(val/ref*100));
+    const cls=pct>=100?'norme-ok':pct>=85?'norme-warn':'norme-nope';
+    const bcls=pct>=100?'badge-ok':pct>=85?'badge-warn':'badge-nope';
+    const blabel=pct>=100?'Norme ✓':pct>=85?'Proche':'Sous norme';
+    return `<div class="norme">
+      <div class="norme-top">
+        <span class="norme-l">${label}</span>
+        <div class="norme-vals"><span class="norme-v">${val.toFixed(1)}</span><span class="norme-ref">${unit} / réf ${ref}</span></div>
+      </div>
+      <div class="norme-track"><div class="norme-fill ${cls}" style="width:${pct}%"></div></div>
+      <span class="badge ${bcls}">${blabel}</span>
+    </div>`;
+  };
+
+  const el=document.getElementById('s-perf');
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="st" style="margin-bottom:0;flex:1">Tests — ${poste}</div>
+      <select class="sel" onchange="renderPerf(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
+    </div>
+
+    <!-- Normes poste -->
+    <div class="st mb">Benchmarks niveau élite</div>
+    ${lastT?`
+    <div class="g2 mb2">
+      ${normCard('Vmax',gp(lastT,'Vmax','number'),norme.vmax,'km/h')}
+      ${normCard('CMJ',gp(lastT,'CMJ (cm)','number'),norme.cmj,'cm')}
+      ${normCard('SJ',gp(lastT,'SJ (cm)','number'),norme.sj,'cm')}
+      ${normCard('VMA',gp(lastT,'VMA (km/h)','number'),norme.vma,'km/h')}
+    </div>
+    `:`<div class="empty mb2">Aucun test enregistré pour cette saison.</div>`}
+
+    <!-- Profil mécanique -->
+    <div class="st mb">Profil biomécanique</div>
+    <div class="g2 mb2">
+      <div class="pcard">
+        <div class="pcard-t">Motricité</div>
+        <div class="pcard-v">${gp(J,'Motricité','select')||'—'}</div>
+        <div class="pcard-d">${gp(J,'Motricité','select')==='Extension'?'Système puissance / explosivité extension':'Système vitesse / explosivité flexion'}</div>
+      </div>
+      <div class="pcard">
+        <div class="pcard-t">Fibres dominantes</div>
+        <div class="pcard-v">${gp(J,'Fibres','select')||'—'}</div>
+        <div class="pcard-d">${{'Rapides':'Pic de puissance court — explosivité max','Lentes':'Endurance effort — maintien long','Hybrides':'Équilibre puissance/endurance','Indéterminées':'Profil à affiner'}[gp(J,'Fibres','select')]||'—'}</div>
+      </div>
+      <div class="pcard">
+        <div class="pcard-t">Réflexes archaïques</div>
+        <div class="pcard-v">${gp(J,'Score réflexes','number')!==null?gp(J,'Score réflexes','number')+' / 60':'—'}</div>
+        <div class="pcard-d">Profil : ${gp(J,'Profil réflexes','select')||'—'}</div>
+      </div>
+      <div class="pcard">
+        <div class="pcard-t">Poids / Taille</div>
+        <div class="pcard-v">${gp(J,'Poids (kg)','number')||'—'} kg</div>
+        <div class="pcard-d">${gp(J,'Taille (cm)','number')||'—'} cm</div>
+      </div>
+    </div>
+
+    <!-- Évolution tests -->
+    ${tS.length>=2?`
+    <div class="st mb">Évolution</div>
+    <div class="card mb2">
+      <div class="card-h"><span class="card-ht">CMJ — SJ — VMA</span></div>
+      <div class="card-p" style="padding:14px 16px 10px">
+        <div class="chart-wrap" style="height:180px"><canvas id="chart-perf"></canvas></div>
+      </div>
+    </div>
+    `:''}
+
+    <!-- Tous les tests -->
+    <div class="st mb">Historique tests</div>
+    ${tS.length?tS.map(t=>{
+      const cmj=gp(t,'CMJ (cm)','number'),sj=gp(t,'SJ (cm)','number'),vma=gp(t,'VMA (km/h)','number');
+      const vmx=gp(t,'Vmax','number'),bj=gp(t,'Broad jump','number');
+      return `<div class="card mb">
+        <div class="card-h">
+          <span class="card-ht">${gp(t,'Test - date','text')||'Test'}</span>
+          <span style="font-size:10px;color:var(--txt-m)">${fd(gp(t,'Date','date'),true)}</span>
+        </div>
+        <div class="card-p">
+          <div class="g3" style="gap:10px;text-align:center">
+            <div><div class="mstat-v">${cmj?cmj.toFixed(1):'—'}</div><div class="mstat-l">CMJ cm</div></div>
+            <div><div class="mstat-v">${sj?sj.toFixed(1):'—'}</div><div class="mstat-l">SJ cm</div></div>
+            <div><div class="mstat-v">${vma?vma.toFixed(1):'—'}</div><div class="mstat-l">VMA</div></div>
+            <div><div class="mstat-v">${vmx?vmx.toFixed(1):'—'}</div><div class="mstat-l">Vmax</div></div>
+            <div><div class="mstat-v">${bj?bj.toFixed(2):'—'}</div><div class="mstat-l">Broad J.</div></div>
+          </div>
+          ${gp(t,'Notes','text')?`<div style="margin-top:10px;font-size:11px;color:var(--txt-m);font-style:italic;line-height:1.5;padding-top:10px;border-top:1px solid var(--bdr)">${gp(t,'Notes','text')}</div>`:''}
+        </div>
+      </div>`;
+    }).join(''):`<div class="empty">Aucun test cette saison.</div>`}`;
+
+  // Chart perf
+  if(tS.length>=2){
+    setTimeout(()=>{
+      const ctx=document.getElementById('chart-perf');
+      if(!ctx)return;
+      if(CI.perf)CI.perf.destroy();
+      const ordered=[...tS].reverse();
+      const labels=ordered.map(t=>fd(gp(t,'Date','date'),true));
+      CI.perf=new Chart(ctx,{
+        type:'line',
+        data:{labels,datasets:[
+          {label:'CMJ',data:ordered.map(t=>gp(t,'CMJ (cm)','number')),borderColor:'#DA291C',backgroundColor:'rgba(218,41,28,.08)',tension:.4,fill:true,pointRadius:4},
+          {label:'SJ',data:ordered.map(t=>gp(t,'SJ (cm)','number')),borderColor:'#c9a84c',backgroundColor:'transparent',tension:.4,pointRadius:4},
+          {label:'VMA',data:ordered.map(t=>gp(t,'VMA (km/h)','number')),borderColor:'#4caf7d',backgroundColor:'transparent',tension:.4,pointRadius:4}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8a8680',font:{size:9},boxWidth:10,padding:12}}},scales:{
+          y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}},
+          x:{grid:{display:false},ticks:{color:'#4a4844',font:{size:9}},border:{display:false}}
+        }}
+      });
+    },100);
+  }
+}
+
+/* ══ NUTRITION ══ */
+function renderNutrition(){
+  const poids=gp(J,'Poids (kg)','number');
+  const taille=gp(J,'Taille (cm)','number');
+  const lastNU=NU[0];
+  const el=document.getElementById('s-nutrition');
+
+  // Données récentes (7 derniers jours)
+  const recent7=NU.slice(0,7);
+  const avgCal=recent7.length?Math.round(recent7.reduce((a,n)=>a+(gp(n,'Calories (kcal)','number')||0),0)/recent7.length):null;
+  const avgProt=recent7.length?Math.round(recent7.reduce((a,n)=>a+(gp(n,'Protéines (g)','number')||0),0)/recent7.length):null;
+
+  el.innerHTML=`
+    <!-- Données corporelles -->
+    <div class="lst mb">Données corporelles</div>
+    <div class="g2 mb2">
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:var(--ov-txt)">${poids||'—'}</div>
+        <div class="lkpi-l">Poids (kg)</div>
+      </div>
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:var(--ov-txt)">${taille||'—'}</div>
+        <div class="lkpi-l">Taille (cm)</div>
+      </div>
+    </div>
+
+    ${NU.length?`
+    <!-- Moyennes -->
+    <div class="lst mb">Moyennes 7 jours</div>
+    <div class="g2 mb2">
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:var(--ov-txt)">${avgCal||'—'}</div>
+        <div class="lkpi-l">Kcal / jour</div>
+      </div>
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:var(--ov-txt)">${avgProt||'—'}</div>
+        <div class="lkpi-l">Protéines g</div>
+      </div>
+    </div>
+
+    <!-- Journal récent -->
+    <div class="lst mb">Journal récent</div>
+    ${recent7.map(n=>{
+      const date=gp(n,'Date','date'),cal=gp(n,'Calories (kcal)','number'),prot=gp(n,'Protéines (g)','number');
+      const gluc=gp(n,'Glucides (g)','number'),lip=gp(n,'Lipides (g)','number');
+      return `<div class="lcard mb">
+        <div class="lcard-h"><span class="lcard-ht">${fd(date,true)}</span>${cal?`<span style="font-size:11px;color:var(--ov-txt);font-weight:600">${cal} kcal</span>`:''}</div>
+        <div class="lcard-p">
+          <div class="g3" style="gap:8px;text-align:center">
+            <div><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">${prot||'—'}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Prot. g</div></div>
+            <div><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">${gluc||'—'}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Gluc. g</div></div>
+            <div><div style="font-family:'Bebas Neue',serif;font-size:18px;color:var(--ov-txt)">${lip||'—'}</div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px">Lip. g</div></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    `:`<div class="lempty">Le suivi nutritionnel apparaîtra ici dès que les données sont renseignées.</div>`}`;
+}
+
+/* ══ SANTÉ ══ */
+function renderSante(saisonFilter,typeFilter,zoneFilter){
   const saisons=[...new Set(BL.map(b=>gp(b,'Saison','select')).filter(Boolean))].sort().reverse();
   if(!saisonFilter) saisonFilter='all';
-
   let bFilt=BL;
   if(saisonFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Saison','select')===saisonFilter);
   if(typeFilter&&typeFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Type','select')===typeFilter);
   if(zoneFilter&&zoneFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Zone/ Localité','select')===zoneFilter);
 
-  // Jours sans blessure = Date de reprise entraînement de la dernière blessure → aujourd'hui
-  // Si blessure active en cours → jours depuis le début de cette blessure (compteur négatif = temps hors terrain)
-  const today=new Date();
-  today.setHours(0,0,0,0);
-
-  // Blessure active = pas de date de reprise entraînement encore
-  const blessureActive=BL.find(b=>{
-    const s=gp(b,'Statut','select')||'';
-    return s.includes('En cours')||s.includes('rééducation');
-  });
-
+  const today=new Date();today.setHours(0,0,0,0);
+  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('En cours')||s.includes('rééducation');});
   let joursSans=null;
-
   if(blessureActive){
-    // Afficher depuis quand la blessure a commencé
     const debut=gp(blessureActive,'Date','date');
-    if(debut){
-      const diff=Math.floor((today-new Date(debut))/(1000*60*60*24));
-      joursSans=-Math.max(0,diff); // négatif = blessure active, valeur = jours depuis le début
-    } else {
-      joursSans=-1;
-    }
+    joursSans=debut?-Math.max(0,Math.floor((today-new Date(debut))/(1000*60*60*24))):-1;
   } else {
-    // Pas de blessure active → trier par Date de reprise entraînement desc
-    const sorted=BL.filter(b=>gp(b,'Date de reprise entrainement','date'))
-      .sort((a,b2)=>gp(b2,'Date de reprise entrainement','date').localeCompare(gp(a,'Date de reprise entrainement','date')));
+    const sorted=BL.filter(b=>gp(b,'Date de reprise entrainement','date')).sort((a,b2)=>gp(b2,'Date de reprise entrainement','date').localeCompare(gp(a,'Date de reprise entrainement','date')));
     const lastReprise=sorted[0]?gp(sorted[0],'Date de reprise entrainement','date'):null;
-    if(lastReprise){
-      const diff=Math.floor((today-new Date(lastReprise))/(1000*60*60*24));
-      joursSans=Math.max(0,diff);
-    }
+    if(lastReprise) joursSans=Math.max(0,Math.floor((today-new Date(lastReprise))/(1000*60*60*24)));
   }
 
-  // Stats globales
+  const calcDuree=b=>{const d=gp(b,'Date','date'),r=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');if(!d)return null;return Math.floor((r?new Date(r):new Date()-new Date(d))/(1000*60*60*24));};
   const nTotal=bFilt.length;
   const durees=bFilt.filter(b=>calcDuree(b)).map(b=>calcDuree(b));
-  const dureeTotal=durees.reduce((a,v)=>a+v,0);
-  const dureeMoy=durees.length?Math.round(dureeTotal/durees.length):0;
-  const nRecidives=bFilt.filter(b=>b.properties?.Rechute?.checkbox).length;
-
-  // Par saison pour ratio
-  const parSaison={};
-  BL.forEach(b=>{const s=gp(b,'Saison','select')||'?';parSaison[s]=(parSaison[s]||0)+1;});
-
-  // Par zone pour camembert
-  const parZone={};
-  bFilt.forEach(b=>{const z=gp(b,'Zone/ Localité','select')||'Autre';parZone[z]=(parZone[z]||0)+1;});
-
-  // Par type
-  const parType={};
-  bFilt.forEach(b=>{const t=gp(b,'Type','select')||'Autre';parType[t]=(parType[t]||0)+1;});
-
-  // Prévention — zones à risque (zones avec 2+ blessures)
-  const zonesRisque=Object.entries(parZone).filter(([z,n])=>n>=1).sort((a,b2)=>b2[1]-a[1]);
-
-  const saisonOpts=['all',...saisons].map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s==='all'?'Toutes saisons':s}</option>`).join('');
+  const dureeMoy=durees.length?Math.round(durees.reduce((a,v)=>a+v,0)/durees.length):0;
+  const nRecidives=bFilt.filter(b=>gp(b,'Rechute','checkbox')).length;
+  const parZone={};bFilt.forEach(b=>{const z=gp(b,'Zone/ Localité','select')||'Autre';parZone[z]=(parZone[z]||0)+1;});
+  const parType={};bFilt.forEach(b=>{const t=gp(b,'Type','select')||'Autre';parType[t]=(parType[t]||0)+1;});
+  const parSaison={};BL.forEach(b=>{const s=gp(b,'Saison','select')||'?';parSaison[s]=(parSaison[s]||0)+1;});
   const types=[...new Set(BL.map(b=>gp(b,'Type','select')).filter(Boolean))];
   const zones=[...new Set(BL.map(b=>gp(b,'Zone/ Localité','select')).filter(Boolean))];
-  const typeOpts=['all',...types].map(t=>`<option value="${t}" ${t===(typeFilter||'all')?'selected':''}>${t==='all'?'Tous types':t}</option>`).join('');
-  const zoneOpts=['all',...zones].map(z=>`<option value="${z}" ${z===(zoneFilter||'all')?'selected':''}>${z==='all'?'Toutes zones':z}</option>`).join('');
-
-  // 3 dernières blessures
-  const last3=bFilt.slice(0,3);
-
-  const gravColors={'Légère < 7j':'#2d7a4f','Modérée 7-28j':'#a06428','Sévère > 28j':'#8c3030','Très sévère > 84j':'#6a1a1a'};
-  const typeColors={'Musculaire':'#e57373','Articulaire':'#ffb74d','Osseuse':'#ffd54f','Ligamentaire':'#ef5350','Tendineuse':'#ffa726','Contusion':'#64b5f6','Autre':'#90a4ae'};
-
-  const zoneColors=['#e57373','#ffb74d','#64b5f6','#81c784','#ba68c8','#4db6ac','#ff8a65','#a1887f','#90a4ae'];
+  const sOpts=['all',...saisons].map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s==='all'?'Toutes saisons':s}</option>`).join('');
+  const tOpts=['all',...types].map(t=>`<option value="${t}" ${t===(typeFilter||'all')?'selected':''}>${t==='all'?'Tous types':t}</option>`).join('');
+  const zOpts=['all',...zones].map(z=>`<option value="${z}" ${z===(zoneFilter||'all')?'selected':''}>${z==='all'?'Toutes zones':z}</option>`).join('');
+  const zColors=['#e57373','#ffb74d','#64b5f6','#81c784','#ba68c8','#4db6ac','#ff8a65'];
+  const gravColors={'🔴 Sévère':'#e57373','🟢 Légère':'#4caf7d','🟡 Modéré':'#ffb74d'};
 
   document.getElementById('s-sante').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-      <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">Suivi Santé & Épidémiologie</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select onchange="sante(this.value,'${typeFilter||'all'}','${zoneFilter||'all'}')" style="font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${saisonOpts}</select>
-        <select onchange="sante('${saisonFilter}',this.value,'${zoneFilter||'all'}')" style="font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${typeOpts}</select>
-        <select onchange="sante('${saisonFilter}','${typeFilter||'all'}',this.value)" style="font-size:11px;padding:5px 10px;border-radius:8px;border:1px solid var(--ov-bdr);background:#fff;color:var(--ov-txt);cursor:pointer;font-family:inherit">${zoneOpts}</select>
+    <!-- Filtres -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+      <select class="lsel" onchange="renderSante(this.value,'${typeFilter||'all'}','${zoneFilter||'all'}')">${sOpts}</select>
+      <select class="lsel" onchange="renderSante('${saisonFilter}',this.value,'${zoneFilter||'all'}')">${tOpts}</select>
+      <select class="lsel" onchange="renderSante('${saisonFilter}','${typeFilter||'all'}',this.value)">${zOpts}</select>
+    </div>
+
+    <!-- KPIs -->
+    <div class="g2 mb2">
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:${joursSans===null?'#9a907e':joursSans<0?'#e57373':joursSans>90?'#4caf7d':joursSans>30?'#ffb74d':'#e57373'}">${joursSans===null?'—':Math.abs(joursSans)}</div>
+        <div class="lkpi-l">${joursSans<0?'Jours hors terrain':'Jours sans blessure'}</div>
+      </div>
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:var(--ov-txt)">${nTotal}</div>
+        <div class="lkpi-l">Blessures</div>
+      </div>
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:var(--ov-txt)">${dureeMoy}<span style="font-size:16px">j</span></div>
+        <div class="lkpi-l">Durée moy.</div>
+      </div>
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:${nRecidives>0?'#e57373':'#4caf7d'}">${nRecidives}</div>
+        <div class="lkpi-l">Récidives</div>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-
-      <!-- COLONNE GAUCHE -->
-      <div>
-        <!-- KPIs -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
-            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:${joursSans===null?'#9a907e':joursSans<0?'#8c3030':joursSans>90?'#2d7a4f':joursSans>30?'#a06428':'#8c3030'}">${joursSans===null?'—':joursSans<0?Math.abs(joursSans):joursSans}</div>
-            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">${joursSans<0?'Jours hors terrain':'Jours sans blessure'}</div>
-          </div>
-          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
-            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:var(--ov-txt)">${nTotal}</div>
-            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Blessures (filtre actif)</div>
-          </div>
-          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
-            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:var(--ov-txt)">${dureeMoy}<span style="font-size:16px">j</span></div>
-            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Durée moyenne</div>
-          </div>
-          <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;text-align:center">
-            <div style="font-family:'Bebas Neue',serif;font-size:42px;line-height:1;color:${nRecidives>0?'#8c3030':'#2d7a4f'}">${nRecidives}</div>
-            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;margin-top:5px">Récidives</div>
-          </div>
-        </div>
-
-        <!-- PRÉVENTION -->
-        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;margin-bottom:16px">
-          <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Zones à surveiller</div>
-          ${zonesRisque.length?zonesRisque.slice(0,6).map(([z,n],i)=>`
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ov-bdr)">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="width:8px;height:8px;border-radius:50%;background:${zoneColors[i%zoneColors.length]};flex-shrink:0"></div>
-                <span style="font-size:13px;color:var(--ov-txt);font-weight:400">${z}</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <div style="height:4px;width:60px;background:#f0ede8;border-radius:4px;overflow:hidden">
-                  <div style="height:100%;width:${Math.round(n/nTotal*100)}%;background:${zoneColors[i%zoneColors.length]};border-radius:4px"></div>
-                </div>
-                <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--ov-txt)">${n}</span>
-              </div>
-            </div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--ov-dim);font-size:13px;font-style:italic">Aucune donnée</div>'}
-        </div>
-
-        <!-- RATIO PAR SAISON -->
-        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px;margin-bottom:16px">
-          <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Blessures par saison</div>
-          ${Object.entries(parSaison).sort((a,b2)=>b2[0].localeCompare(a[0])).map(([s,n])=>`
-            <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--ov-bdr)">
-              <span style="font-size:12px;color:var(--ov-muted);min-width:80px">${s}</span>
-              <div style="flex:1;height:4px;background:#f0ede8;border-radius:4px;overflow:hidden">
-                <div style="height:100%;width:${Math.round(n/Math.max(...Object.values(parSaison))*100)}%;background:color-mix(in srgb,var(--c2) 70%,transparent);border-radius:4px"></div>
-              </div>
-              <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--ov-txt);min-width:20px;text-align:right">${n}</span>
-            </div>`).join('')}
-        </div>
-
-        <!-- CAMEMBERT -->
-        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;padding:16px">
-          <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Répartition par type</div>
-          <div style="position:relative;height:180px"><canvas id="pie-sante" role="img" aria-label="Répartition des blessures par type">Données blessures.</canvas></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
-            ${Object.entries(parType).map(([t,n],i)=>`<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${(Object.values(typeColors)[i%7])}22;color:${(Object.values(typeColors)[i%7])};font-family:'Syne',sans-serif;font-weight:600">${t} (${n})</span>`).join('')}
-          </div>
-        </div>
-      </div>
-
-      <!-- COLONNE DROITE -->
-      <div>
-        <!-- 3 DERNIÈRES BLESSURES -->
-        <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">3 dernières blessures</div>
-        ${last3.length?last3.map(b=>{
-          const nom=gt(b),zone=gp(b,'Zone/ Localité','select')||'—',type=gp(b,'Type','select')||'—';
-          const debut=gp(b,'Date','date'),retour=gp(b,'Date de retour match','date');
-          const duree=calcDuree(b),gravite=gp(b,'Gravité','select')||'—';
-          const meca=gp(b,'Mécanisme','select')||'—',contexte=gp(b,'Match ou entraînement','select')||'—';
-          const traitement=gp(b,'Traitement','text')||'—',rechute=b.properties?.Rechute?.checkbox;
-          const gCol=gravColors[gravite]||'#9a907e';
-          return `<div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;overflow:hidden;margin-bottom:12px">
-            <div style="padding:10px 14px;background:#f8f7f4;border-bottom:1px solid var(--ov-bdr);display:flex;align-items:center;justify-content:space-between">
-              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:var(--ov-txt)">${zone} — ${type}</span>
-              <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${gCol}18;color:${gCol};font-family:'Syne',sans-serif;font-weight:600">${gravite}</span>
+    <!-- Zones à risque -->
+    ${Object.keys(parZone).length?`
+    <div class="lst mb">Zones à surveiller</div>
+    <div class="lcard mb2">
+      <div class="lcard-p">
+        ${Object.entries(parZone).sort((a,b2)=>b2[1]-a[1]).map(([z,n],i)=>`
+          <div class="lrow">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;border-radius:50%;background:${zColors[i%zColors.length]};flex-shrink:0"></div>
+              <span style="font-size:12px;color:var(--ov-txt)">${z}</span>
             </div>
-            <div style="padding:12px 14px">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Début</div><div style="font-size:12px;color:var(--ov-txt)">${debut?new Date(debut).toLocaleDateString('fr-FR'):'—'}</div></div>
-                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Retour</div><div style="font-size:12px;color:var(--ov-txt)">${retour?new Date(retour).toLocaleDateString('fr-FR'):'En cours'}</div></div>
-                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Durée</div><div style="font-size:12px;color:var(--ov-txt);font-weight:500">${duree?duree+'j':'—'}</div></div>
-                
-                
-                <div><div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:3px">Récidive</div><div style="font-size:12px;color:${rechute?'#8c3030':'#2d7a4f'};font-weight:500">${rechute?'Oui':'Non'}</div></div>
-              </div>
-              
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="height:3px;width:50px;background:#f0ede8;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(n/nTotal*100)}%;background:${zColors[i%zColors.length]};border-radius:3px"></div></div>
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--ov-txt)">${n}</span>
             </div>
-          </div>`;
-        }).join(''):`<div style="background:#fff;border:1px dashed var(--ov-bdr);border-radius:12px;padding:30px;text-align:center;color:var(--ov-dim);font-size:13px;font-style:italic">Aucune blessure enregistrée</div>`}
-
-        <!-- TABLEAU ÉPIDÉMIO -->
-        <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px;margin-top:4px">Tableau épidémiologique</div>
-        <div style="background:#fff;border:1px solid var(--ov-bdr);border-radius:12px;overflow:hidden">
-          <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <thead>
-              <tr style="background:#f8f7f4">
-                <th style="padding:10px 12px;text-align:left;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Blessure</th>
-                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Zone</th>
-                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Type</th>
-                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Durée</th>
-                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Gravité</th>
-                <th style="padding:10px 8px;text-align:center;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-dim);font-weight:600;border-bottom:1px solid var(--ov-bdr)">Récidive</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${bFilt.length?bFilt.map(b=>{
-                const zone=gp(b,'Zone/ Localité','select')||'—',type=gp(b,'Type','select')||'—';
-                const duree=calcDuree(b),gravite=gp(b,'Gravité','select')||'—';
-                const rechute=b.properties?.Rechute?.checkbox,debut=gp(b,'Date','date');
-                const gCol=gravColors[gravite]||'#9a907e';
-                return `<tr style="border-bottom:1px solid #f0ede8">
-                  <td style="padding:9px 12px;color:var(--ov-txt);font-weight:500">${debut?new Date(debut).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
-                  <td style="padding:9px 8px;text-align:center;color:var(--ov-muted)">${zone}</td>
-                  <td style="padding:9px 8px;text-align:center;color:var(--ov-muted)">${type}</td>
-                  <td style="padding:9px 8px;text-align:center;font-weight:500;color:var(--ov-txt)">${duree?duree+'j':'—'}</td>
-                  <td style="padding:9px 8px;text-align:center"><span style="font-size:9px;padding:2px 7px;border-radius:20px;background:${gCol}18;color:${gCol};font-family:'Syne',sans-serif;font-weight:600">${gravite.split(' ')[0]}</span></td>
-                  <td style="padding:9px 8px;text-align:center;color:${rechute?'#8c3030':'#2d7a4f'};font-weight:500">${rechute?'Oui':'Non'}</td>
-                </tr>`;
-              }).join(''):`<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--ov-dim);font-style:italic">Aucune blessure pour ce filtre</td></tr>`}
-            </tbody>
-          </table>
-        </div>
+          </div>`).join('')}
       </div>
-    </div>`;
+    </div>`:''}
 
-  // Camembert
-  setTimeout(()=>{
-    const ctx=document.getElementById('pie-sante');
-    if(!ctx||!Object.keys(parType).length) return;
-    if(CI.pie) CI.pie.destroy();
-    CI.pie=new Chart(ctx,{
-      type:'doughnut',
-      data:{
-        labels:Object.keys(parType),
-        datasets:[{data:Object.values(parType),backgroundColor:Object.keys(parType).map((_,i)=>Object.values(typeColors)[i%7]+'cc'),borderWidth:2,borderColor:'#fff'}]
-      },
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+' ('+Math.round(c.parsed/Object.values(parType).reduce((a,v)=>a+v,0)*100)+'%)'}}},cutout:'60%'}
-    });
-  },100);
+    <!-- Blessures par saison -->
+    ${Object.keys(parSaison).length?`
+    <div class="lst mb">Par saison</div>
+    <div class="lcard mb2">
+      <div class="lcard-p">
+        ${Object.entries(parSaison).sort((a,b2)=>b2[0].localeCompare(a[0])).map(([s,n])=>`
+          <div class="lrow">
+            <span style="font-size:12px;color:var(--ov-muted)">${s}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="height:3px;width:60px;background:#f0ede8;border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round(n/Math.max(...Object.values(parSaison))*100)}%;background:var(--c2,#DA291C);border-radius:3px"></div></div>
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--ov-txt)">${n}</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`:''}
+
+    <!-- Détail blessures -->
+    <div class="lst mb">Détail</div>
+    ${bFilt.length?bFilt.map(b=>{
+      const zone=gp(b,'Zone/ Localité','select')||'—',type=gp(b,'Type','select')||'—';
+      const debut=gp(b,'Date','date'),retour=gp(b,'Date de retour match','date'),reprise=gp(b,'Date de reprise entrainement','date');
+      const duree=calcDuree(b),grav=gp(b,'Gravité','select')||'—',statut=gp(b,'Statut','select')||'—';
+      const rechute=gp(b,'Rechute','checkbox');
+      const gCol=gravColors[grav]||'#9a907e';
+      return `<div class="bcard">
+        <div class="bcard-h">
+          <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--ov-txt)">${zone} — ${type}</span>
+          <span style="font-size:9px;padding:2px 8px;border-radius:20px;background:${gCol}18;color:${gCol};font-family:'Syne',sans-serif;font-weight:700">${grav.replace('🔴 ','').replace('🟢 ','').replace('🟡 ','')}</span>
+        </div>
+        <div class="bcard-b">
+          <div class="bcard-grid">
+            <div><div class="bstat-l">Début</div><div class="bstat-v">${debut?new Date(debut).toLocaleDateString('fr-FR'):'—'}</div></div>
+            <div><div class="bstat-l">Reprise terrain</div><div class="bstat-v">${reprise?new Date(reprise).toLocaleDateString('fr-FR'):'En cours'}</div></div>
+            <div><div class="bstat-l">Retour match</div><div class="bstat-v">${retour?new Date(retour).toLocaleDateString('fr-FR'):'—'}</div></div>
+            <div><div class="bstat-l">Durée</div><div class="bstat-v" style="color:${duree>28?'#e57373':duree>7?'#ffb74d':'#4caf7d'}">${duree?duree+'j':'—'}</div></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+            <span class="tag ${statut.includes('Terminé')?'tag-v':statut.includes('cours')?'tag-d':'tag-w'}">${statut.replace('🔄 ','').replace('🟢 ','').replace('🟡 ','')}</span>
+            ${rechute?`<span class="tag tag-d">Récidive</span>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join(''):`<div class="lempty">Aucune blessure enregistrée${saisonFilter!=='all'?' pour cette saison':''}.${saisonFilter!=='all'?' Essayez "Toutes saisons".':''}</div>`}`;
 }
 
-/* NAV */
+/* ══ NAV ══ */
 function sw(name,el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-t').forEach(t=>t.classList.remove('active'));
   document.getElementById('s-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='matchs'||name==='performance'||name==='nutrition') loadIframe(name);
-  if(name==='sante') sante();
+  const rendered={'matchs':renderMatchs,'perf':renderPerf,'nutrition':renderNutrition,'sante':renderSante};
+  if(rendered[name]&&!el.dataset.rendered){el.dataset.rendered='1';rendered[name]();}
+  if(name==='sante') renderSante(); // toujours rafraîchir (filtres)
 }
 
-/* DEMO */
+/* ══ DEMO ══ */
 function demo(){
-  J={id:'d',properties:{'Nom complet':{type:'title',title:[{plain_text:'Joueur Template'}]},'Club actuel':{rich_text:[{plain_text:'PSG'}]},'Poste':{select:{name:'Excentré'}},'Statut':{select:{name:'Disponible'}},'Pied fort':{select:{name:'Droite'}},'Nationalité sportive':{rich_text:[{plain_text:'Française'}]},'Motricité':{select:{name:'Extension'}},'Fibres':{select:{name:'Rapides'}},'Poids (kg)':{number:78},'Taille (cm)':{number:182},'Score réflexes':{number:38},'Profil réflexes':{select:{name:'Moyen'}},'date de naissance':{date:{start:'2000-04-23'}},'Photo':{url:null}}};
-  TS=[{id:'t1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-15'}},'CMJ (cm)':{number:50.2},'SJ (cm)':{number:45.8},'VMA (km/h)':{number:18.5},'Vmax':{number:35.2},'Broad jump':{number:2.65},'Saison':{select:{name:'2024-2025'}}}},{id:'t2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2024-10-10'}},'CMJ (cm)':{number:47.5},'SJ (cm)':{number:43.0},'VMA (km/h)':{number:17.8},'Vmax':{number:34.1},'Broad jump':{number:2.52},'Saison':{select:{name:'2024-2025'}}}}];
-  ST=[{id:'s1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-20'}},'Distance parcourue (m)':{number:10842},'Nombre de sprint':{number:18},'Vmax':{number:34.8},'Accmax':{number:7.2},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:892},'But(s) marqué(s)':{number:1},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'Lyon'}}}},{id:'s2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-06'}},'Distance parcourue (m)':{number:9240},'Nombre de sprint':{number:12},'Vmax':{number:33.1},'Accmax':{number:6.9},'⏱️ Temps de jeu':{number:72},'Titulaire/remplaçant':{select:{name:'Remplaçant'}},'Distance en sprint (m)':{number:620},'But(s) marqué(s)':{number:0},'Résultats':{select:{name:'Nul'}},'Adversaire':{select:{name:'Nice'}}}}];
+  J={id:'d',properties:{'Nom complet':{type:'title',title:[{plain_text:'Lucas Ferreira'}]},'Club actuel':{rich_text:[{plain_text:'AS Monaco'}]},'Poste':{select:{name:'Excentré'}},'Statut':{select:{name:'Disponible'}},'Pied fort':{select:{name:'Gauche'}},'Nationalité sportive':{rich_text:[{plain_text:'Portugaise'}]},'Motricité':{select:{name:'Extension'}},'Fibres':{select:{name:'Rapides'}},'Poids (kg)':{number:74},'Taille (cm)':{number:179},'Score réflexes':{number:38},'Profil réflexes':{select:{name:'Élevé'}},'date de naissance':{date:{start:'1999-03-14'}},'Photo':{url:null}}};
+  TS=[{id:'t1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-15'}},'Test - date':{title:[{plain_text:'Bilan mars 2025'}]},'CMJ (cm)':{number:52.4},'SJ (cm)':{number:48.2},'VMA (km/h)':{number:19.2},'Vmax':{number:36.4},'Broad jump':{number:2.71},'Saison':{select:{name:'2024-2025'}},'Notes':{rich_text:[{plain_text:'Progression nette vs octobre. SJ ratio confirme profil fibres rapides.'}]}}},{id:'t2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2024-10-05'}},'Test - date':{title:[{plain_text:'Bilan octobre 2024'}]},'CMJ (cm)':{number:49.8},'SJ (cm)':{number:45.5},'VMA (km/h)':{number:18.6},'Vmax':{number:35.1},'Broad jump':{number:2.58},'Saison':{select:{name:'2024-2025'}},'Notes':{rich_text:[{plain_text:'Premier bilan saison. Bonne base explosivité.'}]}}}];
+  ST=[{id:'s1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-20'}},'Distance parcourue (m)':{number:11340},'Nombre de sprint':{number:22},'Vmax':{number:36.4},'Accmax':{number:7.8},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:1024},'But(s) marqué(s)':{number:2},'Passe décissive':{number:1},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'PSG'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-04-06'}},'Distance parcourue (m)':{number:10820},'Nombre de sprint':{number:18},'Vmax':{number:35.9},'Accmax':{number:7.4},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:890},'But(s) marqué(s)':{number:1},'Passe décissive':{number:0},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'Lyon'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s3',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-22'}},'Distance parcourue (m)':{number:9650},'Nombre de sprint':{number:14},'Vmax':{number:35.2},'Accmax':{number:7.1},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:740},'But(s) marqué(s)':{number:0},'Passe décissive':{number:1},'Résultats':{select:{name:'Nul'}},'Adversaire':{select:{name:'OM'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s4',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-03-08'}},'Distance parcourue (m)':{number:8920},'Nombre de sprint':{number:11},'Vmax':{number:34.7},'Accmax':{number:6.9},'⏱️ Temps de jeu':{number:58},'Titulaire/remplaçant':{select:{name:'Remplaçant'}},'Distance en sprint (m)':{number:610},'But(s) marqué(s)':{number:0},'Passe décissive':{number:0},'Résultats':{select:{name:'Défaite'}},'Adversaire':{select:{name:'SCO'}},'Saison':{select:{name:'2024-2025'}}}},{id:'s5',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-02-22'}},'Distance parcourue (m)':{number:11100},'Nombre de sprint':{number:20},'Vmax':{number:36.1},'Accmax':{number:7.6},'⏱️ Temps de jeu':{number:90},'Titulaire/remplaçant':{select:{name:'Titulaire'}},'Distance en sprint (m)':{number:960},'But(s) marqué(s)':{number:1},'Passe décissive':{number:1},'Résultats':{select:{name:'Victoire'}},'Adversaire':{select:{name:'Nice'}},'Saison':{select:{name:'2024-2025'}}}}];
+  BL=[{id:'b1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2024-11-18'}},'Date de reprise entrainement':{date:{start:'2024-12-02'}},'Date de retour match':{date:{start:'2024-12-14'}},'Type':{select:{name:'Musculaire'}},'Zone/ Localité':{select:{name:'Ischio-jambier'}},'Gravité':{select:{name:'🟡 Modéré'}},'Statut':{select:{name:'🟢 Terminé'}},'Rechute':{checkbox:false},'Saison':{select:{name:'2024-2025'}},'Type + localisation + mois année':{title:[{plain_text:'Musculaire ischio-jambier — nov 2024'}]}}},{id:'b2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-01-19'}},'Date de reprise entrainement':{date:{start:'2025-01-28'}},'Date de retour match':{date:{start:'2025-02-08'}},'Type':{select:{name:'Ligamentaire'}},'Zone/ Localité':{select:{name:'Cheville'}},'Gravité':{select:{name:'🟢 Légère'}},'Statut':{select:{name:'🟢 Terminé'}},'Rechute':{checkbox:false},'Saison':{select:{name:'2024-2025'}},'Type + localisation + mois année':{title:[{plain_text:'Entorse cheville droite — jan 2025'}]}}}];
   NU=[];
   document.getElementById('sync-info').textContent='Mode démo · Notion non connecté';
-  hero();ov();
+  hero();renderOverview();
 }
-
-function fd(s,sh=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('fr-FR',sh?{day:'2-digit',month:'short'}:{day:'numeric',month:'long',year:'numeric'})}
 </script>
 </body>
 </html>
