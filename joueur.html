@@ -254,7 +254,7 @@ function gp(p,k,t='text'){const v=p.properties?.[k];if(!v)return null;
   if(t==='number')return v.number??null;
   if(t==='date')return v.date?.start||null;
   if(t==='url')return v.url||null;
-  if(t==='relation'){const rel=v.relation||[];return rel.map(r=>r.id||r.url||'').map(id=>id.replace('https://www.notion.so/','').replace(/-/g,''));}
+  if(t==='relation'){const rel=v.relation||[];return rel.map(r=>(r.id||'').replace(/-/g,''));}
   return null}
 
 const BASE='https://bastierejulie-maker.github.io/performance-manager';
@@ -282,18 +282,12 @@ async function loadAll(){
     if(!J)throw new Error('no joueur');
     const jid=J.id;
     const jid_nd=jid.replace(/-/g,'');
-    const flt=arr=>{
-      const withRel=arr.filter(x=>{
-        const r=gp(x,'Joueur','relation')||[];
-        if(r.length===0) return false;
-        return r.some(id=>{
-          const id_nd=id.replace(/-/g,'');
-          return id===jid||id_nd===jid_nd||id===jid_nd||id_nd===jid.replace(/-/g,'');
-        });
-      });
-      // Si aucune entrée reliée, on prend tout (base est sous-page du joueur)
-      return withRel.length>0?withRel:arr;
-    };
+    // flt : filtre les entrées reliées au joueur courant
+    // gp(x,'Joueur','relation') retourne des IDs sans tirets — on compare à jid_nd
+    const flt=arr=>arr.filter(x=>{
+      const r=gp(x,'Joueur','relation')||[];
+      return r.some(id=>id===jid_nd);
+    });
     ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
     hero();ov();
     document.getElementById('sync-info').textContent='Notion · actualisé '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -448,8 +442,8 @@ function sante(saisonFilter,typeFilter,zoneFilter){
   if(zoneFilter&&zoneFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Zone/ Localité','select')===zoneFilter);
 
   // Jours depuis dernière blessure
-  const sorted=BL.filter(b=>gp(b,'Date de retour match','date')).sort((a,b2)=>gp(b2,'Date retour','date')?.localeCompare(gp(a,'Date retour','date')));
-  const lastReturn=sorted[0]?gp(sorted[0],'Date retour','date'):null;
+  const sorted=BL.filter(b=>gp(b,'Date de retour match','date')).sort((a,b2)=>gp(b2,'Date de retour match','date')?.localeCompare(gp(a,'Date de retour match','date')));
+  const lastReturn=sorted[0]?gp(sorted[0],'Date de retour match','date'):null;
   const joursSans=lastReturn?Math.floor((new Date()-new Date(lastReturn))/(1000*60*60*24)):null;
 
   // Stats globales
