@@ -231,6 +231,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
   <div class="nav-t" onclick="sw('perf',this)">Physique</div>
   <div class="nav-t" onclick="sw('nutrition',this)">Nutrition</div>
   <div class="nav-t" onclick="sw('sante',this)">Santé</div>
+  <div class="nav-t" onclick="sw('mecanique',this)">Profil</div>
+  <div class="nav-t" onclick="sw('snc',this)">SNC</div>
 </div>
 
 <div id="s-overview" class="sec active sec-light"></div>
@@ -238,6 +240,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-
 <div id="s-perf"     class="sec sec-light"></div>
 <div id="s-nutrition" class="sec sec-light"></div>
 <div id="s-sante"    class="sec sec-light"></div>
+<div id="s-mecanique" class="sec sec-light"></div>
+<div id="s-snc"      class="sec sec-light"></div>
 
 <div class="footer">
   <div><div class="fb">Julie Bastière</div><div class="fs">Performance Manager</div></div>
@@ -967,13 +971,286 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
     }).join(''):`<div class="lempty">Aucune blessure enregistrée${saisonFilter!=='all'?' pour cette saison':''}.${saisonFilter!=='all'?' Essayez "Toutes saisons".':''}</div>`}`;
 }
 
+/* ══ PROFIL MÉCANIQUE ══ */
+function classifyFibres(cmj, vma) {
+  if (!cmj || !vma) return null;
+  if (cmj >= 48 && vma >= 16 && vma <= 18.5) return 'Explosif';
+  if (cmj >= 45 && vma >= 18.5) return 'Mixte';
+  if (cmj >= 30 && cmj <= 42 && vma >= 19.5) return 'Endurant';
+  if (cmj < 35 && vma < 18) return 'En développement';
+  return 'Indéterminé';
+}
+
+const FIBRES_DESC = {
+  'Explosif': 'Fibres rapides dominantes — puissance neuro-musculaire élevée, récupération plus longue.',
+  'Endurant': 'Fibres lentes dominantes — capacité aérobie forte, maintien de l effort long.',
+  'Mixte': 'Profil hybride rare — les deux qualités élevées. Très recherché au haut niveau.',
+  'En développement': 'Ni l un ni l autre — travail prioritaire sur les deux axes.',
+  'Indéterminé': 'Zone grise — données à compléter ou profil non tranché.',
+};
+
+const FIBRES_SEUILS = {
+  'Explosif': 'CMJ ≥ 48 cm · VMA 16–18,5 km/h',
+  'Endurant': 'CMJ 30–42 cm · VMA ≥ 19,5 km/h',
+  'Mixte': 'CMJ ≥ 45 cm · VMA ≥ 18,5 km/h',
+  'En développement': 'CMJ < 35 cm · VMA < 18 km/h',
+  'Indéterminé': '—',
+};
+
+function renderMecanique(){
+  const el=document.getElementById('s-mecanique');
+  const motPrincipale=gp(J,'Motricité principale','select')||'—';
+  const motAssoc=gp(J,'Motricité ','select')||gp(J,'Motricité','select')||'—';
+  const oeil=gp(J,'Oeil moteur','select')||'—';
+  const epaule=gp(J,'Epaule motrice','select')||'—';
+  const chaineEn=gp(J,'Chaines énergétiques','select')||'—';
+  const chaineResp=gp(J,'Chaine respiratoire','select')||'—';
+  const poids=gp(J,'Poids (kg)','number');
+  const taille=gp(J,'Taille (cm)','number');
+  const ddn=gp(J,'date de naissance','date');
+  const age=ddn?Math.floor((new Date()-new Date(ddn))/31557600000):null;
+
+  const motDesc={
+    'Extension':'Terrien — chaîne antérieure dominante. Appuis arrière, flexion, poussée. Stop & Start.',
+    'Flexion':'Aérien — chaîne postérieure dominante. Rebond, extension, énergie élastique.',
+    'Fluide':'Motricité souple, amplitude naturelle élevée.',
+    'Raide':'Motricité tonique, raideur musculo-tendineuse élevée.'
+  };
+
+  // CMJ + VMA du dernier test pour classification
+  const jid=J.id.replace(/-/g,'');
+  const lastTest=allTests.find(t=>{const r=t.properties?.Joueur?.relation||[];return r.some(x=>(x.id||'').replace(/-/g,'')=== jid);});
+  const cmjVal=lastTest?gp(lastTest,'CMJ (cm)','number'):null;
+  const vmaVal=lastTest?gp(lastTest,'VMA (km/h)','number'):null;
+  const vmaxVal=lastTest?gp(lastTest,'Vmax','number'):null;
+
+  // Fibres : Notion en priorité, sinon calcul auto
+  const fibresNotion=gp(J,'Fibres','select');
+  const fibresAuto=classifyFibres(cmjVal,vmaVal);
+  const fibres=fibresNotion||fibresAuto||'Indéterminé';
+  const fibresIsAuto=!fibresNotion&&!!fibresAuto;
+
+  const fibresColor={'Explosif':'#DA291C','Endurant':'#4caf7d','Mixte':'#9c6fc9','En développement':'#9a907e','Indéterminé':'#9a907e'};
+  const fColor=fibresColor[fibres]||'#9a907e';
+  const motLabel=motPrincipale==='Extension'?'TERRIEN':motPrincipale==='Flexion'?'AÉRIEN':motPrincipale;
+
+  // Morphotype
+  let morphotype='—';
+  if(poids&&taille){
+    const imc=poids/((taille/100)**2);
+    if(imc<18.5) morphotype='Longiligne';
+    else if(imc<23) morphotype='Normosome';
+    else if(imc<26) morphotype='Trapu';
+    else morphotype='Robuste';
+  }
+
+  let html='';
+
+  // Header profil
+  html+='<div style="background:var(--ov-bg,#f8f7f4);border:1px solid var(--ov-bdr);border-radius:var(--r);padding:18px 20px;margin-bottom:18px;position:relative;overflow:hidden">'
+    +'<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1,#004170),var(--c2,#DA291C))"></div>'
+    +'<div style="font-family:\'Syne\',sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Profil biomécanique</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<div>'
+    +'<div style="font-family:\'Bebas Neue\',serif;font-size:36px;line-height:1;color:var(--ov-txt)">'+motLabel+'</div>'
+    +'<div style="font-size:11px;color:var(--ov-muted);margin-top:4px;font-weight:300;line-height:1.5">'+(motDesc[motPrincipale]||'—')+'</div>'
+    +'</div>'
+    +'<div>'
+    +'<div style="font-family:\'Bebas Neue\',serif;font-size:36px;line-height:1;color:'+fColor+'">'+fibres.toUpperCase()+'</div>'
+    +'<div style="font-size:11px;color:var(--ov-muted);margin-top:4px;font-weight:300;line-height:1.5">'+(FIBRES_DESC[fibres]||'—')+'</div>'
+    +(cmjVal||vmaVal?'<div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;">'
+      +(cmjVal?'<span><span style="color:var(--ov-dim)">CMJ </span><b>'+cmjVal.toFixed(1)+' cm</b></span>':'')
+      +(vmaVal?'<span><span style="color:var(--ov-dim)">VMA </span><b>'+vmaVal.toFixed(1)+' km/h</b></span>':'')
+      +(vmaxVal?'<span><span style="color:var(--ov-dim)">Vmax </span><b>'+vmaxVal.toFixed(1)+' km/h</b></span>':'')
+      +'</div>':'')
+    +(fibresIsAuto?'<div style="margin-top:5px;font-size:9px;color:var(--ov-dim);font-style:italic">Calculé auto — '+FIBRES_SEUILS[fibres]+'</div>':'')
+    +'</div>'
+    +'</div>'
+    +'</div>';
+
+  // Données brutes
+  html+='<div class="lst mb">Données mécaniques</div>';
+  html+='<div class="lcard mb2"><div class="lcard-p">';
+  const rows=[
+    ['Motricité principale',motPrincipale],
+    ['Motricité (assoc./dissoc.)',motAssoc],
+    ['Œil moteur',oeil],
+    ['Épaule motrice',epaule],
+    ['Chaînes énergétiques',chaineEn],
+    ['Chaîne respiratoire',chaineResp],
+  ];
+  rows.forEach(([l,v])=>{
+    html+='<div class="lrow"><span class="lrow-l">'+l+'</span><span class="lrow-v">'+v+'</span></div>';
+  });
+  html+='</div></div>';
+
+  // Bouton détails — expand/collapse
+  html+='<div id="details-toggle" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:#f8f7f4;border:1px solid var(--ov-bdr);border-radius:var(--r);padding:12px 16px;margin-bottom:10px" onclick="toggleDetails()">'
+    +'<span style="font-family:\'Syne\',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-muted)">Détails & Anthropométrie</span>'
+    +'<span id="details-arrow" style="color:var(--ov-dim);font-size:12px">▸</span>'
+    +'</div>';
+  html+='<div id="details-body" style="display:none">';
+
+  // Anthropométrie
+  html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Anthropométrie</span></div><div class="lcard-p">';
+  const anthrRows=[
+    ['Poids',poids?poids+' kg':'—'],
+    ['Taille',taille?taille+' cm':'—'],
+    ['Âge',age?age+' ans':'—'],
+    ['Morphotype',morphotype],
+    ['IMC',poids&&taille?((poids/((taille/100)**2)).toFixed(1)):'—'],
+  ];
+  anthrRows.forEach(([l,v])=>{
+    html+='<div class="lrow"><span class="lrow-l">'+l+'</span><span class="lrow-v">'+v+'</span></div>';
+  });
+  html+='</div></div>';
+
+  html+='</div>'; // fin details-body
+
+  el.innerHTML=html;
+}
+
+function toggleDetails(){
+  const body=document.getElementById('details-body');
+  const arrow=document.getElementById('details-arrow');
+  if(body.style.display==='none'){body.style.display='block';arrow.textContent='▾';}
+  else{body.style.display='none';arrow.textContent='▸';}
+}
+
+/* ══ SNC & SENSORIEL ══ */
+function chipActif(nom,actif){
+  const bg=actif?'rgba(218,41,28,.08)':'var(--ov-bg,#f8f7f4)';
+  const bdr=actif?'1px solid #DA291C':'1px solid var(--ov-bdr)';
+  const label=actif?'<div style="font-size:10px;font-weight:500;color:#DA291C">Actif</div>':'<div style="font-size:10px;color:var(--ov-dim)">—</div>';
+  return '<div style="padding:7px 5px;border-radius:8px;background:'+bg+';border:'+bdr+';text-align:center;">'
+    +'<div style="font-size:8px;font-weight:700;color:var(--ov-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+nom+'</div>'
+    +label+'</div>';
+}
+function chipSens(nom,ok){
+  const bg=ok?'rgba(76,175,77,.08)':'rgba(218,41,28,.06)';
+  const bdr=ok?'1px solid #4caf7d':'1px solid #DA291C';
+  const label=ok?'<div style="font-size:10px;font-weight:500;color:#4caf7d">Correct</div>':'<div style="font-size:10px;font-weight:500;color:#DA291C">Défaillant</div>';
+  return '<div style="padding:7px 5px;border-radius:8px;background:'+bg+';border:'+bdr+';text-align:center;">'
+    +'<div style="font-size:8px;font-weight:700;color:var(--ov-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+nom+'</div>'
+    +label+'</div>';
+}
+
+function renderSNC(){
+  const el=document.getElementById('s-snc');
+  const scoreRef=gp(J,'Score réflexes','number');
+  const profilRef=gp(J,'Profil réflexes','select')||'—';
+  const profilColor={'Nul':'#4caf7d','Faible':'#81c784','Moyen':'#ffb74d','Élevé':'#e57373','Sévère':'#c62828'};
+  const pColor=profilColor[profilRef]||'#9a907e';
+
+  let html='';
+
+  // Score global
+  html+='<div class="g2 mb2">'
+    +'<div class="lkpi"><div class="lkpi-v" style="color:'+(scoreRef!==null?(scoreRef>16?'#e57373':scoreRef>8?'#ffb74d':'#4caf7d'):'#9a907e')+'">'+(scoreRef!==null?scoreRef:'—')+'<span style="font-size:14px;color:var(--ov-dim)"> / 28</span></div><div class="lkpi-l">RTAC · RTSC · RTL · Moro</div></div>'
+    +'<div class="lkpi"><div class="lkpi-v" style="color:'+pColor+'">'+profilRef+'</div><div class="lkpi-l">Profil global</div></div>'
+    +'</div>';
+
+  // Légende niveaux
+  const profils=[['Nul','0–12%','#4caf7d'],['Faible','13–25%','#81c784'],['Moyen','26–50%','#ffb74d'],['Élevé','51–75%','#e57373'],['Sévère','>75%','#c62828']];
+  html+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px">';
+  profils.forEach(([n,p,c])=>{
+    const active=n===profilRef;
+    html+='<div style="flex:1;min-width:55px;text-align:center;padding:7px 5px;border-radius:8px;background:'+(active?c+'22':'var(--ov-bg,#f8f7f4)')+';border:'+(active?'1px solid '+c:'1px solid var(--ov-bdr)')+';">'
+      +'<div style="font-size:9px;font-weight:700;color:'+c+'">'+n+'</div>'
+      +'<div style="font-size:8px;color:var(--ov-dim);margin-top:2px">'+p+'</div>'
+      +'</div>';
+  });
+  html+='</div>';
+
+  // Tableau réflexes
+  html+='<div class="lst mb">Réflexes — RTAC · RTSC · RTL · Moro</div>';
+  html+='<div class="lcard mb2">'
+    +'<div class="lcard-p">'
+    +'<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--ov-bdr);margin-bottom:4px">'
+    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em"></span>'
+    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em;text-align:center">G / Flex</span>'
+    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em;text-align:center">D / Ext</span>'
+    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em;text-align:center">Total</span>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--ov-muted);font-style:italic;text-align:center;padding:10px 0">Scores disponibles après connexion des bases réflexes.</div>'
+    +'</div></div>';
+
+  // Réflexes pieds
+  html+='<div class="lst mb">Réflexes pieds</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">';
+  ['Babinski G','Babinski D','Bab. fonct. G','Bab. fonct. D','RAL G','RAL D','RAP G','RAP D'].forEach(n=>{
+    html+=chipActif(n,false);
+  });
+  html+='</div>';
+
+  // Radiation
+  html+='<div class="lst mb">Réflexe de radiation — étoile à 6 points</div>';
+  html+='<div style="font-size:10px;color:var(--ov-muted);margin-bottom:8px">Connexion nombril → périphérie</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px">';
+  ['Épaule G','Épaule D','Iliaque G','Iliaque D','Menton','Sacrum'].forEach(n=>{
+    html+=chipActif(n,false);
+  });
+  html+='</div>';
+
+  // Système sensoriel
+  html+='<div class="lst mb">Système sensoriel</div>';
+
+  // Vestibulaire
+  html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Vestibulaire — 6 canaux</span></div>'
+    +'<div class="lcard-p"><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">';
+  ['Canal G haut','Canal G bas','Canal D haut','Canal D bas','Canal ant. G','Canal ant. D'].forEach(n=>{
+    html+=chipSens(n,false);
+  });
+  html+='</div></div></div>';
+
+  // Visuel
+  html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Visuel — Convergences</span></div>'
+    +'<div class="lcard-p"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">';
+  ['Stat. G','Stat. D','Dyn. G','Dyn. D'].forEach(n=>{
+    html+=chipSens(n,false);
+  });
+  html+='</div></div></div>';
+
+  // Proprioception Romberg
+  html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Proprioception — Romberg</span></div>'
+    +'<div class="lcard-p"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">';
+  ['Romberg simple','Complexe YO','Complexe YF'].forEach(n=>{
+    html+=chipSens(n,false);
+  });
+  html+='</div></div></div>';
+
+  // Programmes
+  html+='<div class="lst mb">Programmes d\'intégration</div>';
+  const programmes=[
+    {nom:'Programme RTAC',desc:'Réflexe tonique asymétrique du cou',fichier:'programme-rtac.pdf'},
+    {nom:'Programme RTSC',desc:'Réflexe tonique symétrique du cou',fichier:'programme-rtsc.pdf'},
+    {nom:'Programme RTL',desc:'Réflexe tonique labyrinthique',fichier:'programme-rtl.pdf'},
+    {nom:'Programme Moro',desc:'Réflexe de Moro',fichier:'programme-moro.pdf'},
+    {nom:'Programme Pieds',desc:'Réflexes plantaires',fichier:'programme-pieds.pdf'},
+    {nom:'Programme Radiation',desc:'Réflexe de radiation du nombril',fichier:'programme-radiation.pdf'},
+  ];
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">';
+  programmes.forEach(p=>{
+    html+='<a href="https://bastierejulie-maker.github.io/performance-manager/programmes/'+p.fichier+'" target="_blank" download '
+      +'style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--ov-bg,#fff);border:1px solid var(--ov-bdr);border-radius:var(--r);text-decoration:none">'
+      +'<div style="width:30px;height:30px;border-radius:8px;background:rgba(218,41,28,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DA291C">PDF</div>'
+      +'<div><div style="font-family:\'Syne\',sans-serif;font-size:10px;font-weight:700;color:var(--ov-txt)">'+p.nom+'</div>'
+      +'<div style="font-size:9px;color:var(--ov-dim);margin-top:2px">'+p.desc+'</div></div>'
+      +'<span style="margin-left:auto;color:var(--ov-dim);font-size:12px">↓</span>'
+      +'</a>';
+  });
+  html+='</div>';
+
+  el.innerHTML=html;
+}
+
 /* ══ NAV ══ */
 function sw(name,el){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-t').forEach(t=>t.classList.remove('active'));
   document.getElementById('s-'+name).classList.add('active');
   el.classList.add('active');
-  const rendered={'matchs':renderMatchs,'perf':renderPerf,'nutrition':renderNutrition,'sante':renderSante};
+  const rendered={'matchs':renderMatchs,'perf':renderPerf,'nutrition':renderNutrition,'sante':renderSante,'mecanique':renderMecanique,'snc':renderSNC};
   if(rendered[name]&&!el.dataset.rendered){el.dataset.rendered='1';rendered[name]();}
   if(name==='sante') renderSante(); // toujours rafraîchir (filtres)
 }

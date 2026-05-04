@@ -339,13 +339,17 @@ document.addEventListener('DOMContentLoaded',()=>{
 async function loadAll(){
   setSyncState('loading','Connexion Notion...');
   try{
-    const[jRes,sRes,tRes,bRes]=await Promise.all([
-      notionQuery(DB_JOUEURS,{},[{property:'Nom complet',direction:'ascending'}]),
-      notionQuery(DB_STATS,{},[{property:'Date',direction:'descending'}]),
-      notionQuery(DB_TESTS,{},[{property:'Date',direction:'descending'}]),
-      notionQuery(DB_BLESSURES,{},[{property:'Date',direction:'descending'}]),
-    ]);
+    // Requête principale — si elle échoue on bascule en fallback
+    const jRes=await notionQuery(DB_JOUEURS,{},[{property:'Nom complet',direction:'ascending'}]);
     allAthletes=jRes.results||[];
+
+    // Requêtes optionnelles — erreur silencieuse
+    const safeQuery=async(db,sorts=[])=>{try{const r=await notionQuery(db,{},sorts);return r;}catch(e){console.warn('Requête optionnelle échouée:',db);return {results:[]};}}
+    const[sRes,tRes,bRes]=await Promise.all([
+      safeQuery(DB_STATS,[{property:'Date',direction:'descending'}]),
+      safeQuery(DB_TESTS,[{property:'Date',direction:'descending'}]),
+      safeQuery(DB_BLESSURES,[{property:'Date',direction:'descending'}]),
+    ]);
     allStats=sRes.results||[];
     allTests=tRes.results||[];
     allBlessures=bRes.results||[];
