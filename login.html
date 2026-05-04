@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Manager — Julie Bastière</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f2ee;
+    --gold: #c9a96e;
+    --gold-light: #e8d5b0;
+    --muted: #6b6560;
+    --error: #c0392b;
+    --border: rgba(201, 169, 110, 0.2);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    overflow: hidden;
+  }
+
+  /* Fond grain subtil */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* Ligne dorée verticale gauche */
+  .line-left {
+    position: fixed;
+    left: 48px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+    opacity: 0.3;
+  }
+
+  /* Ligne dorée verticale droite */
+  .line-right {
+    position: fixed;
+    right: 48px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+    opacity: 0.3;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 0;
+  }
+
+  /* Panneau gauche — identité */
+  .left-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 64px;
+    position: relative;
+  }
+
+  .brand-mark {
+    position: absolute;
+    top: 48px;
+    left: 64px;
+  }
+
+  .brand-mark span {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  .tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 5vw, 68px);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    margin-bottom: 32px;
+  }
+
+  .tagline em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .sub {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 300px;
+  }
+
+  .sub strong {
+    color: var(--gold);
+    font-weight: 400;
+  }
+
+  /* Séparateur vertical */
+  .divider {
+    background: linear-gradient(to bottom, transparent, var(--border) 20%, var(--border) 80%, transparent);
+    align-self: stretch;
+  }
+
+  /* Panneau droit — formulaire */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 64px;
+    position: relative;
+  }
+
+  .login-label {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 48px;
+  }
+
+  .form-group {
+    margin-bottom: 28px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .form-group input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+
+  .form-group input:focus {
+    border-bottom-color: var(--gold);
+  }
+
+  .form-group input::placeholder {
+    color: rgba(245, 242, 238, 0.15);
+    font-size: 13px;
+  }
+
+  .form-group input[type="password"] {
+    letter-spacing: 0.2em;
+  }
+
+  .error-msg {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--error);
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-transform: uppercase;
+  }
+
+  .error-msg.visible {
+    opacity: 1;
+  }
+
+  .btn-login {
+    width: 100%;
+    margin-top: 48px;
+    padding: 16px 32px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-login::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .btn-login:hover::before {
+    transform: translateX(0);
+  }
+
+  .btn-login:hover {
+    color: var(--black);
+  }
+
+  .btn-login span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-login.loading span::after {
+    content: ' ···';
+    animation: dots 1s infinite;
+  }
+
+  @keyframes dots {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .footer-note {
+    position: absolute;
+    bottom: 48px;
+    left: 64px;
+    right: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-note span {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.5;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2ecc71;
+    display: inline-block;
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Animation d'entrée */
+  .left-panel, .right-panel {
+    animation: fadeIn 0.8s ease both;
+  }
+  .right-panel { animation-delay: 0.15s; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .line-left, .line-right, .divider { display: none; }
+    .container { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .right-panel { padding: 60px 32px; }
+    .footer-note { left: 32px; right: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="line-left"></div>
+<div class="line-right"></div>
+
+<div class="container">
+  <!-- Panneau gauche -->
+  <div class="left-panel">
+    <div class="brand-mark">
+      <span>Julie Bastière · PM</span>
+    </div>
+
+    <h1 class="tagline">
+      Performance<br>
+      <em>au plus haut</em><br>
+      niveau.
+    </h1>
+
+    <p class="sub">
+      Espace sécurisé réservé aux<br>
+      <strong>athlètes · agents · intervenants</strong><br>
+      suivis par Julie Bastière.
+    </p>
+  </div>
+
+  <!-- Séparateur -->
+  <div class="divider"></div>
+
+  <!-- Panneau droit — login -->
+  <div class="right-panel">
+    <div class="login-label">Accès sécurisé</div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="email">Adresse email</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="prenom@exemple.com"
+          autocomplete="email"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Code d'accès</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="········"
+          autocomplete="current-password"
+          required
+        >
+        <div class="error-msg" id="errorMsg">Email ou code d'accès incorrect</div>
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        <span>Accéder à mon espace</span>
+      </button>
+    </form>
+
+    <div class="footer-note">
+      <span><span class="status-dot"></span>Système actif</span>
+      <span>Accès sur invitation</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG — à adapter selon l'environnement
+// ─────────────────────────────────────────────
+const PROXY_URL = 'https://notion-proxy.bastierejulie.workers.dev';
+const AGENTS_DB = 'fa08b2c8-da76-4572-bd58-c8df21f7fb83';
+const JOUEURS_DB = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
+
+// ─────────────────────────────────────────────
+// GESTION DU LOGIN
+// ─────────────────────────────────────────────
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const password = document.getElementById('password').value.trim();
+  const btn = document.getElementById('loginBtn');
+  const errorMsg = document.getElementById('errorMsg');
+
+  // Reset état
+  errorMsg.classList.remove('visible');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    // 1. Vérification Julie (admin)
+    if (email === 'julie@bastiere.fr' && password === 'JULIE_ADMIN_2026') {
+      sessionStorage.setItem('pm_user', JSON.stringify({ role: 'admin', name: 'Julie' }));
+      window.location.href = 'dashboard-julie.html';
+      return;
+    }
+
+    // 2. Vérification Agent — cherche dans la base Accès Agents
+    const agent = await checkAgentAccess(email, password);
+    if (agent) {
+      sessionStorage.setItem('pm_user', JSON.stringify({
+        role: 'agent',
+        name: agent.name,
+        athleteIds: agent.athleteIds,
+        agentId: agent.id
+      }));
+      // Mise à jour dernière connexion
+      updateLastLogin(agent.pageId);
+      window.location.href = `dashboard-agent.html?agent=${agent.id}`;
+      return;
+    }
+
+    // 3. Vérification Joueur — cherche dans la base Joueurs
+    const joueur = await checkJoueurAccess(email, password);
+    if (joueur) {
+      sessionStorage.setItem('pm_user', JSON.stringify({
+        role: 'joueur',
+        name: joueur.name,
+        joueurId: joueur.id
+      }));
+      window.location.href = `joueur.html?id=${joueur.id}`;
+      return;
+    }
+
+    // Échec auth
+    showError();
+
+  } catch (err) {
+    console.error('Erreur auth:', err);
+    showError();
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+async function checkAgentAccess(email, password) {
+  try {
+    const res = await fetch(`${PROXY_URL}/databases/${AGENTS_DB}/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filter: {
+          and: [
+            { property: 'Email', email: { equals: email } },
+            { property: 'Statut accès', select: { equals: 'Actif' } }
+          ]
+        }
+      })
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.results?.length) return null;
+
+    const page = data.results[0];
+    const props = page.properties;
+
+    // Vérif mot de passe (stocké en clair pour l'instant, à hasher plus tard)
+    const storedPwd = props['Mot de passe']?.rich_text?.[0]?.plain_text || '';
+    if (storedPwd !== password) return null;
+
+    return {
+      pageId: page.id,
+      name: props['Nom agent']?.title?.[0]?.plain_text || 'Agent',
+      id: props['ID Agent']?.rich_text?.[0]?.plain_text || '',
+      athleteIds: props['Athlètes IDs']?.rich_text?.[0]?.plain_text || ''
+    };
+  } catch { return null; }
+}
+
+async function checkJoueurAccess(email, password) {
+  try {
+    const res = await fetch(`${PROXY_URL}/databases/${JOUEURS_DB}/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filter: {
+          property: 'Email',
+          email: { equals: email }
+        }
+      })
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.results?.length) return null;
+
+    const page = data.results[0];
+    const props = page.properties;
+
+    // Vérif code d'accès joueur
+    const storedPwd = props['Code accès']?.rich_text?.[0]?.plain_text || '';
+    if (storedPwd !== password) return null;
+
+    return {
+      id: page.id,
+      name: props['Nom']?.title?.[0]?.plain_text || 'Joueur'
+    };
+  } catch { return null; }
+}
+
+async function updateLastLogin(pageId) {
+  try {
+    await fetch(`${PROXY_URL}/pages/${pageId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        properties: {
+          'Dernière connexion': {
+            date: { start: new Date().toISOString().split('T')[0] }
+          }
+        }
+      })
+    });
+  } catch { /* silencieux */ }
+}
+
+function showError() {
+  document.getElementById('errorMsg').classList.add('visible');
+  document.getElementById('password').value = '';
+  document.getElementById('password').focus();
+  // Shake animation
+  const form = document.getElementById('loginForm');
+  form.style.animation = 'shake 0.4s ease';
+  setTimeout(() => form.style.animation = '', 400);
+}
+
+// Shake keyframe dynamique
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+`;
+document.head.appendChild(style);
+
+// Si déjà connecté → redirect direct
+const existingUser = sessionStorage.getItem('pm_user');
+if (existingUser) {
+  try {
+    const u = JSON.parse(existingUser);
+    if (u.role === 'admin') window.location.href = 'dashboard-julie.html';
+    else if (u.role === 'agent') window.location.href = `dashboard-agent.html?agent=${u.agentId}`;
+    else if (u.role === 'joueur') window.location.href = `joueur.html?id=${u.joueurId}`;
+  } catch { sessionStorage.removeItem('pm_user'); }
+}
+</script>
+
+</body>
+</html>
