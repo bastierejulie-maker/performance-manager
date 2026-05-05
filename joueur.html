@@ -56,10 +56,10 @@ html{scroll-behavior:smooth}
 /* Boutons intervenant dans les onglets */
 .int-actions{display:flex;gap:8px;margin-bottom:20px;padding:12px 0;border-bottom:1px solid rgba(201,169,110,.2)}
 .btn-int{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s}
-.btn-int-add{background:#c9a84c;color:#fff}
-.btn-int-add:hover{background:#b8924c}
+.btn-int-add{background:#fff;color:#1a1814;border:1px solid rgba(201,168,76,.4)}
+.btn-int-add:hover{background:#c9a84c;color:#fff;border-color:#c9a84c}
 .btn-int-edit{background:#fff;color:#1a1814;border:1px solid rgba(0,0,0,.12)}
-.btn-int-edit:hover{background:#f5f3ef}
+.btn-int-edit:hover{background:#c9a84c;color:#fff;border-color:#c9a84c}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1814;color:#fff;padding:10px 20px;border-radius:8px;font-size:12px;font-family:'Syne',sans-serif;z-index:2000;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap}
 .toast.show{opacity:1}
 body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
@@ -294,10 +294,6 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
         <input type="date" id="seance-date">
       </div>
       <div class="mfield">
-        <label>Prochain RDV</label>
-        <input type="date" id="seance-rdv">
-      </div>
-      <div class="mfield">
         <label>Notes / Compte-rendu</label>
         <textarea id="seance-notes" placeholder="Observations, protocole, recommandations..."></textarea>
       </div>
@@ -361,6 +357,34 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
       <div class="modal-actions">
         <button class="btn-modal-cancel" onclick="closeModal('modal-new-blessure')">Annuler</button>
         <button class="btn-modal-save" onclick="saveNewBlessure()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Prochain RDV -->
+<div class="modal-overlay" id="modal-rdv">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-title">Prévoir un RDV</span>
+      <button class="modal-close" onclick="closeModal('modal-rdv')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Type d'intervenant</label>
+        <input type="text" id="rdv-type" readonly style="color:var(--ov-dim);background:#f8f7f4">
+      </div>
+      <div class="mfield">
+        <label>Date du prochain RDV</label>
+        <input type="date" id="rdv-date">
+      </div>
+      <div class="mfield">
+        <label>Notes (optionnel)</label>
+        <textarea id="rdv-notes" placeholder="Contexte, objectif du RDV..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-rdv')">Annuler</button>
+        <button class="btn-modal-save" onclick="saveRDV()">Enregistrer</button>
       </div>
     </div>
   </div>
@@ -685,9 +709,9 @@ function renderOverview(saisonFilter){
   if(blessuresTerminees.length>0){const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=Math.floor((new Date()-new Date(lastRetour))/86400000);}}
   const lastT=tS[0];
 
-  // Prochain RDV — cherche dans la base Séances
+  // Prochain RDV — depuis les séances chargées
   let prochainRDV=null, prochainRDVType=null;
-  if(typeof SNC_DATA !== 'undefined' && window._seances){
+  if(window._seances && window._seances.length>0){
     const today=new Date(); today.setHours(0,0,0,0);
     const rdvs=window._seances.filter(s=>{
       const d=gp(s,'Prochain RDV','date');
@@ -743,20 +767,22 @@ function renderOverview(saisonFilter){
     </div>
 
     <!-- Prochain RDV -->
-    ${prochainRDV ? `
     <div class="lcard mb2">
       <div class="lcard-p" style="display:flex;align-items:center;gap:14px">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📅</div>
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.05em;color:var(--gold)">RDV</div>
         <div style="flex:1">
           <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:3px">Prochain RDV</div>
+          ${prochainRDV ? `
           <div style="font-size:14px;font-weight:500;color:var(--ov-txt)">${fd(prochainRDV)}</div>
           <div style="font-size:11px;color:var(--ov-muted);margin-top:2px">${prochainRDVType}</div>
+          ` : `<div style="font-size:13px;color:var(--ov-dim);font-style:italic;font-weight:300">Aucun RDV prévu</div>`}
         </div>
+        ${prochainRDV ? `
         <div style="font-family:'Bebas Neue',serif;font-size:32px;color:var(--gold);line-height:1">
           ${Math.max(0,Math.floor((new Date(prochainRDV)-new Date())/86400000))}j
-        </div>
+        </div>` : ''}
       </div>
-    </div>` : ''}
+    </div>
 
     <!-- Saison picker + KPIs -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1222,9 +1248,10 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
     <!-- Boutons intervenants -->
     ${IS_INTERVENANT && (INTERVENANT_TYPE==='Kiné'||INTERVENANT_TYPE==='Ostéopathe') ? `
     <div class="int-actions">
-      <button class="btn-int btn-int-add" onclick="openSeance()">➕ Nouvelle séance</button>
-      <button class="btn-int btn-int-add" onclick="openNewBlessure()">🤕 Déclarer une blessure</button>
-      <button class="btn-int btn-int-edit" onclick="openBlessure()">✏️ Modifier une blessure</button>
+      <button class="btn-int btn-int-add" onclick="openSeance()">Nouvelle séance</button>
+      <button class="btn-int btn-int-add" onclick="openRDV()">Prévoir un RDV</button>
+      <button class="btn-int btn-int-add" onclick="openNewBlessure()">Déclarer une blessure</button>
+      <button class="btn-int btn-int-edit" onclick="openBlessure()">Modifier une blessure</button>
     </div>` : ''}
     <!-- Filtres -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
@@ -1633,7 +1660,6 @@ async function saveSeance(){
       'Statut':{select:{name:'Réalisée'}},
       'Date':{date:{start:date}},
     }};
-    if(rdv) body.properties['Prochain RDV']={date:{start:rdv}};
     if(notes) body.properties['Notes']={rich_text:[{text:{content:notes}}]};
     if(pdf) body.properties['PDF URL']={url:pdf};
     if(joueurId) body.properties['Joueur']={relation:[{id:joueurId}]};
@@ -1685,11 +1711,51 @@ async function saveNewBlessure(){
       throw new Error(JSON.stringify(err));
     }
     closeModal('modal-new-blessure');
-    showToast('Blessure déclarée ✓');
-    const br=await nq('34d69796-db3f-80ec-8721-c4ec84c7bc53',[{property:'Date',direction:'descending'}]);
+    showToast('Blessure déclarée');
+    await reloadBL();
+  }catch(e){showToast('Erreur: '+e.message,false);}
+}
+
+async function reloadBL(){
+  try{
+    const br=await nq(DB_B,[{property:'Date',direction:'descending'}]);
     const jid_nd=J.id.replace(/-/g,'');
     BL=(br.results||[]).filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.some(id=>id===jid_nd);});
+    renderOverview();
     renderSante();
+  }catch(e){console.warn('reloadBL',e);}
+}
+
+function openRDV(){
+  document.getElementById('rdv-type').value=INTERVENANT_TYPE||'Intervenant';
+  document.getElementById('rdv-date').value='';
+  document.getElementById('rdv-notes').value='';
+  openModal('modal-rdv');
+}
+
+async function saveRDV(){
+  const date=document.getElementById('rdv-date').value;
+  const notes=document.getElementById('rdv-notes').value;
+  if(!date){showToast('Date requise',false);return;}
+  try{
+    const titre=(INTERVENANT_TYPE||'RDV')+' — '+new Date(date).toLocaleDateString('fr-FR');
+    const body={parent:{database_id:DB_SEANCES},properties:{
+      'Titre':{title:[{text:{content:titre}}]},
+      'Type intervenant':{select:{name:INTERVENANT_TYPE||'Kiné'}},
+      'Statut':{select:{name:'Planifiée'}},
+      'Prochain RDV':{date:{start:date}},
+    }};
+    if(notes) body.properties['Notes']={rich_text:[{text:{content:notes}}]};
+    if(J?.id) body.properties['Joueur']={relation:[{id:J.id}]};
+    const r=await fetch(PROXY+'/v1/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error((await r.json().catch(()=>({}))).message||r.status);
+    // Recharger les séances pour mettre à jour l'aperçu
+    const sr=await nq(DB_SEANCES,[{property:'Prochain RDV',direction:'ascending'}]);
+    const jid_nd=J.id.replace(/-/g,'');
+    window._seances=(sr.results||[]).filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.some(id=>id===jid_nd);});
+    closeModal('modal-rdv');
+    showToast('RDV enregistré');
+    renderOverview();
   }catch(e){showToast('Erreur: '+e.message,false);}
 }
 
@@ -1727,8 +1793,8 @@ async function saveBlessure(){
     const r=await fetch(PROXY+'/v1/pages/'+pageId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:props})});
     if(!r.ok) throw new Error(r.status);
     closeModal('modal-blessure');
-    showToast('Blessure mise à jour ✓');
-    renderSante();
+    showToast('Blessure mise à jour');
+    await reloadBL();
   }catch(e){showToast('Erreur: '+e.message,false);}
   btn.disabled=false; btn.textContent='Enregistrer';
 }
