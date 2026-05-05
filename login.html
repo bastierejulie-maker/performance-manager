@@ -182,7 +182,7 @@
   }
 
   .form-group input::placeholder {
-    color: rgba(26, 24, 20, 0.25);
+    color: rgba(245, 242, 238, 0.15);
     font-size: 13px;
   }
 
@@ -382,6 +382,7 @@
 // ─────────────────────────────────────────────
 const PROXY_URL = 'https://notion-proxy.bastierejulie.workers.dev';
 const AGENTS_DB = 'fa08b2c8-da76-4572-bd58-c8df21f7fb83';
+const INTERVENANTS_DB = 'cc2ddfa5-48d9-458c-be6f-276c591c07ad';
 const JOUEURS_DB = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
 
 // ─────────────────────────────────────────────
@@ -422,7 +423,22 @@ async function handleLogin(e) {
       return;
     }
 
-    // 3. Vérification Joueur — cherche dans la base Joueurs
+    // 3. Vérification Intervenant
+    const intervenant = await checkIntervenantAccess(email, password);
+    if (intervenant) {
+      sessionStorage.setItem('pm_user', JSON.stringify({
+        role: 'intervenant',
+        name: intervenant.name,
+        type: intervenant.type,
+        athleteIds: intervenant.athleteIds,
+        intervenantId: intervenant.id
+      }));
+      updateLastLoginIntervenant(intervenant.pageId);
+      window.location.href = `joueur.html?intervenant=1&type=${encodeURIComponent(intervenant.type)}&athletes=${encodeURIComponent(intervenant.athleteIds)}`;
+      return;
+    }
+
+    // 4. Vérification Joueur — cherche dans la base Joueurs
     const joueur = await checkJoueurAccess(email, password);
     if (joueur) {
       sessionStorage.setItem('pm_user', JSON.stringify({
@@ -479,6 +495,54 @@ async function checkAgentAccess(email, password) {
       athleteIds: props['Athlètes IDs']?.rich_text?.[0]?.plain_text || ''
     };
   } catch { return null; }
+}
+
+async function checkIntervenantAccess(email, password) {
+  try {
+    const res = await fetch(`${PROXY_URL}/v1/databases/${INTERVENANTS_DB}/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filter: {
+          and: [
+            { property: 'Email', email: { equals: email } },
+            { property: 'Statut accès', select: { equals: 'Actif' } }
+          ]
+        }
+      })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.results?.length) return null;
+    const page = data.results[0];
+    const props = page.properties;
+    const storedPwd = props['Mot de passe']?.rich_text?.[0]?.plain_text || '';
+    if (storedPwd !== password) return null;
+    // Récupérer les IDs des joueurs liés
+    const joueurRelations = props['Joueurs']?.relation || [];
+    const athleteIds = joueurRelations.map(r => r.id).join(',');
+    return {
+      pageId: page.id,
+      name: props['Nom intervenant']?.title?.[0]?.plain_text || 'Intervenant',
+      type: props['Type']?.select?.name || '',
+      athleteIds,
+      id: page.id
+    };
+  } catch { return null; }
+}
+
+async function updateLastLoginIntervenant(pageId) {
+  try {
+    await fetch(`${PROXY_URL}/v1/pages/${pageId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        properties: {
+          'Dernière connexion': { date: { start: new Date().toISOString().split('T')[0] } }
+        }
+      })
+    });
+  } catch { /* silencieux */ }
 }
 
 async function checkJoueurAccess(email, password) {

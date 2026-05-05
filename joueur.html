@@ -26,7 +26,7 @@
 [data-club="Nice"]{--c1:#1D1B4E;--c2:#C8102E}
 [data-club="Lille"]{--c1:#D10A0A;--c2:#a00808}
 [data-club="Rennes"]{--c1:#1B1B1B;--c2:#D21F3C}
-[data-club="Juventus"]{--c1:#2a2a2a;--c2:#c8aa6e}
+[data-club="Juventus"]{--c1:#1a1a1a;--c2:#c8aa6e}
 [data-club="Real Madrid"]{--c1:#00529F;--c2:#FEBE10}
 [data-club="Barcelona"]{--c1:#004D98;--c2:#A50044}
 [data-club="Arsenal"]{--c1:#EF0107;--c2:#c0392b}
@@ -40,20 +40,20 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 .hero{position:relative;min-height:280px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
 .hero-bg{position:absolute;inset:0;background:linear-gradient(145deg,var(--c1) 0%,color-mix(in srgb,var(--c1) 55%,#000) 50%,#080809 100%);z-index:0}
 .hero-glow{position:absolute;top:-60px;right:-60px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c2) 30%,transparent) 0%,transparent 65%);z-index:1;pointer-events:none}
-.hero-pattern{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 36px,rgba(0,0,0,.04) 36px,rgba(0,0,0,.04) 37px);pointer-events:none}
+.hero-pattern{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 36px,rgba(255,255,255,.012) 36px,rgba(255,255,255,.012) 37px);pointer-events:none}
 .hero-stripe{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--c2),var(--c1),transparent);z-index:3}
 .hero-body{position:relative;z-index:2;padding:24px 20px 28px;display:flex;align-items:flex-end;gap:18px}
 .photo-wrap{position:relative;flex-shrink:0}
 .photo{width:88px;height:88px;border-radius:50%;object-fit:cover;border:2.5px solid var(--c2);background:rgba(0,0,0,.4);display:block}
-.photo-init{width:88px;height:88px;border-radius:50%;border:2.5px solid rgba(0,0,0,.12);background:color-mix(in srgb,var(--c1) 40%,#000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:30px;color:rgba(255,255,255,.35);letter-spacing:.05em}
-.status-dot{position:absolute;bottom:4px;right:4px;width:14px;height:14px;border-radius:50%;border:2px solid #f5f3ef}
+.photo-init{width:88px;height:88px;border-radius:50%;border:2.5px solid rgba(255,255,255,.15);background:color-mix(in srgb,var(--c1) 40%,#000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:30px;color:rgba(255,255,255,.35);letter-spacing:.05em}
+.status-dot{position:absolute;bottom:4px;right:4px;width:14px;height:14px;border-radius:50%;border:2px solid #0a0a0c}
 .sd-disponible{background:#4caf7d}.sd-blesse{background:#e57373}.sd-en-reeducation{background:#ffb74d}.sd-indisponible{background:#78909c}
 .hero-info{flex:1;min-width:0}
 .club-line{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:600}
 .club-pip{width:6px;height:6px;border-radius:50%;background:var(--c2);flex-shrink:0}
 .hero-name{font-family:'Bebas Neue',serif;font-size:clamp(30px,6vw,52px);line-height:.9;color:#fff;letter-spacing:.03em;margin-bottom:10px;text-shadow:0 2px 24px rgba(0,0,0,.5)}
 .htags{display:flex;flex-wrap:wrap;gap:5px}
-.htag{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid rgba(0,0,0,.08);color:rgba(255,255,255,.55);background:rgba(0,0,0,.04);font-family:'Syne',sans-serif}
+.htag{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);font-family:'Syne',sans-serif}
 .htag.hl{background:var(--c2);border-color:var(--c2);color:#fff}
 .hero-top-right{position:absolute;top:16px;right:16px;z-index:4}
 .statut-pill{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:20px;font-family:'Syne',sans-serif;white-space:nowrap}
@@ -226,13 +226,13 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 <div id="hero-wrap"></div>
 
 <div class="nav" id="main-nav">
-  <div class="nav-t active" onclick="sw('overview',this)">Aperçu</div>
-  <div class="nav-t" onclick="sw('matchs',this)">Matchs</div>
-  <div class="nav-t" onclick="sw('perf',this)">Physique</div>
-  <div class="nav-t" onclick="sw('nutrition',this)">Nutrition</div>
-  <div class="nav-t" onclick="sw('sante',this)">Santé</div>
-  <div class="nav-t" onclick="sw('mecanique',this)">Profil</div>
-  <div class="nav-t" onclick="sw('snc',this)">SNC</div>
+  <div class="nav-t active" id="tab-overview" onclick="sw('overview',this)">Aperçu</div>
+  <div class="nav-t" id="tab-matchs" onclick="sw('matchs',this)">Matchs</div>
+  <div class="nav-t" id="tab-perf" onclick="sw('perf',this)">Physique</div>
+  <div class="nav-t" id="tab-nutrition" onclick="sw('nutrition',this)">Nutrition</div>
+  <div class="nav-t" id="tab-sante" onclick="sw('sante',this)">Santé</div>
+  <div class="nav-t" id="tab-mecanique" onclick="sw('mecanique',this)">Profil</div>
+  <div class="nav-t" id="tab-snc" onclick="sw('snc',this)">SNC</div>
 </div>
 
 <div id="s-overview" class="sec active sec-light"></div>
@@ -272,9 +272,42 @@ const NORMES={
 
 const P=new URLSearchParams(location.search);
 const JID=P.get('id')||null;
+const IS_INTERVENANT=P.get('intervenant')==='1';
+const INTERVENANT_TYPE=P.get('type')||'';
+const INTERVENANT_ATHLETES=(P.get('athletes')||'').split(',').filter(Boolean);
 let J=null,ST=[],TS=[],NU=[],BL=[],CI={},MET=[],REC=[],CLI=[];
 
-document.addEventListener('DOMContentLoaded',()=>loadAll());
+// Onglets autorisés par type d'intervenant
+const ONGLETS_INTERVENANT={
+  'Kiné':['sante'],
+  'Ostéopathe':['sante'],
+  'Nutritionniste':['nutrition'],
+  'Préparateur mental':['snc'],
+  'Analyste vidéo':['matchs'],
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+  if(IS_INTERVENANT && INTERVENANT_TYPE){
+    const allowed=ONGLETS_INTERVENANT[INTERVENANT_TYPE]||[];
+    const allTabs=['overview','matchs','perf','nutrition','sante','mecanique','snc'];
+    allTabs.forEach(tab=>{
+      const el=document.getElementById('tab-'+tab);
+      if(el && !allowed.includes(tab)){
+        el.style.display='none';
+      }
+    });
+    // Activer le premier onglet autorisé
+    if(allowed.length>0){
+      document.querySelectorAll('.nav-t').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+      const firstTab=document.getElementById('tab-'+allowed[0]);
+      if(firstTab){firstTab.classList.add('active');firstTab.style.display='';}
+      const firstSec=document.getElementById('s-'+allowed[0]);
+      if(firstSec) firstSec.classList.add('active');
+    }
+  }
+  loadAll();
+});
 
 async function nq(db,sorts=[]){
   const b={page_size:100};if(sorts.length)b.sorts=sorts;
@@ -304,7 +337,12 @@ async function loadAll(){
       nq(DB_B,[{property:'Date',direction:'descending'}]),
     ]);
     const all=jr.results||[];
-    J=JID?all.find(x=>x.id===JID)||all[0]:all[0];
+    // Si intervenant : filtrer par ses athlètes autorisés
+    let joueursList = all;
+    if(IS_INTERVENANT && INTERVENANT_ATHLETES.length>0){
+      joueursList = all.filter(x=>INTERVENANT_ATHLETES.some(id=>x.id.replace(/-/g,'')=== id.replace(/-/g,'')));
+    }
+    J=JID?joueursList.find(x=>x.id===JID)||joueursList[0]:joueursList[0];
     if(!J)throw new Error('no joueur');
     const jid_nd=J.id.replace(/-/g,'');
     const flt=arr=>arr.filter(x=>{
