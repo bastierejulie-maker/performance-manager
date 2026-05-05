@@ -361,7 +361,15 @@ async function loadAll(){
     MET=flt(mr.results||[]);
     CLI=flt(cr.results||[]);
     REC=rr.results||[];
-    hero();renderOverview();
+    hero();
+    // Si intervenant : rendre son onglet spécifique, sinon aperçu
+    if(IS_INTERVENANT && INTERVENANT_TYPE){
+      const renderMap={'Kiné':renderSante,'Ostéopathe':renderSante,'Nutritionniste':renderNutrition,'Préparateur mental':renderSNC,'Analyste vidéo':renderMatchs};
+      const fn=renderMap[INTERVENANT_TYPE];
+      if(fn) fn();
+    } else {
+      renderOverview();
+    }
     document.getElementById('sync-info').textContent='Notion · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   }catch(e){console.warn('démo',e);demo()}
 }
