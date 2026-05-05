@@ -448,7 +448,7 @@ async function handleLogin(e) {
 
 async function checkAgentAccess(email, password) {
   try {
-    const res = await fetch(`${PROXY_URL}/databases/${AGENTS_DB}/query`, {
+    const res = await fetch(`${PROXY_URL}/v1/databases/${AGENTS_DB}/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
