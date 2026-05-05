@@ -10,10 +10,10 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --c1:#004170;--c2:#DA291C;
-  --bg:#f4f5f7;--bg2:#ffffff;--bg3:#ecedf2;
-  --bdr:rgba(0,0,0,.07);--bdr2:rgba(0,0,0,.13);
-  --txt:#1a1814;--txt-m:#6b6455;--txt-d:#9a907e;
-  --gold:#b8924c;--r:14px;
+  --bg:#f5f3ef;--bg2:#ffffff;--bg3:#eae6e0;
+  --bdr:rgba(201,169,110,.2);--bdr2:rgba(201,169,110,.35);
+  --txt:#1a1814;--txt-m:#6b5f50;--txt-d:#9a8e7e;
+  --gold:#c9a84c;--r:14px;
   --ov-bg:#f5f3ef;--ov-card:#ffffff;--ov-bdr:rgba(0,0,0,.07);
   --ov-txt:#1a1814;--ov-muted:#6b6455;--ov-dim:#9a907e;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -26,7 +26,7 @@
 [data-club="Nice"]{--c1:#1D1B4E;--c2:#C8102E}
 [data-club="Lille"]{--c1:#D10A0A;--c2:#a00808}
 [data-club="Rennes"]{--c1:#1B1B1B;--c2:#D21F3C}
-[data-club="Juventus"]{--c1:#1a1a1a;--c2:#c8aa6e}
+[data-club="Juventus"]{--c1:#2a2a2a;--c2:#c8aa6e}
 [data-club="Real Madrid"]{--c1:#00529F;--c2:#FEBE10}
 [data-club="Barcelona"]{--c1:#004D98;--c2:#A50044}
 [data-club="Arsenal"]{--c1:#EF0107;--c2:#c0392b}
@@ -40,20 +40,20 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 .hero{position:relative;min-height:280px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
 .hero-bg{position:absolute;inset:0;background:linear-gradient(145deg,var(--c1) 0%,color-mix(in srgb,var(--c1) 55%,#000) 50%,#080809 100%);z-index:0}
 .hero-glow{position:absolute;top:-60px;right:-60px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c2) 30%,transparent) 0%,transparent 65%);z-index:1;pointer-events:none}
-.hero-pattern{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 36px,rgba(255,255,255,.012) 36px,rgba(255,255,255,.012) 37px);pointer-events:none}
+.hero-pattern{position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,transparent,transparent 36px,rgba(0,0,0,.04) 36px,rgba(0,0,0,.04) 37px);pointer-events:none}
 .hero-stripe{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--c2),var(--c1),transparent);z-index:3}
 .hero-body{position:relative;z-index:2;padding:24px 20px 28px;display:flex;align-items:flex-end;gap:18px}
 .photo-wrap{position:relative;flex-shrink:0}
 .photo{width:88px;height:88px;border-radius:50%;object-fit:cover;border:2.5px solid var(--c2);background:rgba(0,0,0,.4);display:block}
-.photo-init{width:88px;height:88px;border-radius:50%;border:2.5px solid rgba(255,255,255,.15);background:color-mix(in srgb,var(--c1) 40%,#000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:30px;color:rgba(255,255,255,.35);letter-spacing:.05em}
-.status-dot{position:absolute;bottom:4px;right:4px;width:14px;height:14px;border-radius:50%;border:2px solid #0a0a0c}
+.photo-init{width:88px;height:88px;border-radius:50%;border:2.5px solid rgba(0,0,0,.12);background:color-mix(in srgb,var(--c1) 40%,#000);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',serif;font-size:30px;color:rgba(255,255,255,.35);letter-spacing:.05em}
+.status-dot{position:absolute;bottom:4px;right:4px;width:14px;height:14px;border-radius:50%;border:2px solid #f5f3ef}
 .sd-disponible{background:#4caf7d}.sd-blesse{background:#e57373}.sd-en-reeducation{background:#ffb74d}.sd-indisponible{background:#78909c}
 .hero-info{flex:1;min-width:0}
 .club-line{display:flex;align-items:center;gap:5px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:600}
 .club-pip{width:6px;height:6px;border-radius:50%;background:var(--c2);flex-shrink:0}
 .hero-name{font-family:'Bebas Neue',serif;font-size:clamp(30px,6vw,52px);line-height:.9;color:#fff;letter-spacing:.03em;margin-bottom:10px;text-shadow:0 2px 24px rgba(0,0,0,.5)}
 .htags{display:flex;flex-wrap:wrap;gap:5px}
-.htag{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);font-family:'Syne',sans-serif}
+.htag{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid rgba(0,0,0,.08);color:rgba(255,255,255,.55);background:rgba(0,0,0,.04);font-family:'Syne',sans-serif}
 .htag.hl{background:var(--c2);border-color:var(--c2);color:#fff}
 .hero-top-right{position:absolute;top:16px;right:16px;z-index:4}
 .statut-pill{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:20px;font-family:'Syne',sans-serif;white-space:nowrap}
@@ -379,6 +379,9 @@ function renderOverview(saisonFilter){
   const nP=mS.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
   const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
   const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
+  let joursSansBlessure=null;
+  const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
+  if(blessuresTerminees.length>0){const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=Math.floor((new Date()-new Date(lastRetour))/86400000);}}
   const lastT=tS[0];
   const motricite=gp(J,'Motricité','select')||'—';
   const fibres=gp(J,'Fibres','select')||'—';
@@ -416,6 +419,11 @@ function renderOverview(saisonFilter){
       <div class="lcard-p" style="display:flex;align-items:center;gap:12px">
         <div class="statut-pill sp-${ss}" style="font-size:11px;padding:6px 14px">${statut}</div>
         <div style="font-size:12px;color:var(--ov-muted);font-weight:300;flex:1">${statutDesc}</div>
+        ${joursSansBlessure!==null?`
+        <div style="text-align:center;padding-left:12px;border-left:1px solid var(--ov-bdr);flex-shrink:0">
+          <div style="font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:${joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373'}">${joursSansBlessure}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">jours sans<br>blessure</div>
+        </div>`:''}
       </div>
     </div>
 
@@ -1019,7 +1027,7 @@ function renderMecanique(){
 
   // CMJ + VMA du dernier test pour classification
   const jid=J.id.replace(/-/g,'');
-  const lastTest=allTests.find(t=>{const r=t.properties?.Joueur?.relation||[];return r.some(x=>(x.id||'').replace(/-/g,'')=== jid);});
+  const lastTest=TS.find(t=>{const r=t.properties?.Joueur?.relation||[];return r.some(x=>(x.id||'').replace(/-/g,'')=== jid);})||TS[0]||null;
   const cmjVal=lastTest?gp(lastTest,'CMJ (cm)','number'):null;
   const vmaVal=lastTest?gp(lastTest,'VMA (km/h)','number'):null;
   const vmaxVal=lastTest?gp(lastTest,'Vmax','number'):null;

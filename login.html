@@ -10,18 +10,18 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --black: #ffffff;
-    --white: #1a1d23;
-    --gold: #b8924c;
-    --gold-light: #8a6a30;
-    --muted: #6b7280;
-    --error: #b74545;
-    --border: rgba(184, 146, 76, 0.28);
+    --black: #f5f3ef;
+    --white: #1a1814;
+    --gold: #c9a96e;
+    --gold-light: #e8d5b0;
+    --muted: #6b6560;
+    --error: #c0392b;
+    --border: rgba(201, 169, 110, 0.2);
   }
 
   html, body {
     height: 100%;
-    background: #F4F5F7;
+    background: var(--black);
     color: var(--white);
     font-family: 'DM Mono', monospace;
     font-weight: 300;
@@ -182,7 +182,7 @@
   }
 
   .form-group input::placeholder {
-    color: rgba(26, 29, 35, 0.3);
+    color: rgba(26, 24, 20, 0.25);
     font-size: 13px;
   }
 
