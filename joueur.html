@@ -34,6 +34,34 @@
 [data-club="Bayern"]{--c1:#DC052D;--c2:#0066B2}
 
 html{scroll-behavior:smooth}
+
+/* ── MODALES INTERVENANTS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-h{padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a1814}
+.modal-close{width:28px;height:28px;border-radius:50%;background:#f0ede8;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#6b5f50}
+.modal-body{padding:0 20px 20px}
+.mfield{margin-bottom:16px}
+.mfield label{display:block;font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#9a907e;font-weight:700;margin-bottom:6px}
+.mfield input,.mfield select,.mfield textarea{width:100%;border:1px solid rgba(0,0,0,.1);border-radius:8px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:#1a1814;background:#fff;outline:none;transition:border-color .2s}
+.mfield input:focus,.mfield select:focus,.mfield textarea:focus{border-color:#c9a84c}
+.mfield textarea{resize:vertical;min-height:80px}
+.modal-actions{display:flex;gap:8px;margin-top:20px}
+.btn-modal-cancel{flex:1;padding:11px;border:1px solid rgba(0,0,0,.1);border-radius:8px;background:#fff;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a907e;cursor:pointer}
+.btn-modal-save{flex:2;padding:11px;border:none;border-radius:8px;background:#c9a84c;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;transition:background .2s}
+.btn-modal-save:hover{background:#b8924c}
+.btn-modal-save:disabled{background:#ccc;cursor:not-allowed}
+/* Boutons intervenant dans les onglets */
+.int-actions{display:flex;gap:8px;margin-bottom:20px;padding:12px 0;border-bottom:1px solid rgba(201,169,110,.2)}
+.btn-int{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s}
+.btn-int-add{background:#c9a84c;color:#fff}
+.btn-int-add:hover{background:#b8924c}
+.btn-int-edit{background:#fff;color:#1a1814;border:1px solid rgba(0,0,0,.12)}
+.btn-int-edit:hover{background:#f5f3ef}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1814;color:#fff;padding:10px 20px;border-radius:8px;font-size:12px;font-family:'Syne',sans-serif;z-index:2000;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap}
+.toast.show{opacity:1}
 body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
 /* ── HERO ── */
@@ -248,6 +276,168 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
   <div class="fr" id="sync-info">Chargement…</div>
 </div>
 
+<!-- ══ MODALES INTERVENANTS ══ -->
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Modale : Nouvelle séance (Kiné/Ostéo/Nutri/Mental/Physique) -->
+<div class="modal-overlay" id="modal-seance">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-title" id="modal-seance-title">Nouvelle séance</span>
+      <button class="modal-close" onclick="closeModal('modal-seance')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Date de la séance</label>
+        <input type="date" id="seance-date">
+      </div>
+      <div class="mfield">
+        <label>Prochain RDV</label>
+        <input type="date" id="seance-rdv">
+      </div>
+      <div class="mfield">
+        <label>Notes / Compte-rendu</label>
+        <textarea id="seance-notes" placeholder="Observations, protocole, recommandations..."></textarea>
+      </div>
+      <div class="mfield" id="seance-pdf-wrap">
+        <label>Lien PDF ou document (URL)</label>
+        <input type="url" id="seance-pdf" placeholder="https://...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-seance')">Annuler</button>
+        <button class="btn-modal-save" id="btn-save-seance" onclick="saveSeance()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Modifier blessure (Kiné/Ostéo) -->
+<div class="modal-overlay" id="modal-blessure">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-title">Modifier une blessure</span>
+      <button class="modal-close" onclick="closeModal('modal-blessure')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Blessure</label>
+        <select id="blessure-select"></select>
+      </div>
+      <div class="mfield">
+        <label>Statut</label>
+        <select id="blessure-statut">
+          <option value="">— Choisir —</option>
+          <option value="🔴 En cours">🔴 En cours</option>
+          <option value="🟡 Reprise groupe">🟡 Reprise groupe</option>
+          <option value="🟢 Terminé">🟢 Terminé</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Date reprise entraînement</label>
+        <input type="date" id="blessure-reprise">
+      </div>
+      <div class="mfield">
+        <label>Date retour match</label>
+        <input type="date" id="blessure-retour">
+      </div>
+      <div class="mfield">
+        <label>Notes</label>
+        <textarea id="blessure-notes" placeholder="Évolution, protocole kiné..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-blessure')">Annuler</button>
+        <button class="btn-modal-save" id="btn-save-blessure" onclick="saveBlessure()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Nouveau test athlétique (Prépa physique) -->
+<div class="modal-overlay" id="modal-test">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-title">Nouveau test athlétique</span>
+      <button class="modal-close" onclick="closeModal('modal-test')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Intitulé du test</label>
+        <input type="text" id="test-titre" placeholder="Ex: Bilan mai 2026">
+      </div>
+      <div class="mfield">
+        <label>Date</label>
+        <input type="date" id="test-date">
+      </div>
+      <div class="mfield">
+        <label>Saison</label>
+        <input type="text" id="test-saison" placeholder="Ex: 2025-2026">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>CMJ (cm)</label><input type="number" step="0.1" id="test-cmj" placeholder="—"></div>
+        <div class="mfield"><label>SJ (cm)</label><input type="number" step="0.1" id="test-sj" placeholder="—"></div>
+        <div class="mfield"><label>VMA (km/h)</label><input type="number" step="0.1" id="test-vma" placeholder="—"></div>
+        <div class="mfield"><label>Vmax (km/h)</label><input type="number" step="0.1" id="test-vmax" placeholder="—"></div>
+        <div class="mfield"><label>Broad Jump (m)</label><input type="number" step="0.01" id="test-broad" placeholder="—"></div>
+        <div class="mfield"><label>AccMax (m/s²)</label><input type="number" step="0.1" id="test-acc" placeholder="—"></div>
+      </div>
+      <div class="mfield">
+        <label>Notes</label>
+        <textarea id="test-notes" placeholder="Observations, contexte..."></textarea>
+      </div>
+      <div class="mfield">
+        <label>Lien PDF rapport (URL)</label>
+        <input type="url" id="test-pdf" placeholder="https://...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-test')">Annuler</button>
+        <button class="btn-modal-save" onclick="saveTest()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Ajouter clip analyste -->
+<div class="modal-overlay" id="modal-clip">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-title">Ajouter un clip / rapport</span>
+      <button class="modal-close" onclick="closeModal('modal-clip')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Titre</label>
+        <input type="text" id="clip-titre" placeholder="Ex: Pressing haut — Monaco vs Lyon">
+      </div>
+      <div class="mfield">
+        <label>Date</label>
+        <input type="date" id="clip-date">
+      </div>
+      <div class="mfield">
+        <label>Type</label>
+        <select id="clip-type">
+          <option value="Analyse">Analyse</option>
+          <option value="Rapport">Rapport PDF</option>
+          <option value="Clip">Clip vidéo</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Lien (URL vidéo ou PDF)</label>
+        <input type="url" id="clip-url" placeholder="https://...">
+      </div>
+      <div class="mfield">
+        <label>Description</label>
+        <textarea id="clip-desc" placeholder="Points clés, observations..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-clip')">Annuler</button>
+        <button class="btn-modal-save" onclick="saveClip()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const PROXY='https://notion-proxy.bastierejulie.workers.dev';
@@ -259,6 +449,8 @@ const DB_B='34d69796-db3f-80ec-8721-c4ec84c7bc53';
 const DB_MET='34d69796-db3f-8051-afd1-d25038dfc12e'; // Suivi métriques (poids/MG/conseils diet)
 const DB_REC='6e70e21a-fcb0-40a1-af75-c93c24fb9627'; // Recettes globales
 const DB_CLI='726d3b94-8089-464f-8d62-e4100a59b1c0'; // Clips analyste
+const DB_SEANCES='94dd2ff8-0ed9-4baf-9181-a7d7daa8dc87'; // Séances intervenants
+const DB_DOCS='92909604-5b91-4a30-ab6e-e004dd947340'; // Documents joueur
 
 const NORMES={
   'Excentré':{vmax:35,accmax:7.5,cmj:48,sj:44,vma:18},
@@ -934,6 +1126,12 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
   const gravColors={'🔴 Sévère':'#e57373','🟢 Légère':'#4caf7d','🟡 Modéré':'#ffb74d'};
 
   document.getElementById('s-sante').innerHTML=`
+    <!-- Boutons intervenants -->
+    ${IS_INTERVENANT && (INTERVENANT_TYPE==='Kiné'||INTERVENANT_TYPE==='Ostéopathe') ? `
+    <div class="int-actions">
+      <button class="btn-int btn-int-add" onclick="openSeance()">➕ Nouvelle séance</button>
+      <button class="btn-int btn-int-edit" onclick="openBlessure()">✏️ Modifier une blessure</button>
+    </div>` : ''}
     <!-- Filtres -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
       <select class="lsel" onchange="renderSante(this.value,'${typeFilter||'all'}','${zoneFilter||'all'}')">${sOpts}</select>
@@ -1296,6 +1494,176 @@ function renderSNC(){
   html+='</div>';
 
   el.innerHTML=html;
+}
+
+/* ══ INTERVENANTS — MODALES ══ */
+
+function showToast(msg, ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=ok?'#1a1814':'#e57373';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// Fermer modale en cliquant overlay
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+
+function openSeance(){
+  document.getElementById('seance-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('seance-rdv').value='';
+  document.getElementById('seance-notes').value='';
+  document.getElementById('seance-pdf').value='';
+  document.getElementById('modal-seance-title').textContent='Nouvelle séance — '+INTERVENANT_TYPE;
+  openModal('modal-seance');
+}
+
+async function saveSeance(){
+  const btn=document.getElementById('btn-save-seance');
+  btn.disabled=true; btn.textContent='Enregistrement…';
+  const date=document.getElementById('seance-date').value;
+  const rdv=document.getElementById('seance-rdv').value;
+  const notes=document.getElementById('seance-notes').value;
+  const pdf=document.getElementById('seance-pdf').value;
+  if(!date){showToast('Date requise',false);btn.disabled=false;btn.textContent='Enregistrer';return;}
+  try{
+    const joueurId=J?.id;
+    const body={parent:{database_id:DB_SEANCES},properties:{
+      'Titre':{title:[{text:{content:INTERVENANT_TYPE+' — '+new Date(date).toLocaleDateString('fr-FR')}}]},
+      'Type intervenant':{select:{name:INTERVENANT_TYPE}},
+      'Statut':{select:{name:'Réalisée'}},
+      'Date':{date:{start:date}},
+    }};
+    if(rdv) body.properties['Prochain RDV']={date:{start:rdv}};
+    if(notes) body.properties['Notes']={rich_text:[{text:{content:notes}}]};
+    if(pdf) body.properties['PDF URL']={url:pdf};
+    if(joueurId) body.properties['Joueur']={relation:[{id:joueurId}]};
+    const r=await fetch(PROXY+'/v1/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(r.status);
+    closeModal('modal-seance');
+    showToast('Séance enregistrée ✓');
+  }catch(e){showToast('Erreur: '+e.message,false);}
+  btn.disabled=false; btn.textContent='Enregistrer';
+}
+
+function openBlessure(){
+  const sel=document.getElementById('blessure-select');
+  sel.innerHTML='<option value="">— Choisir —</option>'+
+    BL.map(b=>{
+      const zone=gp(b,'Zone/ Localité','select')||'?';
+      const type=gp(b,'Type','select')||'?';
+      const date=gp(b,'Date','date')||'';
+      return `<option value="${b.id}">${zone} — ${type} (${fd(date,true)})</option>`;
+    }).join('');
+  document.getElementById('blessure-statut').value='';
+  document.getElementById('blessure-reprise').value='';
+  document.getElementById('blessure-retour').value='';
+  document.getElementById('blessure-notes').value='';
+  openModal('modal-blessure');
+}
+
+async function saveBlessure(){
+  const btn=document.getElementById('btn-save-blessure');
+  btn.disabled=true; btn.textContent='Enregistrement…';
+  const pageId=document.getElementById('blessure-select').value;
+  const statut=document.getElementById('blessure-statut').value;
+  const reprise=document.getElementById('blessure-reprise').value;
+  const retour=document.getElementById('blessure-retour').value;
+  const notes=document.getElementById('blessure-notes').value;
+  if(!pageId){showToast('Sélectionnez une blessure',false);btn.disabled=false;btn.textContent='Enregistrer';return;}
+  try{
+    const props={};
+    if(statut) props['Statut']={select:{name:statut}};
+    if(reprise) props['Date de reprise entrainement']={date:{start:reprise}};
+    if(retour) props['Date de retour match']={date:{start:retour}};
+    if(notes) props['Notes']={rich_text:[{text:{content:notes}}]};
+    const r=await fetch(PROXY+'/v1/pages/'+pageId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:props})});
+    if(!r.ok) throw new Error(r.status);
+    closeModal('modal-blessure');
+    showToast('Blessure mise à jour ✓');
+    renderSante();
+  }catch(e){showToast('Erreur: '+e.message,false);}
+  btn.disabled=false; btn.textContent='Enregistrer';
+}
+
+function openTest(){
+  document.getElementById('test-titre').value='';
+  document.getElementById('test-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('test-saison').value='2025-2026';
+  ['cmj','sj','vma','vmax','broad','acc'].forEach(f=>document.getElementById('test-'+f).value='');
+  document.getElementById('test-notes').value='';
+  document.getElementById('test-pdf').value='';
+  openModal('modal-test');
+}
+
+async function saveTest(){
+  const titre=document.getElementById('test-titre').value||('Test '+new Date().toLocaleDateString('fr-FR'));
+  const date=document.getElementById('test-date').value;
+  const saison=document.getElementById('test-saison').value;
+  const cmj=parseFloat(document.getElementById('test-cmj').value)||null;
+  const sj=parseFloat(document.getElementById('test-sj').value)||null;
+  const vma=parseFloat(document.getElementById('test-vma').value)||null;
+  const vmax=parseFloat(document.getElementById('test-vmax').value)||null;
+  const broad=parseFloat(document.getElementById('test-broad').value)||null;
+  const acc=parseFloat(document.getElementById('test-acc').value)||null;
+  const notes=document.getElementById('test-notes').value;
+  const pdf=document.getElementById('test-pdf').value;
+  if(!date){showToast('Date requise',false);return;}
+  try{
+    const body={parent:{database_id:DB_T},properties:{
+      'Test - date':{title:[{text:{content:titre}}]},
+      'Date':{date:{start:date}},
+    }};
+    if(saison) body.properties['Saison']={select:{name:saison}};
+    if(cmj) body.properties['CMJ (cm)']={number:cmj};
+    if(sj) body.properties['SJ (cm)']={number:sj};
+    if(vma) body.properties['VMA (km/h)']={number:vma};
+    if(vmax) body.properties['Vmax']={number:vmax};
+    if(broad) body.properties['Broad jump']={number:broad};
+    if(acc) body.properties['Accmax']={number:acc};
+    if(notes) body.properties['Notes']={rich_text:[{text:{content:notes}}]};
+    if(J?.id) body.properties['Joueur']={relation:[{id:J.id}]};
+    const r=await fetch(PROXY+'/v1/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(r.status);
+    closeModal('modal-test');
+    showToast('Test enregistré ✓');
+  }catch(e){showToast('Erreur: '+e.message,false);}
+}
+
+function openClip(){
+  document.getElementById('clip-titre').value='';
+  document.getElementById('clip-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('clip-url').value='';
+  document.getElementById('clip-desc').value='';
+  openModal('modal-clip');
+}
+
+async function saveClip(){
+  const titre=document.getElementById('clip-titre').value;
+  const date=document.getElementById('clip-date').value;
+  const type=document.getElementById('clip-type').value;
+  const url=document.getElementById('clip-url').value;
+  const desc=document.getElementById('clip-desc').value;
+  if(!titre){showToast('Titre requis',false);return;}
+  try{
+    const body={parent:{database_id:DB_CLI},properties:{
+      'Titre':{title:[{text:{content:titre}}]},
+      'Type':{select:{name:type}},
+    }};
+    if(date) body.properties['Date']={date:{start:date}};
+    if(url) body.properties['userDefined:URL']={url:url};
+    if(desc) body.properties['Description']={rich_text:[{text:{content:desc}}]};
+    if(J?.id) body.properties['Joueur']={relation:[{id:J.id}]};
+    const r=await fetch(PROXY+'/v1/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(r.status);
+    closeModal('modal-clip');
+    showToast('Clip enregistré ✓');
+  }catch(e){showToast('Erreur: '+e.message,false);}
 }
 
 /* ══ NAV ══ */
