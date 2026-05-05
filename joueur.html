@@ -606,6 +606,16 @@ async function loadAll(){
     MET=flt(mr.results||[]);
     CLI=flt(cr.results||[]);
     REC=rr.results||[];
+    // Charger les séances pour le prochain RDV
+    try{
+      const sr=await nq(DB_SEANCES,[{property:'Prochain RDV',direction:'ascending'}]);
+      const jid_nd=J.id.replace(/-/g,'');
+      window._seances=(sr.results||[]).filter(x=>{
+        const r=gp(x,'Joueur','relation')||[];
+        return r.some(id=>id===jid_nd);
+      });
+    }catch(e){ window._seances=[]; }
+
     hero();
     // Si intervenant : rendre son onglet spécifique, sinon aperçu
     if(IS_INTERVENANT && INTERVENANT_TYPE){
@@ -674,6 +684,20 @@ function renderOverview(saisonFilter){
   const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
   if(blessuresTerminees.length>0){const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=Math.floor((new Date()-new Date(lastRetour))/86400000);}}
   const lastT=tS[0];
+
+  // Prochain RDV — cherche dans la base Séances
+  let prochainRDV=null, prochainRDVType=null;
+  if(typeof SNC_DATA !== 'undefined' && window._seances){
+    const today=new Date(); today.setHours(0,0,0,0);
+    const rdvs=window._seances.filter(s=>{
+      const d=gp(s,'Prochain RDV','date');
+      return d && new Date(d)>=today;
+    }).sort((a,b)=>gp(a,'Prochain RDV','date').localeCompare(gp(b,'Prochain RDV','date')));
+    if(rdvs.length>0){
+      prochainRDV=gp(rdvs[0],'Prochain RDV','date');
+      prochainRDVType=gp(rdvs[0],'Type intervenant','select')||'—';
+    }
+  }
   const motricite=gp(J,'Motricité','select')||'—';
   const fibres=gp(J,'Fibres','select')||'—';
   const scoreRef=gp(J,'Score réflexes','number');
@@ -717,6 +741,22 @@ function renderOverview(saisonFilter){
         </div>`:''}
       </div>
     </div>
+
+    <!-- Prochain RDV -->
+    ${prochainRDV ? `
+    <div class="lcard mb2">
+      <div class="lcard-p" style="display:flex;align-items:center;gap:14px">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📅</div>
+        <div style="flex:1">
+          <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:3px">Prochain RDV</div>
+          <div style="font-size:14px;font-weight:500;color:var(--ov-txt)">${fd(prochainRDV)}</div>
+          <div style="font-size:11px;color:var(--ov-muted);margin-top:2px">${prochainRDVType}</div>
+        </div>
+        <div style="font-family:'Bebas Neue',serif;font-size:32px;color:var(--gold);line-height:1">
+          ${Math.max(0,Math.floor((new Date(prochainRDV)-new Date())/86400000))}j
+        </div>
+      </div>
+    </div>` : ''}
 
     <!-- Saison picker + KPIs -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
