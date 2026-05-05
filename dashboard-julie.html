@@ -478,7 +478,7 @@ function accessBadge(s) {
 }
 
 async function query(db, filter = {}) {
-  const r = await fetch(`${PROXY}/databases/${db}/query`, {
+  const r = await fetch(`${PROXY}/v1/databases/${db}/query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ filter, sorts: [{ property: 'Nom complet', direction: 'ascending' }] })
