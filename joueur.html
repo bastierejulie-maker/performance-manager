@@ -1634,10 +1634,8 @@ async function saveNewBlessure(){
     if(type) props['Type']={select:{name:type}};
     if(gravite) props['Gravité']={select:{name:gravite}};
     if(saison) props['Saison']={select:{name:saison}};
-    // Statut
-    props['Statut']={select:{name:'🔴 En cours'}};
-    // Zone en texte libre (rich_text) car valeur libre
-    if(zone) props['Zone/ Localité']={select:{name:zone}};
+    props['Statut']={select:{name:'🔄 En cours'}};
+    if(zone) props['Zone/ Localité']={rich_text:[{text:{content:zone}}]};
     if(notes) props['Notes']={rich_text:[{text:{content:notes}}]};
     if(J?.id) props['Joueur']={relation:[{id:J.id}]};
     const body={parent:{database_id:'34d69796-db3f-80ec-8721-c4ec84c7bc53'},properties:props};
