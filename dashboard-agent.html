@@ -301,7 +301,7 @@ async function load() {
       }
     }
 
-    const r = await fetch(`${PROXY}/databases/${DB_JOUEURS}/query`, {
+    const r = await fetch(`${PROXY}/v1/databases/${DB_JOUEURS}/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
