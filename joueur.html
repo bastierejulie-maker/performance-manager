@@ -313,6 +313,59 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
   </div>
 </div>
 
+<!-- Modale : Nouvelle blessure (Kiné/Ostéo) -->
+<div class="modal-overlay" id="modal-new-blessure">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-title">Déclarer une blessure</span>
+      <button class="modal-close" onclick="closeModal('modal-new-blessure')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Date de la blessure</label>
+        <input type="date" id="nb-date">
+      </div>
+      <div class="mfield">
+        <label>Type</label>
+        <select id="nb-type">
+          <option value="">— Choisir —</option>
+          <option>Musculaire</option>
+          <option>Ligamentaire</option>
+          <option>Tendineux</option>
+          <option>Osseux</option>
+          <option>Contusion</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Zone / Localité</label>
+        <input type="text" id="nb-zone" placeholder="Ex: Ischio-jambier gauche">
+      </div>
+      <div class="mfield">
+        <label>Gravité</label>
+        <select id="nb-gravite">
+          <option value="">— Choisir —</option>
+          <option value="🟢 Légère">🟢 Légère</option>
+          <option value="🟡 Modéré">🟡 Modéré</option>
+          <option value="🔴 Sévère">🔴 Sévère</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Saison</label>
+        <input type="text" id="nb-saison" placeholder="Ex: 2025-2026">
+      </div>
+      <div class="mfield">
+        <label>Notes</label>
+        <textarea id="nb-notes" placeholder="Contexte, mécanisme de la blessure..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-new-blessure')">Annuler</button>
+        <button class="btn-modal-save" onclick="saveNewBlessure()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modale : Modifier blessure (Kiné/Ostéo) -->
 <div class="modal-overlay" id="modal-blessure">
   <div class="modal">
@@ -1130,6 +1183,7 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
     ${IS_INTERVENANT && (INTERVENANT_TYPE==='Kiné'||INTERVENANT_TYPE==='Ostéopathe') ? `
     <div class="int-actions">
       <button class="btn-int btn-int-add" onclick="openSeance()">➕ Nouvelle séance</button>
+      <button class="btn-int btn-int-add" onclick="openNewBlessure()">🤕 Déclarer une blessure</button>
       <button class="btn-int btn-int-edit" onclick="openBlessure()">✏️ Modifier une blessure</button>
     </div>` : ''}
     <!-- Filtres -->
@@ -1549,6 +1603,49 @@ async function saveSeance(){
     showToast('Séance enregistrée ✓');
   }catch(e){showToast('Erreur: '+e.message,false);}
   btn.disabled=false; btn.textContent='Enregistrer';
+}
+
+function openNewBlessure(){
+  document.getElementById('nb-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('nb-type').value='';
+  document.getElementById('nb-zone').value='';
+  document.getElementById('nb-gravite').value='';
+  document.getElementById('nb-saison').value='2025-2026';
+  document.getElementById('nb-notes').value='';
+  openModal('modal-new-blessure');
+}
+
+async function saveNewBlessure(){
+  const date=document.getElementById('nb-date').value;
+  const type=document.getElementById('nb-type').value;
+  const zone=document.getElementById('nb-zone').value;
+  const gravite=document.getElementById('nb-gravite').value;
+  const saison=document.getElementById('nb-saison').value;
+  const notes=document.getElementById('nb-notes').value;
+  if(!date||!type||!zone){showToast('Date, type et zone requis',false);return;}
+  try{
+    const titre=type+' '+zone+' — '+new Date(date).toLocaleDateString('fr-FR',{month:'short',year:'numeric'});
+    const body={parent:{database_id:'34d69796-db3f-80ec-8721-c4ec84c7bc53'},properties:{
+      'Type + localisation + mois année':{title:[{text:{content:titre}}]},
+      'Date':{date:{start:date}},
+      'Type':{select:{name:type}},
+      'Zone/ Localité':{select:{name:zone}},
+      'Statut':{select:{name:'🔴 En cours'}},
+    }};
+    if(gravite) body.properties['Gravité']={select:{name:gravite}};
+    if(saison) body.properties['Saison']={select:{name:saison}};
+    if(notes) body.properties['Notes']={rich_text:[{text:{content:notes}}]};
+    if(J?.id) body.properties['Joueur']={relation:[{id:J.id}]};
+    const r=await fetch(PROXY+'/v1/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(r.status);
+    closeModal('modal-new-blessure');
+    showToast('Blessure déclarée ✓');
+    // Recharger les blessures
+    const br=await nq('34d69796-db3f-80ec-8721-c4ec84c7bc53',[{property:'Date',direction:'descending'}]);
+    const jid_nd=J.id.replace(/-/g,'');
+    BL=(br.results||[]).filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.some(id=>id===jid_nd);});
+    renderSante();
+  }catch(e){showToast('Erreur: '+e.message,false);}
 }
 
 function openBlessure(){
