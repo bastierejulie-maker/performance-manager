@@ -10,10 +10,10 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --c1:#004170;--c2:#DA291C;
-  --bg:#0a0a0c;--bg2:#111114;--bg3:#16161a;
-  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
-  --txt:#f0ede8;--txt-m:#8a8680;--txt-d:#4a4844;
-  --gold:#c9a84c;--r:14px;
+  --bg:#f4f5f7;--bg2:#ffffff;--bg3:#ecedf2;
+  --bdr:rgba(0,0,0,.07);--bdr2:rgba(0,0,0,.13);
+  --txt:#1a1814;--txt-m:#6b6455;--txt-d:#9a907e;
+  --gold:#b8924c;--r:14px;
   --ov-bg:#f5f3ef;--ov-card:#ffffff;--ov-bdr:rgba(0,0,0,.07);
   --ov-txt:#1a1814;--ov-muted:#6b6455;--ov-dim:#9a907e;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -123,7 +123,7 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 .pbar-top{display:flex;justify-content:space-between;margin-bottom:5px}
 .pbar-l{font-size:11px;color:var(--txt-m);font-weight:400}
 .pbar-v{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--txt)}
-.pbar-track{height:4px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.pbar-track{height:4px;background:rgba(0,0,0,.06);border-radius:4px;overflow:hidden}
 .pbar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--c1),var(--c2));transition:width 1s cubic-bezier(.4,0,.2,1)}
 .pbar-fill.warn{background:#ffb74d}.pbar-fill.nope{background:#e57373}.pbar-fill.ok{background:linear-gradient(90deg,var(--c1),var(--c2))}
 
@@ -168,7 +168,7 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 .norme-vals{display:flex;align-items:baseline;gap:4px}
 .norme-v{font-family:'Bebas Neue',serif;font-size:22px;color:var(--txt)}
 .norme-ref{font-size:9px;color:var(--txt-d)}
-.norme-track{height:4px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;margin-bottom:5px}
+.norme-track{height:4px;background:rgba(0,0,0,.06);border-radius:4px;overflow:hidden;margin-bottom:5px}
 .norme-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
 .norme-ok{background:linear-gradient(90deg,var(--c1),var(--c2))}
 .norme-warn{background:#ffb74d}.norme-nope{background:#e57373}
