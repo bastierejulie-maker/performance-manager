@@ -710,7 +710,7 @@ function renderOverview(saisonFilter){
   const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
   // Compteur blessure — logique selon statut
   let joursSansBlessure=null, compteurLabel=null, compteurColor=null;
-  const blessuresActives=BL.filter(b=>{const s=gp(b,'Statut','select');return s==='🔴 Blessé'||s==='🟡 Réathlétisation';});
+  const blessuresActives=BL.filter(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('Réathlétisation');});
   if(blessuresActives.length>0){
     // Joueur blessé — jours d'arrêt depuis la date de la blessure la plus récente
     const datesBlessure=blessuresActives.map(b=>gp(b,'Date','date')).filter(Boolean).sort().reverse();
@@ -1256,15 +1256,17 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
   if(zoneFilter&&zoneFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Zone/ Localité','select')===zoneFilter);
 
   const today=new Date();today.setHours(0,0,0,0);
-  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('En cours')||s.includes('rééducation');});
+  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('Réathlétisation');});
   let joursSans=null;
   if(blessureActive){
+    // Blessé — jours d'arrêt depuis la date de blessure (positif, affiché en rouge)
     const debut=gp(blessureActive,'Date','date');
-    joursSans=debut?-Math.max(0,Math.floor((today-new Date(debut))/(1000*60*60*24))):-1;
+    joursSans=debut?Math.max(1,Math.ceil((today-new Date(debut))/(1000*60*60*24))):1;
   } else {
+    // Disponible — jours depuis reprise entraînement
     const sorted=BL.filter(b=>gp(b,'Date de reprise entrainement','date')).sort((a,b2)=>gp(b2,'Date de reprise entrainement','date').localeCompare(gp(a,'Date de reprise entrainement','date')));
     const lastReprise=sorted[0]?gp(sorted[0],'Date de reprise entrainement','date'):null;
-    if(lastReprise) joursSans=Math.max(0,Math.floor((today-new Date(lastReprise))/(1000*60*60*24)));
+    if(lastReprise) joursSans=Math.max(1,Math.ceil((today-new Date(lastReprise))/(1000*60*60*24)));
   }
 
   const calcDuree=b=>{const d=gp(b,'Date','date'),r=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');if(!d)return null;const end=r?new Date(r):new Date();return Math.max(0,Math.floor((end-new Date(d))/(1000*60*60*24)));};
@@ -1302,8 +1304,8 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
     <!-- KPIs -->
     <div class="g2 mb2">
       <div class="lkpi">
-        <div class="lkpi-v" style="color:${joursSans===null?'#9a907e':joursSans<0?'#e57373':joursSans>90?'#4caf7d':joursSans>30?'#ffb74d':'#e57373'}">${joursSans===null?'—':Math.abs(joursSans)}</div>
-        <div class="lkpi-l">${joursSans<0?'Jours hors terrain':'Jours sans blessure'}</div>
+        <div class="lkpi-v" style="color:${joursSans===null?'#9a907e':blessureActive?'#e57373':joursSans>180?'#4caf7d':joursSans>60?'#ffb74d':'#e57373'}">${joursSans===null?'—':joursSans}</div>
+        <div class="lkpi-l">${blessureActive?'Jours d\'arrêt':'Jours sans arrêt'}</div>
       </div>
       <div class="lkpi">
         <div class="lkpi-v" style="color:var(--ov-txt)">${nTotal}</div>
