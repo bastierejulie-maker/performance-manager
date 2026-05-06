@@ -652,6 +652,7 @@ async function loadAll(){
       if(fn) fn();
     } else {
       renderOverview();
+    generateInfo();
     }
     document.getElementById('sync-info').textContent='Notion · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   }catch(e){console.warn('démo',e);demo()}
@@ -820,6 +821,14 @@ function renderOverview(saisonFilter){
         <div style="font-family:'Bebas Neue',serif;font-size:32px;color:var(--gold);line-height:1">
           ${Math.max(0,Math.floor((new Date(prochainRDV)-new Date())/86400000))}j
         </div>` : ''}
+      </div>
+    </div>
+
+    <!-- Informations IA -->
+    <div class="lcard mb2" id="bloc-info">
+      <div class="lcard-p">
+        <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:10px">Informations</div>
+        <div id="info-text" style="font-size:12px;line-height:1.8;color:var(--ov-muted);font-style:italic">Chargement...</div>
       </div>
     </div>
 
@@ -1772,6 +1781,86 @@ async function reloadBL(){
     renderOverview();
     renderSante();
   }catch(e){console.warn('reloadBL',e);}
+}
+
+function generateInfo(){
+  const el=document.getElementById('info-text');
+  if(!el) return;
+  try{
+    const lignes=[];
+    const nom=J?gp(J,'Nom complet','title')||'Joueur':'Joueur';
+    const statut=J?gp(J,'Statut','select')||'—':'—';
+    const poste=J?gp(J,'Poste','select')||'—':'—';
+    const club=J?gp(J,'Club actuel','title')||'—':'—';
+    const pied=J?gp(J,'Pied dominant','select')||null:null;
+
+    // Identité
+    lignes.push(`${nom} — ${poste}${club&&club!=='—'?' · '+club:''}${pied?' · '+pied:''}.`);
+
+    // Statut blessure
+    const bActives=BL.filter(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('Réathlétisation');});
+    const bTerminees=BL.filter(b=>(gp(b,'Statut','select')||'').includes('Terminé'));
+    if(bActives.length>0){
+      const b=bActives[0];
+      const zone=gp(b,'Zone/ Localité','rich_text')||'zone inconnue';
+      const type=gp(b,'Type','select')||'';
+      const dateB=gp(b,'Date','date');
+      const jours=dateB?Math.floor((Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())-Date.UTC(new Date(dateB).getFullYear(),new Date(dateB).getMonth(),new Date(dateB).getDate()))/86400000)+1:null;
+      lignes.push(`Statut : ${statut}${jours?' depuis '+jours+' jour'+(jours>1?'s':''):''} — ${type?type+', ':''} ${zone}.`);
+    } else {
+      lignes.push(`Statut : ${statut}. ${bTerminees.length>0?bTerminees.length+' blessure'+(bTerminees.length>1?'s':'')+' dans l'historique.':'Aucune blessure enregistrée.'}`);
+    }
+
+    // Séances
+    const seances=window._seances||[];
+    const realisees=seances.filter(s=>gp(s,'Statut','select')==='Réalisée').sort((a,b)=>(gp(b,'Date','date')||'').localeCompare(gp(a,'Date','date')||''));
+    if(realisees.length>0){
+      const s=realisees[0];
+      const type=gp(s,'Type intervenant','select')||'Intervenant';
+      const date=fd(gp(s,'Date','date'),true);
+      const notes=gp(s,'Notes','rich_text');
+      lignes.push(`Dernière séance : ${type} le ${date}.${notes?' '+notes.substring(0,80)+(notes.length>80?'…':''):''}`);
+    } else {
+      lignes.push('Aucune séance enregistrée.');
+    }
+
+    // Prochain RDV
+    const rdvs=seances.filter(s=>{const d=gp(s,'Prochain RDV','date');return d&&new Date(d)>=new Date();}).sort((a,b)=>(gp(a,'Prochain RDV','date')||'').localeCompare(gp(b,'Prochain RDV','date')||''));
+    if(rdvs.length>0){
+      const r=rdvs[0];
+      lignes.push(`Prochain RDV : ${gp(r,'Type intervenant','select')||'?'} le ${fd(gp(r,'Prochain RDV','date'),true)}.`);
+    } else {
+      lignes.push('Aucun RDV planifié.');
+    }
+
+    // Matchs
+    const saisons=[...new Set(ST.map(m=>gp(m,'Saison','select')).filter(Boolean))].sort().reverse();
+    const saisonCourante=saisons[0];
+    const matchsSaison=saisonCourante?ST.filter(m=>gp(m,'Saison','select')===saisonCourante):ST;
+    if(matchsSaison.length>0){
+      const dernierM=matchsSaison[0];
+      const titulaire=gp(dernierM,'Titulaire/remplaçant','select')||'?';
+      const mins=gp(dernierM,'⏱️ Temps de jeu','number')||0;
+      const dateM=fd(gp(dernierM,'Date','date'),true);
+      const buts=matchsSaison.reduce((a,m)=>a+(gp(m,"But(s) marqué(s)",'number')||0),0);
+      const passes=matchsSaison.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
+      lignes.push(`Saison ${saisonCourante||'en cours'} : ${matchsSaison.length} match${matchsSaison.length>1?'s':''}, ${buts} but${buts>1?'s':''}, ${passes} passe${passes>1?'s':''} décisive${passes>1?'s':''}.`);
+      lignes.push(`Dernier match : ${dateM}, ${titulaire.toLowerCase()}, ${mins} min.`);
+    } else {
+      lignes.push('Aucun match enregistré cette saison.');
+    }
+
+    // Intervenants actifs
+    const types=[...new Set(seances.map(s=>gp(s,'Type intervenant','select')).filter(Boolean))];
+    if(types.length>0) lignes.push(`Intervenants actifs : ${types.join(', ')}.`);
+
+    el.style.fontStyle='normal';
+    el.style.color='var(--ov-txt)';
+    el.innerHTML=lignes.map(l=>`<p style="margin-bottom:5px">${l}</p>`).join('');
+  }catch(e){
+    el.textContent='Informations non disponibles.';
+    el.style.fontStyle='italic';
+  }
 }
 
 function openRDV(){
