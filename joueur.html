@@ -715,7 +715,7 @@ function renderOverview(saisonFilter){
     // Joueur blessé — jours d'arrêt depuis la date de la blessure la plus récente
     const datesBlessure=blessuresActives.map(b=>gp(b,'Date','date')).filter(Boolean).sort().reverse();
     if(datesBlessure.length>0){
-      joursSansBlessure=Math.floor((new Date()-new Date(datesBlessure[0]))/86400000);
+      joursSansBlessure=Math.max(1,Math.ceil((new Date()-new Date(datesBlessure[0]))/86400000));
       compteurLabel="j. d'arrêt";
       compteurColor=joursSansBlessure>=30?'#e57373':joursSansBlessure>=14?'#ffb74d':'#e57373';
     }
@@ -726,7 +726,7 @@ function renderOverview(saisonFilter){
       const reprises=blessuresTerminees.map(b=>gp(b,'Date de reprise entrainement','date')||gp(b,'Date','date')).filter(Boolean);
       if(reprises.length>0){
         const lastReprise=reprises.sort().reverse()[0];
-        joursSansBlessure=Math.floor((new Date()-new Date(lastReprise))/86400000);
+        joursSansBlessure=Math.max(1,Math.ceil((new Date()-new Date(lastReprise))/86400000));
         compteurLabel='j. sans arrêt';
         compteurColor=joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373';
       }
@@ -1763,7 +1763,10 @@ async function reloadBL(){
   try{
     const br=await nq(DB_B,[{property:'Date',direction:'descending'}]);
     const jid_nd=J.id.replace(/-/g,'');
-    BL=(br.results||[]).filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.some(id=>id===jid_nd);});
+    BL=(br.results||[]).filter(x=>{
+      const rels=x.properties?.Joueur?.relation||[];
+      return rels.some(r=>(r.id||'').replace(/-/g,'')=== jid_nd);
+    });
     renderOverview();
     renderSante();
   }catch(e){console.warn('reloadBL',e);}
