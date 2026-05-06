@@ -425,7 +425,11 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
       </div>
       <div class="modal-actions">
         <button class="btn-modal-cancel" onclick="closeModal('modal-blessure')">Annuler</button>
+        <button class="btn-modal-cancel" onclick="effacerDatesBlessure()" style="color:#e57373;border-color:rgba(229,115,115,.3)">Effacer les dates</button>
         <button class="btn-modal-save" id="btn-save-blessure" onclick="saveBlessure()">Enregistrer</button>
+      </div>
+      <div style="margin-top:12px;text-align:center">
+        <button onclick="supprimerBlessure()" style="background:none;border:none;font-size:11px;color:#e57373;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.05em;text-decoration:underline">Supprimer cette blessure</button>
       </div>
     </div>
   </div>
@@ -704,9 +708,27 @@ function renderOverview(saisonFilter){
   const nP=mS.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
   const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
   const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
+  // Jours sans blessure — depuis date de reprise entraînement de la dernière blessure terminée
   let joursSansBlessure=null;
-  const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
-  if(blessuresTerminees.length>0){const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=Math.floor((new Date()-new Date(lastRetour))/86400000);}}
+  const blessuresActives=BL.filter(b=>{const s=gp(b,'Statut','select');return s==='🔴 En cours'||s==='🟡 Reprise groupe';});
+  if(blessuresActives.length===0){
+    const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
+    if(blessuresTerminees.length>0){
+      const reprises=blessuresTerminees.map(b=>gp(b,'Date de reprise entrainement','date')||gp(b,'Date','date')).filter(Boolean);
+      if(reprises.length>0){
+        const lastReprise=reprises.sort().reverse()[0];
+        joursSansBlessure=Math.floor((new Date()-new Date(lastReprise))/86400000);
+      }
+    }
+  }
+
+  // Jours depuis le dernier match
+  let joursDernierMatch=null, dateDernierMatch=null;
+  const matchsDates=ST.map(m=>gp(m,'Date','date')).filter(Boolean).sort().reverse();
+  if(matchsDates.length>0){
+    dateDernierMatch=matchsDates[0];
+    joursDernierMatch=Math.floor((new Date()-new Date(dateDernierMatch))/86400000);
+  }
   const lastT=tS[0];
 
   // Prochain RDV — depuis les séances chargées
@@ -761,7 +783,13 @@ function renderOverview(saisonFilter){
         ${joursSansBlessure!==null?`
         <div style="text-align:center;padding-left:12px;border-left:1px solid var(--ov-bdr);flex-shrink:0">
           <div style="font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:${joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373'}">${joursSansBlessure}</div>
-          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">jours sans<br>blessure</div>
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">j. reprise<br>entrain.</div>
+        </div>`:''}
+        ${joursDernierMatch!==null?`
+        <div style="text-align:center;padding-left:12px;border-left:1px solid var(--ov-bdr);flex-shrink:0">
+          <div style="font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:var(--ov-txt)">${joursDernierMatch}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">j. dernier<br>match</div>
+          <div style="font-size:9px;color:var(--ov-muted);margin-top:2px">${fd(dateDernierMatch,true)}</div>
         </div>`:''}
       </div>
     </div>
@@ -1763,6 +1791,29 @@ async function saveRDV(){
   }catch(e){showToast('Erreur: '+e.message,false);}
 }
 
+function effacerDatesBlessure(){
+  document.getElementById('blessure-reprise').value='';
+  document.getElementById('blessure-retour').value='';
+}
+
+async function supprimerBlessure(){
+  const pageId=document.getElementById('blessure-select').value;
+  if(!pageId){showToast('Sélectionnez une blessure',false);return;}
+  if(!confirm('Supprimer cette blessure définitivement ?')) return;
+  try{
+    const r=await fetch(PROXY+'/v1/pages/'+pageId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({archived:true})});
+    if(!r.ok) throw new Error(r.status);
+    // Si plus de blessure active, repasser le joueur Disponible
+    const restantes=BL.filter(b=>b.id!==pageId && gp(b,'Statut','select')!=='🟢 Terminé');
+    if(restantes.length===0 && J?.id){
+      await fetch(PROXY+'/v1/pages/'+J.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:{'Statut':{select:{name:'Disponible'}}}})});
+    }
+    closeModal('modal-blessure');
+    showToast('Blessure supprimée');
+    await reloadBL();
+  }catch(e){showToast('Erreur: '+e.message,false);}
+}
+
 function openBlessure(){
   const sel=document.getElementById('blessure-select');
   sel.innerHTML='<option value="">— Choisir —</option>'+
@@ -1791,8 +1842,8 @@ async function saveBlessure(){
   try{
     const props={};
     if(statut) props['Statut']={select:{name:statut}};
-    if(reprise) props['Date de reprise entrainement']={date:{start:reprise}};
-    if(retour) props['Date de retour match']={date:{start:retour}};
+    props['Date de reprise entrainement']=reprise?{date:{start:reprise}}:{date:null};
+    props['Date de retour match']=retour?{date:{start:retour}}:{date:null};
     if(notes) props['Notes']={rich_text:[{text:{content:notes}}]};
     const r=await fetch(PROXY+'/v1/pages/'+pageId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:props})});
     if(!r.ok) throw new Error(r.status);
