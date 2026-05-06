@@ -715,7 +715,7 @@ function renderOverview(saisonFilter){
     // Joueur blessé — jours d'arrêt depuis la date de la blessure la plus récente
     const datesBlessure=blessuresActives.map(b=>gp(b,'Date','date')).filter(Boolean).sort().reverse();
     if(datesBlessure.length>0){
-      joursSansBlessure=Math.max(1,Math.ceil((new Date()-new Date(datesBlessure[0]))/86400000));
+      const d=datesBlessure[0]; joursSansBlessure=Math.floor((new Date()-new Date(d))/86400000)+1;
       compteurLabel="j. d'arrêt";
       compteurColor=joursSansBlessure>=30?'#e57373':joursSansBlessure>=14?'#ffb74d':'#e57373';
     }
@@ -726,7 +726,7 @@ function renderOverview(saisonFilter){
       const reprises=blessuresTerminees.map(b=>gp(b,'Date de reprise entrainement','date')||gp(b,'Date','date')).filter(Boolean);
       if(reprises.length>0){
         const lastReprise=reprises.sort().reverse()[0];
-        joursSansBlessure=Math.max(1,Math.ceil((new Date()-new Date(lastReprise))/86400000));
+        const d2=lastReprise; joursSansBlessure=Math.floor((new Date()-new Date(d2))/86400000)+1;
         compteurLabel='j. sans arrêt';
         compteurColor=joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373';
       }
@@ -1261,12 +1261,12 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
   if(blessureActive){
     // Blessé — jours d'arrêt depuis la date de blessure (positif, affiché en rouge)
     const debut=gp(blessureActive,'Date','date');
-    joursSans=debut?Math.max(1,Math.ceil((today-new Date(debut))/(1000*60*60*24))):1;
+    joursSans=debut?Math.floor((new Date()-new Date(debut))/86400000)+1:1;
   } else {
     // Disponible — jours depuis reprise entraînement
     const sorted=BL.filter(b=>gp(b,'Date de reprise entrainement','date')).sort((a,b2)=>gp(b2,'Date de reprise entrainement','date').localeCompare(gp(a,'Date de reprise entrainement','date')));
     const lastReprise=sorted[0]?gp(sorted[0],'Date de reprise entrainement','date'):null;
-    if(lastReprise) joursSans=Math.max(1,Math.ceil((today-new Date(lastReprise))/(1000*60*60*24)));
+    if(lastReprise) joursSans=Math.floor((new Date()-new Date(lastReprise))/86400000)+1;
   }
 
   const calcDuree=b=>{const d=gp(b,'Date','date'),r=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');if(!d)return null;const end=r?new Date(r):new Date();return Math.max(0,Math.floor((end-new Date(d))/(1000*60*60*24)));};
