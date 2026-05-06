@@ -406,8 +406,8 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
         <label>Statut</label>
         <select id="blessure-statut">
           <option value="">— Choisir —</option>
-          <option value="🔴 En cours">🔴 En cours</option>
-          <option value="🟡 Reprise groupe">🟡 Reprise groupe</option>
+          <option value="🔴 Blessé">🔴 Blessé</option>
+          <option value="🟡 Réathlétisation">🟡 Réathlétisation</option>
           <option value="🟢 Terminé">🟢 Terminé</option>
         </select>
       </div>
@@ -708,16 +708,27 @@ function renderOverview(saisonFilter){
   const nP=mS.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
   const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
   const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
-  // Jours sans blessure — depuis date de reprise entraînement de la dernière blessure terminée
-  let joursSansBlessure=null;
-  const blessuresActives=BL.filter(b=>{const s=gp(b,'Statut','select');return s==='🔴 En cours'||s==='🟡 Reprise groupe';});
-  if(blessuresActives.length===0){
+  // Compteur blessure — logique selon statut
+  let joursSansBlessure=null, compteurLabel=null, compteurColor=null;
+  const blessuresActives=BL.filter(b=>{const s=gp(b,'Statut','select');return s==='🔴 Blessé'||s==='🟡 Réathlétisation';});
+  if(blessuresActives.length>0){
+    // Joueur blessé — jours d'arrêt depuis la date de la blessure la plus récente
+    const datesBlessure=blessuresActives.map(b=>gp(b,'Date','date')).filter(Boolean).sort().reverse();
+    if(datesBlessure.length>0){
+      joursSansBlessure=Math.floor((new Date()-new Date(datesBlessure[0]))/86400000);
+      compteurLabel="j. d'arrêt";
+      compteurColor=joursSansBlessure>=30?'#e57373':joursSansBlessure>=14?'#ffb74d':'#e57373';
+    }
+  } else {
+    // Joueur disponible — jours sans arrêt depuis reprise entraînement
     const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
     if(blessuresTerminees.length>0){
       const reprises=blessuresTerminees.map(b=>gp(b,'Date de reprise entrainement','date')||gp(b,'Date','date')).filter(Boolean);
       if(reprises.length>0){
         const lastReprise=reprises.sort().reverse()[0];
         joursSansBlessure=Math.floor((new Date()-new Date(lastReprise))/86400000);
+        compteurLabel='j. sans arrêt';
+        compteurColor=joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373';
       }
     }
   }
@@ -782,8 +793,8 @@ function renderOverview(saisonFilter){
         <div style="font-size:12px;color:var(--ov-muted);font-weight:300;flex:1">${statutDesc}</div>
         ${joursSansBlessure!==null?`
         <div style="text-align:center;padding-left:12px;border-left:1px solid var(--ov-bdr);flex-shrink:0">
-          <div style="font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:${joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373'}">${joursSansBlessure}</div>
-          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">j. reprise<br>entrain.</div>
+          <div style="font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:${compteurColor}">${joursSansBlessure}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">${compteurLabel}</div>
         </div>`:''}
         ${joursDernierMatch!==null?`
         <div style="text-align:center;padding-left:12px;border-left:1px solid var(--ov-bdr);flex-shrink:0">
@@ -1728,7 +1739,7 @@ async function saveNewBlessure(){
     if(type) props['Type']={select:{name:type}};
     if(gravite) props['Gravité']={select:{name:gravite}};
     if(saison) props['Saison']={select:{name:saison}};
-    props['Statut']={select:{name:'🔄 En cours'}};
+    props['Statut']={select:{name:'🔴 Blessé'}};
     if(zone) props['Zone/ Localité']={rich_text:[{text:{content:zone}}]};
     if(notes) props['Notes']={rich_text:[{text:{content:notes}}]};
     if(J?.id) props['Joueur']={relation:[{id:J.id}]};
@@ -1849,7 +1860,7 @@ async function saveBlessure(){
     if(!r.ok) throw new Error(r.status);
     // Mettre à jour le statut du joueur selon le statut de la blessure
     if(statut && J?.id){
-      const statutJoueur={'🔴 En cours':'Blessé','🟡 Reprise groupe':'En rééducation','🟢 Terminé':'Disponible'}[statut];
+      const statutJoueur={'🔴 Blessé':'Blessé','🟡 Réathlétisation':'En rééducation','🟢 Terminé':'Disponible'}[statut];
       if(statutJoueur){
         await fetch(PROXY+'/v1/pages/'+J.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:{'Statut':{select:{name:statutJoueur}}}})});
       }
