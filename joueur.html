@@ -737,9 +737,13 @@ function renderOverview(saisonFilter){
   let joursSansBlessure=null;
   let joursLabel='jours sans<br>blessure';
   let joursColor='#4caf7d';
-  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('ééducation')||s.includes('En cours');});
-  if(blessureActive){
-    const debut=gp(blessureActive,'Date','date');
+  const joueurBlessé = statut==='Blessé' || statut==='En rééducation';
+  // Chercher la blessure active — depuis le statut joueur ou une entrée BL active
+  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('ééducation')||s.includes('rééducation')||s.includes('En cours');});
+  if(joueurBlessé || blessureActive){
+    // Prendre la date de la blessure active, ou à défaut la blessure la plus récente
+    const srcBlessure=blessureActive || BL.sort((a,b2)=>(gp(b2,'Date','date')||'').localeCompare(gp(a,'Date','date')||''))[0];
+    const debut=srcBlessure?gp(srcBlessure,'Date','date'):null;
     if(debut){
       joursSansBlessure=Math.max(0,Math.floor((new Date()-new Date(debut))/86400000));
       joursLabel="jours<br>d'arrêt";
@@ -1259,11 +1263,18 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
   if(zoneFilter&&zoneFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Zone/ Localité','select')===zoneFilter);
 
   const today=new Date();today.setHours(0,0,0,0);
-  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('En cours')||s.includes('rééducation');});
+  const statutJoueur=gp(J,'Statut','select')||'';
+  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('ééducation')||s.includes('rééducation')||s.includes('En cours');});
+  const joueurActifBlessé=statutJoueur==='Blessé'||statutJoueur==='En rééducation';
   let joursSans=null;
-  if(blessureActive){
-    const debut=gp(blessureActive,'Date','date');
-    joursSans=debut?-Math.max(0,Math.floor((today-new Date(debut))/(1000*60*60*24))):-1;
+  let joursSansLabel='Jours sans blessure';
+  if(joueurActifBlessé || blessureActive){
+    const srcB=blessureActive || BL.sort((a,b2)=>(gp(b2,'Date','date')||'').localeCompare(gp(a,'Date','date')||''))[0];
+    const debut=srcB?gp(srcB,'Date','date'):null;
+    if(debut){
+      joursSans=Math.max(0,Math.floor((today-new Date(debut))/(1000*60*60*24)));
+      joursSansLabel="Jours d'arrêt";
+    }
   } else {
     const sorted=BL.filter(b=>gp(b,'Date de reprise entrainement','date')).sort((a,b2)=>gp(b2,'Date de reprise entrainement','date').localeCompare(gp(a,'Date de reprise entrainement','date')));
     const lastReprise=sorted[0]?gp(sorted[0],'Date de reprise entrainement','date'):null;
@@ -1305,8 +1316,8 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
     <!-- KPIs -->
     <div class="g2 mb2">
       <div class="lkpi">
-        <div class="lkpi-v" style="color:${joursSans===null?'#9a907e':joursSans<0?'#e57373':joursSans>90?'#4caf7d':joursSans>30?'#ffb74d':'#e57373'}">${joursSans===null?'—':Math.abs(joursSans)}</div>
-        <div class="lkpi-l">${joursSans<0?'Jours hors terrain':'Jours sans blessure'}</div>
+        <div class="lkpi-v" style="color:${joursSans===null?'#9a907e':(joueurActifBlessé||blessureActive)?'#e57373':joursSans>90?'#4caf7d':joursSans>30?'#ffb74d':'#e57373'}">${joursSans===null?'—':Math.abs(joursSans)}</div>
+        <div class="lkpi-l">${joursSansLabel}</div>
       </div>
       <div class="lkpi">
         <div class="lkpi-v" style="color:var(--ov-txt)">${nTotal}</div>
