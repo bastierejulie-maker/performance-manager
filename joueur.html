@@ -293,6 +293,21 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
     </div>
     <div class="modal-body">
       <div class="mfield">
+        <label>Type d'intervenant</label>
+        <select id="seance-type">
+          <option value="Kiné">Kiné</option>
+          <option value="Ostéopathe">Ostéopathe</option>
+          <option value="Nutritionniste">Nutritionniste</option>
+          <option value="Préparateur mental">Préparateur mental</option>
+          <option value="Prépa physique">Prépa physique</option>
+          <option value="Analyste vidéo">Analyste vidéo</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Titre de la séance</label>
+        <input type="text" id="seance-titre" placeholder="Ex: Séance force, Bilan kiné...">
+      </div>
+      <div class="mfield">
         <label>Date de la séance</label>
         <input type="date" id="seance-date">
       </div>
@@ -608,6 +623,7 @@ function gp(p,k,t='text'){const v=p.properties?.[k];if(!v)return null;
   if(t==='date')return v.date?.start||null;
   if(t==='url')return v.url||null;
   if(t==='relation'){const rel=v.relation||[];return rel.map(r=>(r.id||'').replace(/-/g,''));}
+  if(t==='multi_select'){return(v.multi_select||[]).map(x=>x.name);}
   if(t==='checkbox')return v.checkbox??false;
   return null}
 function fd(s,short=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('fr-FR',short?{day:'2-digit',month:'short'}:{day:'numeric',month:'long',year:'numeric'})}
@@ -1049,9 +1065,64 @@ function renderPerf(saisonFilter){
     </div>`;
   };
 
+  // Séances physique
+  const seancesPhysique=(window._seances||[]).filter(s=>gp(s,'Type intervenant','select')==='Prépa physique');
+  const today2=new Date();today2.setHours(0,0,0,0);
+  const rdvPhysique=seancesPhysique.filter(s=>{const d=gp(s,'Prochain RDV','date');return d&&new Date(d)>=today2;}).sort((a,b)=>gp(a,'Prochain RDV','date').localeCompare(gp(b,'Prochain RDV','date')))[0]||null;
+  const seancesRealisees=seancesPhysique.filter(s=>gp(s,'Statut','select')==='Réalisée').length;
+  const progPhysiqueUrl=gp(J,'Programme physique (URL)','url');
+
   const el=document.getElementById('s-perf');
   el.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    ${(IS_INTERVENANT&&INTERVENANT_TYPE==='Préparateur physique')||!IS_INTERVENANT?`
+    <div class="int-actions">
+      <button class="btn-int btn-int-add" onclick="openSeanceType('Prépa physique')">Nouvelle séance</button>
+      <button class="btn-int btn-int-add" onclick="openRDVType('Prépa physique')">Prévoir un RDV</button>
+      <button class="btn-int btn-int-add" onclick="openModal('modal-test')">Nouveau test</button>
+    </div>`:''}
+
+    <!-- KPIs physique -->
+    <div class="g3 mb2" style="gap:8px">
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:${rdvPhysique?'#c9a84c':'#9a907e'}">${rdvPhysique?fd(gp(rdvPhysique,'Prochain RDV','date'),true):'—'}</div>
+        <div class="lkpi-l">Prochain RDV physique</div>
+      </div>
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:${seancesRealisees>0?'#4caf7d':'#9a907e'}">${seancesRealisees}</div>
+        <div class="lkpi-l">Séances réalisées</div>
+      </div>
+      <div class="lkpi">
+        <div class="lkpi-v" style="color:${progPhysiqueUrl?'#4caf7d':'#9a907e'}">${progPhysiqueUrl?'Actif':'—'}</div>
+        <div class="lkpi-l">Programme assigné</div>
+      </div>
+    </div>
+
+    ${progPhysiqueUrl?`
+    <div class="lcard mb2">
+      <div class="lcard-p" style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(218,41,28,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DA291C">PDF</div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme physique</div><div style="font-size:10px;color:var(--ov-dim)">Plan de saison personnalisé</div></div>
+        <a href="${progPhysiqueUrl}" target="_blank" style="font-size:10px;color:#DA291C;text-decoration:none;border:1px solid #DA291C;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>
+      </div>
+    </div>`:''}
+
+    <!-- Séances récentes -->
+    ${seancesPhysique.length?`
+    <div class="lst mb">Séances récentes</div>
+    ${seancesPhysique.slice(0,3).map(s=>`
+    <div class="lcard mb">
+      <div class="lcard-h">
+        <span class="lcard-ht">${gp(s,'Titre','text')||'Séance physique'}</span>
+        <span style="font-size:10px;color:var(--txt-m)">${fd(gp(s,'Date','date'),true)}</span>
+      </div>
+      ${gp(s,'Notes','text')||gp(s,'PDF URL','url')?`<div class="lcard-p">
+        ${gp(s,'Notes','text')?`<div style="font-size:11px;color:var(--ov-muted);line-height:1.5;margin-bottom:6px">${gp(s,'Notes','text')}</div>`:''}
+        ${gp(s,'PDF URL','url')?`<a href="${gp(s,'PDF URL','url')}" target="_blank" style="font-size:10px;color:#DA291C;text-decoration:none">📎 Fiche séance ↗</a>`:''}
+      </div>`:''}
+    </div>`).join('')}
+    `:''}
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;margin-top:8px">
       <div class="lst" style="margin-bottom:0;flex:1">Tests — ${poste}</div>
       <select class="lsel" onchange="renderPerf(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
     </div>
@@ -1427,6 +1498,66 @@ const FIBRES_SEUILS = {
   'Indéterminé': '—',
 };
 
+function renderProfil(){
+  const elP=document.getElementById('s-mecanique');
+  if(!elP) return;
+  const routineUrl=gp(J,'Routine échauffement (URL)','url');
+  const preventionUrl=gp(J,'Prévention ciblée (URL)','url');
+  const progsDispos=(gp(J,'Programmes disponibles','multi_select')||[]);
+  const poids=gp(J,'Poids (kg)','number');
+  const taille=gp(J,'Taille (cm)','number');
+  const ddn=gp(J,'date de naissance','date');
+  const pied=gp(J,'Pied fort','select')||'—';
+  const nat=gp(J,'Nationalité sportive','text')||'—';
+  const club=gp(J,'Club actuel','text')||'—';
+
+  let html='';
+
+  // Données perso
+  html+='<div class="lst mb">Informations joueur</div>';
+  html+='<div class="g2 mb2" style="gap:8px">';
+  [{l:'Date de naissance',v:ddn?fd(ddn):'—'},{l:'Nationalité',v:nat},{l:'Club actuel',v:club},{l:'Pied fort',v:pied},{l:'Poids',v:poids?poids+' kg':'—'},{l:'Taille',v:taille?taille+' cm':'—'}].forEach(({l,v})=>{
+    html+=`<div class="lcard" style="padding:12px 14px"><div style="font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:4px">${l}</div><div style="font-size:13px;color:var(--ov-txt)">${v}</div></div>`;
+  });
+  html+='</div>';
+
+  // Routine échauffement
+  html+='<div class="lst mb">Routine d'échauffement</div>';
+  if(routineUrl){
+    html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
+      +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(0,65,112,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔥</div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine personnalisée</div><div style="font-size:10px;color:var(--ov-dim)">Protocole d'échauffement individuel</div></div>'
+      +'<a href="'+routineUrl+'" target="_blank" style="font-size:10px;color:var(--c1,#004170);text-decoration:none;border:1px solid var(--c1,#004170);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'</div></div>';
+  } else {
+    html+='<div class="lempty mb2">Aucune routine assignée pour le moment.</div>';
+  }
+
+  // Prévention ciblée
+  html+='<div class="lst mb">Prévention ciblée</div>';
+  if(preventionUrl){
+    html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
+      +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(76,175,130,.1);display:flex;align-items:center;justify-content:center;font-size:18px">🛡️</div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme prévention</div><div style="font-size:10px;color:var(--ov-dim)">Protocole ciblé selon profil</div></div>'
+      +'<a href="'+preventionUrl+'" target="_blank" style="font-size:10px;color:#4caf7d;text-decoration:none;border:1px solid #4caf7d;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'</div></div>';
+  } else {
+    html+='<div class="lempty mb2">Aucun protocole de prévention assigné.</div>';
+  }
+
+  // Programmes disponibles
+  if(progsDispos.length>0){
+    html+='<div class="lst mb">Programmes disponibles</div>';
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">';
+    progsDispos.forEach(p=>{
+      html+=`<span style="font-size:10px;padding:6px 14px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:20px;color:var(--ov-txt)">${p}</span>`;
+    });
+    html+='</div>';
+  }
+
+  elP.innerHTML=html;
+}
+
 function renderMecanique(){
   const el=document.getElementById('s-mecanique');
   const motPrincipale=gp(J,'Motricité principale','select')||'—';
@@ -1649,27 +1780,27 @@ function renderSNC(){
   });
   html+='</div></div></div>';
 
-  // Programmes
-  html+='<div class="lst mb">Programmes d\'intégration</div>';
-  const programmes=[
-    {nom:'Programme RTAC',desc:'Réflexe tonique asymétrique du cou',fichier:'programme-rtac.pdf'},
-    {nom:'Programme RTSC',desc:'Réflexe tonique symétrique du cou',fichier:'programme-rtsc.pdf'},
-    {nom:'Programme RTL',desc:'Réflexe tonique labyrinthique',fichier:'programme-rtl.pdf'},
-    {nom:'Programme Moro',desc:'Réflexe de Moro',fichier:'programme-moro.pdf'},
-    {nom:'Programme Pieds',desc:'Réflexes plantaires',fichier:'programme-pieds.pdf'},
-    {nom:'Programme Radiation',desc:'Réflexe de radiation du nombril',fichier:'programme-radiation.pdf'},
-  ];
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">';
-  programmes.forEach(p=>{
-    html+='<a href="https://bastierejulie-maker.github.io/performance-manager/programmes/'+p.fichier+'" target="_blank" download '
-      +'style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--ov-bg,#fff);border:1px solid var(--ov-bdr);border-radius:var(--r);text-decoration:none">'
-      +'<div style="width:30px;height:30px;border-radius:8px;background:rgba(218,41,28,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DA291C">PDF</div>'
-      +'<div><div style="font-family:\'Syne\',sans-serif;font-size:10px;font-weight:700;color:var(--ov-txt)">'+p.nom+'</div>'
-      +'<div style="font-size:9px;color:var(--ov-dim);margin-top:2px">'+p.desc+'</div></div>'
-      +'<span style="margin-left:auto;color:var(--ov-dim);font-size:12px">↓</span>'
-      +'</a>';
-  });
-  html+='</div>';
+  // Programme SNC depuis Notion
+  const progSNCUrl=gp(J,'Programme SNC (URL)','url');
+  const progsDispos=(gp(J,'Programmes disponibles','multi_select')||[]);
+  html+='<div class="lst mb">Programmes assignés</div>';
+  if(progSNCUrl){
+    html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
+      +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(218,41,28,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DA291C">PDF</div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme SNC personnalisé</div><div style="font-size:10px;color:var(--ov-dim)">Protocole réflexes archaïques</div></div>'
+      +'<a href="'+progSNCUrl+'" target="_blank" style="font-size:10px;color:#DA291C;text-decoration:none;border:1px solid #DA291C;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'</div></div>';
+  } else {
+    html+='<div class="lempty mb2">Aucun programme SNC assigné pour le moment.</div>';
+  }
+  if(progsDispos.length>0){
+    html+='<div class="lst mb">Programmes disponibles</div>';
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">';
+    progsDispos.forEach(p=>{
+      html+='<span style="font-size:10px;padding:5px 12px;background:rgba(218,41,28,.06);border:1px solid rgba(218,41,28,.2);border-radius:20px;color:#DA291C">'+p+'</span>';
+    });
+    html+='</div>';
+  }
 
   el.innerHTML=html;
 }
@@ -1692,6 +1823,14 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
 });
 
+function openSeanceType(type){
+  document.getElementById('seance-type').value=type||'';
+  openSeance();
+}
+function openRDVType(type){
+  document.getElementById('rdv-type').value=type||'';
+  openRDV();
+}
 function openSeance(){
   document.getElementById('seance-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('seance-rdv').value='';
@@ -1705,15 +1844,17 @@ async function saveSeance(){
   const btn=document.getElementById('btn-save-seance');
   btn.disabled=true; btn.textContent='Enregistrement…';
   const date=document.getElementById('seance-date').value;
-  const rdv=document.getElementById('seance-rdv').value;
+  const rdv=document.getElementById('seance-rdv')?.value||'';
   const notes=document.getElementById('seance-notes').value;
   const pdf=document.getElementById('seance-pdf').value;
+  const typeInt=document.getElementById('seance-type')?.value||INTERVENANT_TYPE||'Kiné';
+  const titreInt=document.getElementById('seance-titre')?.value||(typeInt+' — '+new Date(date).toLocaleDateString('fr-FR'));
   if(!date){showToast('Date requise',false);btn.disabled=false;btn.textContent='Enregistrer';return;}
   try{
     const joueurId=J?.id;
     const body={parent:{database_id:DB_SEANCES},properties:{
-      'Titre':{title:[{text:{content:INTERVENANT_TYPE+' — '+new Date(date).toLocaleDateString('fr-FR')}}]},
-      'Type intervenant':{select:{name:INTERVENANT_TYPE}},
+      'Titre':{title:[{text:{content:titreInt}}]},
+      'Type intervenant':{select:{name:typeInt}},
       'Statut':{select:{name:'Réalisée'}},
       'Date':{date:{start:date}},
     }};
@@ -1780,6 +1921,8 @@ async function reloadBL(){
     BL=(br.results||[]).filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.some(id=>(id||'').replace(/-/g,'')=== jid_nd);});
     renderOverview();
     renderSante();
+    renderProfil();
+    renderSNC();
   }catch(e){console.warn('reloadBL',e);}
 }
 
@@ -1937,7 +2080,7 @@ function sw(name,el){
   document.querySelectorAll('.nav-t').forEach(t=>t.classList.remove('active'));
   document.getElementById('s-'+name).classList.add('active');
   el.classList.add('active');
-  const rendered={'matchs':renderMatchs,'perf':renderPerf,'nutrition':renderNutrition,'sante':renderSante,'mecanique':renderMecanique,'snc':renderSNC};
+  const rendered={'matchs':renderMatchs,'perf':renderPerf,'nutrition':renderNutrition,'sante':renderSante,'mecanique':renderProfil,'snc':renderSNC};
   if(rendered[name]&&!el.dataset.rendered){el.dataset.rendered='1';rendered[name]();}
   if(name==='sante') renderSante(); // toujours rafraîchir (filtres)
 }
@@ -1950,7 +2093,7 @@ function demo(){
   BL=[{id:'b1',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2024-11-18'}},'Date de reprise entrainement':{date:{start:'2024-12-02'}},'Date de retour match':{date:{start:'2024-12-14'}},'Type':{select:{name:'Musculaire'}},'Zone/ Localité':{select:{name:'Ischio-jambier'}},'Gravité':{select:{name:'🟡 Modéré'}},'Statut':{select:{name:'🟢 Terminé'}},'Rechute':{checkbox:false},'Saison':{select:{name:'2024-2025'}},'Type + localisation + mois année':{title:[{plain_text:'Musculaire ischio-jambier — nov 2024'}]}}},{id:'b2',properties:{'Joueur':{relation:[]},'Date':{date:{start:'2025-01-19'}},'Date de reprise entrainement':{date:{start:'2025-01-28'}},'Date de retour match':{date:{start:'2025-02-08'}},'Type':{select:{name:'Ligamentaire'}},'Zone/ Localité':{select:{name:'Cheville'}},'Gravité':{select:{name:'🟢 Légère'}},'Statut':{select:{name:'🟢 Terminé'}},'Rechute':{checkbox:false},'Saison':{select:{name:'2024-2025'}},'Type + localisation + mois année':{title:[{plain_text:'Entorse cheville droite — jan 2025'}]}}}];
   NU=[];MET=[];REC=[];CLI=[];
   document.getElementById('sync-info').textContent='Mode démo · Notion non connecté';
-  hero();renderOverview();
+  hero();renderOverview();renderProfil();renderSNC();
 }
 </script>
 </body>
