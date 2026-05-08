@@ -740,24 +740,24 @@ function renderOverview(saisonFilter){
   const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
   const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
   // Calcul du compteur jours — actif si blessure en cours, sinon jours sans blessure
+  // Calcul harmonisé avec renderSante — today à minuit
+  const _today=new Date();_today.setHours(0,0,0,0);
+  const _calcJours=(dateStr)=>dateStr?Math.max(0,Math.floor((_today-new Date(dateStr))/(1000*60*60*24))):null;
   let joursSansBlessure=null;
   let joursLabel='jours sans<br>blessure';
   let joursColor='#4caf7d';
-  const joueurBlessé = statut==='Blessé' || statut==='En rééducation';
-  // Chercher la blessure active — depuis le statut joueur ou une entrée BL active
+  const joueurBlessé=statut==='Blessé'||statut==='En rééducation';
   const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('ééducation')||s.includes('rééducation')||s.includes('En cours');});
-  if(joueurBlessé || blessureActive){
-    // Prendre la date de la blessure active, ou à défaut la blessure la plus récente
-    const srcBlessure=blessureActive || BL.sort((a,b2)=>(gp(b2,'Date','date')||'').localeCompare(gp(a,'Date','date')||''))[0];
-    const debut=srcBlessure?gp(srcBlessure,'Date','date'):null;
-    if(debut){
-      joursSansBlessure=Math.max(0,Math.floor((new Date()-new Date(debut))/86400000));
-      joursLabel="jours<br>d'arrêt";
-      joursColor='#e57373';
-    }
+  if(joueurBlessé||blessureActive){
+    const src=blessureActive||[...BL].sort((a,b2)=>(gp(b2,'Date','date')||'').localeCompare(gp(a,'Date','date')||''))[0];
+    const n=_calcJours(src?gp(src,'Date','date'):null);
+    if(n!==null){joursSansBlessure=n;joursLabel="jours<br>d'arrêt";joursColor='#e57373';}
   } else {
     const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
-    if(blessuresTerminees.length>0){const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=Math.floor((new Date()-new Date(lastRetour))/86400000);joursColor=joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373';}}
+    if(blessuresTerminees.length>0){
+      const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);
+      if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=_calcJours(lastRetour);joursColor=joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373';}
+    }
   }
   const lastT=tS[0];
 
@@ -1269,22 +1269,20 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
   if(zoneFilter&&zoneFilter!=='all') bFilt=bFilt.filter(b=>gp(b,'Zone/ Localité','select')===zoneFilter);
 
   const today=new Date();today.setHours(0,0,0,0);
+  const calcJours=(dateStr)=>dateStr?Math.max(0,Math.floor((today-new Date(dateStr))/(1000*60*60*24))):null;
   const statutJoueur=gp(J,'Statut','select')||'';
-  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('ééducation')||s.includes('rééducation')||s.includes('En cours');});
   const joueurActifBlessé=statutJoueur==='Blessé'||statutJoueur==='En rééducation';
+  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('ééducation')||s.includes('rééducation')||s.includes('En cours');});
   let joursSans=null;
   let joursSansLabel='Jours sans blessure';
-  if(joueurActifBlessé || blessureActive){
-    const srcB=blessureActive || BL.sort((a,b2)=>(gp(b2,'Date','date')||'').localeCompare(gp(a,'Date','date')||''))[0];
-    const debut=srcB?gp(srcB,'Date','date'):null;
-    if(debut){
-      joursSans=Math.max(0,Math.floor((today-new Date(debut))/(1000*60*60*24)));
-      joursSansLabel="Jours d'arrêt";
-    }
+  if(joueurActifBlessé||blessureActive){
+    const src=blessureActive||[...BL].sort((a,b2)=>(gp(b2,'Date','date')||'').localeCompare(gp(a,'Date','date')||''))[0];
+    const n=calcJours(src?gp(src,'Date','date'):null);
+    if(n!==null){joursSans=n;joursSansLabel="Jours d'arrêt";}
   } else {
     const sorted=BL.filter(b=>gp(b,'Date de reprise entrainement','date')).sort((a,b2)=>gp(b2,'Date de reprise entrainement','date').localeCompare(gp(a,'Date de reprise entrainement','date')));
     const lastReprise=sorted[0]?gp(sorted[0],'Date de reprise entrainement','date'):null;
-    if(lastReprise) joursSans=Math.max(0,Math.floor((today-new Date(lastReprise))/(1000*60*60*24)));
+    if(lastReprise) joursSans=calcJours(lastReprise);
   }
 
   const calcDuree=b=>{const d=gp(b,'Date','date'),r=gp(b,'Date de reprise entrainement','date')||gp(b,'Date de retour match','date');if(!d)return null;const end=r?new Date(r):new Date();return Math.max(0,Math.floor((end-new Date(d))/(1000*60*60*24)));};
