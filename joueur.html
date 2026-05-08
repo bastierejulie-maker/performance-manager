@@ -578,10 +578,24 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadAll();
 });
 
-async function nq(db,sorts=[]){
+async function nq(db,sorts=[],timeoutMs=8000){
   const b={page_size:100};if(sorts.length)b.sorts=sorts;
-  const r=await fetch(`${PROXY}/v1/databases/${db}/query`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-  if(!r.ok)throw new Error(r.status);return r.json();
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),timeoutMs);
+  try{
+    const r=await fetch(`${PROXY}/v1/databases/${db}/query`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b),signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok)throw new Error(r.status);return r.json();
+  }catch(e){clearTimeout(tid);throw e;}
+}
+async function np(pageId,timeoutMs=8000){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),timeoutMs);
+  try{
+    const r=await fetch(`${PROXY}/v1/pages/${pageId}`,{headers:{'Content-Type':'application/json'},signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok)throw new Error(r.status);return r.json();
+  }catch(e){clearTimeout(tid);throw e;}
 }
 function gt(p){for(const k of Object.keys(p.properties||{})){if(p.properties[k].type==='title')return p.properties[k].title?.[0]?.plain_text||'—'}return '—'}
 function gp(p,k,t='text'){const v=p.properties?.[k];if(!v)return null;
@@ -597,23 +611,36 @@ function fd(s,short=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))re
 
 async function loadAll(){
   try{
-    // Requêtes principales — chaque base gérée indépendamment
     const safeLoad=async(db,sorts=[])=>{try{return await nq(db,sorts);}catch(e){console.warn('Échec chargement base',db,e);return {results:[]};}};
-    const[jr,sr,tr,nr,br]=await Promise.all([
-      nq(DB_J,[{property:'Nom complet',direction:'ascending'}]),
+
+    // Charger le joueur directement par son ID (rapide) ou via la base entière
+    if(JID){
+      try{
+        J=await np(JID);
+        console.log('[PM Debug] Joueur chargé directement:',J?.id);
+      }catch(e){
+        console.warn('[PM Debug] Échec chargement direct, fallback liste',e);
+        const jr=await nq(DB_J,[{property:'Nom complet',direction:'ascending'}]);
+        const all=jr.results||[];
+        J=all.find(x=>x.id===JID)||all[0];
+      }
+    } else {
+      const jr=await nq(DB_J,[{property:'Nom complet',direction:'ascending'}]);
+      let all=jr.results||[];
+      if(IS_INTERVENANT && INTERVENANT_ATHLETES.length>0){
+        all=all.filter(x=>INTERVENANT_ATHLETES.some(id=>x.id.replace(/-/g,'')=== id.replace(/-/g,'')));
+      }
+      J=all[0]||null;
+    }
+    if(!J)throw new Error('no joueur');
+
+    // Charger toutes les données en parallèle
+    const[sr,tr,nr,br]=await Promise.all([
       safeLoad(DB_S,[{property:'Date',direction:'descending'}]),
       safeLoad(DB_T,[{property:'Date',direction:'descending'}]),
       safeLoad(DB_N,[{property:'Date',direction:'descending'}]),
       safeLoad(DB_B,[{property:'Date',direction:'descending'}]),
     ]);
-    const all=jr.results||[];
-    // Si intervenant : filtrer par ses athlètes autorisés
-    let joueursList = all;
-    if(IS_INTERVENANT && INTERVENANT_ATHLETES.length>0){
-      joueursList = all.filter(x=>INTERVENANT_ATHLETES.some(id=>x.id.replace(/-/g,'')=== id.replace(/-/g,'')));
-    }
-    J=JID?joueursList.find(x=>x.id===JID)||joueursList[0]:joueursList[0];
-    if(!J)throw new Error('no joueur');
     const jid_nd=J.id.replace(/-/g,'');
     const flt=arr=>arr.filter(x=>{
       const r=gp(x,'Joueur','relation')||[];
