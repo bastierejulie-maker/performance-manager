@@ -733,9 +733,22 @@ function renderOverview(saisonFilter){
   const nP=mS.reduce((a,m)=>a+(gp(m,'Passe décissive','number')||0),0);
   const nMins=mS.reduce((a,m)=>a+(gp(m,'⏱️ Temps de jeu','number')||0),0);
   const nV=mS.filter(m=>gp(m,'Résultats','select')==='Victoire').length;
+  // Calcul du compteur jours — actif si blessure en cours, sinon jours sans blessure
   let joursSansBlessure=null;
-  const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
-  if(blessuresTerminees.length>0){const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=Math.floor((new Date()-new Date(lastRetour))/86400000);}}
+  let joursLabel='jours sans<br>blessure';
+  let joursColor='#4caf7d';
+  const blessureActive=BL.find(b=>{const s=gp(b,'Statut','select')||'';return s.includes('Blessé')||s.includes('ééducation')||s.includes('En cours');});
+  if(blessureActive){
+    const debut=gp(blessureActive,'Date','date');
+    if(debut){
+      joursSansBlessure=Math.max(0,Math.floor((new Date()-new Date(debut))/86400000));
+      joursLabel="jours<br>d'arrêt";
+      joursColor='#e57373';
+    }
+  } else {
+    const blessuresTerminees=BL.filter(b=>gp(b,'Statut','select')==='🟢 Terminé');
+    if(blessuresTerminees.length>0){const retourDates=blessuresTerminees.map(b=>gp(b,'Date de retour match','date')||gp(b,'Date de reprise entrainement','date')).filter(Boolean);if(retourDates.length>0){const lastRetour=retourDates.sort().reverse()[0];joursSansBlessure=Math.floor((new Date()-new Date(lastRetour))/86400000);joursColor=joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373';}}
+  }
   const lastT=tS[0];
 
   // Prochain RDV — depuis les séances chargées
@@ -789,8 +802,8 @@ function renderOverview(saisonFilter){
         <div style="font-size:12px;color:var(--ov-muted);font-weight:300;flex:1">${statutDesc}</div>
         ${joursSansBlessure!==null?`
         <div style="text-align:center;padding-left:12px;border-left:1px solid var(--ov-bdr);flex-shrink:0">
-          <div style="font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:${joursSansBlessure>=180?'#4caf7d':joursSansBlessure>=60?'#ffb74d':'#e57373'}">${joursSansBlessure}</div>
-          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">jours sans<br>blessure</div>
+          <div style="font-family:'Bebas Neue',serif;font-size:28px;line-height:1;color:${joursColor}">${joursSansBlessure}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-top:3px">${joursLabel}</div>
         </div>`:''}
       </div>
     </div>
