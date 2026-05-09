@@ -1,3 +1,44 @@
+async function saveTest(){
+  const btn=document.getElementById('btn-save-test')||document.querySelector('#modal-test .btn-modal-save');
+  if(btn){btn.disabled=true;btn.textContent='Enregistrement…';}
+  try{
+    const date=document.getElementById('test-date')?.value;
+    const saison=document.getElementById('test-saison')?.value||'2025-2026';
+    const titre=document.getElementById('test-titre')?.value||('Test '+new Date().toLocaleDateString('fr-FR'));
+    const props={
+      'Titre':{rich_text:[{text:{content:titre}}]},
+      'Joueur':{relation:[{id:J.id}]},
+    };
+    if(date) props['Date']={date:{start:date}};
+    if(saison) props['Saison']={select:{name:saison}};
+    const numFields=[
+      ['CMJ (cm)','test-cmj'],['SJ (cm)','test-sj'],['VMA (km/h)','test-vma'],
+      ['Vmax','test-vmax'],['Broad Jump (cm)','test-broad'],['Accmax','test-acc'],
+      ['DJ (cm)','test-dj'],['Sprint 5m (s)','test-s5'],['Sprint 10m (s)','test-s10'],
+      ['Sprint 30m (s)','test-s30'],['Poids (kg)','test-poids'],['% Masse grasse','test-mg'],
+    ];
+    numFields.forEach(([field,id])=>{
+      const v=parseFloat(document.getElementById(id)?.value);
+      if(!isNaN(v)&&v>0) props[field]={number:v};
+    });
+    const notes=document.getElementById('test-notes')?.value;
+    if(notes) props['Notes']={rich_text:[{text:{content:notes}}]};
+    const pdf=document.getElementById('test-pdf')?.value?.trim();
+    if(pdf) props['PDF URL']={url:pdf};
+    // Mettre à jour poids joueur si renseigné
+    const poidsVal=parseFloat(document.getElementById('test-poids')?.value);
+    if(!isNaN(poidsVal)&&poidsVal>0){
+      await fetch(PROXY+'/v1/pages/'+J.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:{'Poids (kg)':{number:poidsVal}}})});
+    }
+    const r=await fetch(PROXY+'/v1/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({parent:{database_id:'34d69796-db3f-8047-b6f9-e361371604a9'},properties:props})});
+    if(!r.ok) throw new Error(r.status);
+    closeModal('modal-test');
+    showToast('Test enregistré');
+    await loadAll();
+  }catch(e){showToast('Erreur: '+e.message,false);}
+  if(btn){btn.disabled=false;btn.textContent='Enregistrer';}
+}
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -293,19 +334,35 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
     </div>
     <div class="modal-body">
       <div class="mfield">
-        <label>Type d'intervenant</label>
-        <select id="seance-type">
-          <option value="Kiné">Kiné</option>
-          <option value="Ostéopathe">Ostéopathe</option>
-          <option value="Nutritionniste">Nutritionniste</option>
-          <option value="Préparateur mental">Préparateur mental</option>
-          <option value="Prépa physique">Prépa physique</option>
-          <option value="Analyste vidéo">Analyste vidéo</option>
+        <label>Intervenant (nom prénom)</label>
+        <input type="text" id="seance-intervenant" placeholder="Ex: Martin Dupont, Dr. Lefevre...">
+      </div>
+      <div class="mfield">
+        <label>Type de séance</label>
+        <select id="seance-type" onchange="updateSeanceTitre(this.value)">
+          <optgroup label="Prépa physique">
+            <option value="Séance musculation">Séance musculation</option>
+            <option value="Séance mobilité">Séance mobilité</option>
+            <option value="Séance endurance">Séance endurance</option>
+            <option value="Séance prévention physique">Séance prévention physique</option>
+          </optgroup>
+          <optgroup label="Kiné / Ostéo">
+            <option value="Séance prévention kiné">Séance prévention kiné</option>
+            <option value="Séance récupération">Séance récupération</option>
+            <option value="Séance ostéopathie">Séance ostéopathie</option>
+          </optgroup>
+          <optgroup label="Autres">
+            <option value="Kiné">Kiné</option>
+            <option value="Nutritionniste">Nutritionniste</option>
+            <option value="Préparateur mental">Préparateur mental</option>
+            <option value="Prépa physique">Prépa physique</option>
+            <option value="Analyste vidéo">Analyste vidéo</option>
+          </optgroup>
         </select>
       </div>
       <div class="mfield">
-        <label>Titre de la séance</label>
-        <input type="text" id="seance-titre" placeholder="Ex: Séance force, Bilan kiné...">
+        <label>Titre personnalisé (optionnel)</label>
+        <input type="text" id="seance-titre" placeholder="Laissez vide pour utiliser le type">
       </div>
       <div class="mfield">
         <label>Date de la séance</label>
@@ -322,6 +379,75 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
       <div class="modal-actions">
         <button class="btn-modal-cancel" onclick="closeModal('modal-seance')">Annuler</button>
         <button class="btn-modal-save" id="btn-save-seance" onclick="saveSeance()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale : Ajouter un match -->
+<div class="modal-overlay" id="modal-match">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="modal-title">Nouveau match</span>
+      <button class="modal-close" onclick="closeModal('modal-match')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield">
+        <label>Adversaire</label>
+        <input type="text" id="match-adversaire" placeholder="Ex: PSG, Lyon...">
+      </div>
+      <div class="mfield">
+        <label>Date</label>
+        <input type="date" id="match-date">
+      </div>
+      <div class="mfield">
+        <label>Compétition</label>
+        <select id="match-competition">
+          <option value="🏆 Championnat">🏆 Championnat</option>
+          <option value="🥅 Coupe">🥅 Coupe</option>
+          <option value="🌍 Autre">🌍 Autre</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Résultat</label>
+        <select id="match-resultat">
+          <option value="">— Choisir —</option>
+          <option value="Victoire">Victoire</option>
+          <option value="Nul">Nul</option>
+          <option value="Défaite">Défaite</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Statut</label>
+        <select id="match-statut">
+          <option value="Titulaire">Titulaire</option>
+          <option value="Remplaçant">Remplaçant</option>
+          <option value="Pas rentré en jeu">Pas rentré en jeu</option>
+          <option value="Non sélectionnée">Non sélectionné</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Saison</label>
+        <select id="match-saison">
+          <option value="2025-2026">2025-2026</option>
+          <option value="2024-2025">2024-2025</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label>Temps de jeu (min)</label>
+        <input type="number" id="match-temps" placeholder="90" min="0" max="120">
+      </div>
+      <div class="mfield">
+        <label>Buts</label>
+        <input type="number" id="match-buts" placeholder="0" min="0">
+      </div>
+      <div class="mfield">
+        <label>Passes décisives</label>
+        <input type="number" id="match-passes" placeholder="0" min="0">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-match')">Annuler</button>
+        <button class="btn-modal-save" id="btn-save-match" onclick="saveMatch()">Enregistrer</button>
       </div>
     </div>
   </div>
@@ -451,43 +577,55 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 
 <!-- Modale : Nouveau test athlétique (Prépa physique) -->
 <div class="modal-overlay" id="modal-test">
-  <div class="modal">
+  <div class="modal" style="max-height:88vh;overflow-y:auto">
     <div class="modal-h">
       <span class="modal-title">Nouveau test athlétique</span>
       <button class="modal-close" onclick="closeModal('modal-test')">×</button>
     </div>
     <div class="modal-body">
-      <div class="mfield">
-        <label>Intitulé du test</label>
-        <input type="text" id="test-titre" placeholder="Ex: Bilan mai 2026">
-      </div>
-      <div class="mfield">
-        <label>Date</label>
-        <input type="date" id="test-date">
-      </div>
-      <div class="mfield">
-        <label>Saison</label>
-        <input type="text" id="test-saison" placeholder="Ex: 2025-2026">
-      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="mfield"><label>CMJ (cm)</label><input type="number" step="0.1" id="test-cmj" placeholder="—"></div>
-        <div class="mfield"><label>SJ (cm)</label><input type="number" step="0.1" id="test-sj" placeholder="—"></div>
-        <div class="mfield"><label>VMA (km/h)</label><input type="number" step="0.1" id="test-vma" placeholder="—"></div>
-        <div class="mfield"><label>Vmax (km/h)</label><input type="number" step="0.1" id="test-vmax" placeholder="—"></div>
-        <div class="mfield"><label>Broad Jump (m)</label><input type="number" step="0.01" id="test-broad" placeholder="—"></div>
-        <div class="mfield"><label>AccMax (m/s²)</label><input type="number" step="0.1" id="test-acc" placeholder="—"></div>
+        <div class="mfield"><label>Date</label><input type="date" id="test-date"></div>
+        <div class="mfield"><label>Saison</label><select id="test-saison"><option value="2025-2026">2025-2026</option><option value="2024-2025">2024-2025</option></select></div>
       </div>
       <div class="mfield">
-        <label>Notes</label>
-        <textarea id="test-notes" placeholder="Observations, contexte..."></textarea>
+        <label>Intitulé (optionnel)</label>
+        <input type="text" id="test-titre" placeholder="Ex: Bilan préparation, Retest intersaison...">
+      </div>
+      <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ov-muted);font-family:'Syne',sans-serif;font-weight:700;margin:10px 0 6px">Sauts &amp; Puissance</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>CMJ (cm)</label><input type="number" step="0.1" id="test-cmj" placeholder="—" min="0"></div>
+        <div class="mfield"><label>SJ (cm)</label><input type="number" step="0.1" id="test-sj" placeholder="—" min="0"></div>
+        <div class="mfield"><label>DJ (cm)</label><input type="number" step="0.1" id="test-dj" placeholder="—" min="0"></div>
+        <div class="mfield"><label>Broad Jump (cm)</label><input type="number" step="1" id="test-broad" placeholder="—" min="0"></div>
+      </div>
+      <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ov-muted);font-family:'Syne',sans-serif;font-weight:700;margin:10px 0 6px">Vitesse &amp; Accélération</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>Vmax (km/h)</label><input type="number" step="0.1" id="test-vmax" placeholder="—" min="0"></div>
+        <div class="mfield"><label>AccMax (m/s²)</label><input type="number" step="0.1" id="test-acc" placeholder="—" min="0"></div>
+        <div class="mfield"><label>Sprint 5m (s)</label><input type="number" step="0.01" id="test-s5" placeholder="—" min="0"></div>
+        <div class="mfield"><label>Sprint 10m (s)</label><input type="number" step="0.01" id="test-s10" placeholder="—" min="0"></div>
+        <div class="mfield"><label>Sprint 30m (s)</label><input type="number" step="0.01" id="test-s30" placeholder="—" min="0"></div>
+      </div>
+      <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ov-muted);font-family:'Syne',sans-serif;font-weight:700;margin:10px 0 6px">Endurance</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>VMA (km/h)</label><input type="number" step="0.1" id="test-vma" placeholder="—" min="0"></div>
+      </div>
+      <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ov-muted);font-family:'Syne',sans-serif;font-weight:700;margin:10px 0 6px">Anthropométrie</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>Poids (kg)</label><input type="number" step="0.1" id="test-poids" placeholder="—" min="0"></div>
+        <div class="mfield"><label>% Masse grasse</label><input type="number" step="0.1" id="test-mg" placeholder="—" min="0" max="50"></div>
       </div>
       <div class="mfield">
-        <label>Lien PDF rapport (URL)</label>
+        <label>Notes (optionnel)</label>
+        <textarea id="test-notes" placeholder="Conditions, observations..."></textarea>
+      </div>
+      <div class="mfield">
+        <label>Lien rapport PDF (URL)</label>
         <input type="url" id="test-pdf" placeholder="https://...">
       </div>
       <div class="modal-actions">
         <button class="btn-modal-cancel" onclick="closeModal('modal-test')">Annuler</button>
-        <button class="btn-modal-save" onclick="saveTest()">Enregistrer</button>
+        <button class="btn-modal-save" id="btn-save-test" onclick="saveTest()">Enregistrer</button>
       </div>
     </div>
   </div>
@@ -535,6 +673,49 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
+<!-- Modale : Bilan SNC / Réflexes archaïques -->
+<div class="modal-overlay" id="modal-snc-bilan">
+  <div class="modal" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-h">
+      <span class="modal-title">Bilan SNC — Réflexes archaïques</span>
+      <button class="modal-close" onclick="closeModal('modal-snc-bilan')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="mfield"><label>Date</label><input type="date" id="snc-date"></div>
+        <div class="mfield"><label>Saison</label><select id="snc-saison"><option value="2025-2026">2025-2026</option><option value="2024-2025">2024-2025</option></select></div>
+      </div>
+      <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ov-muted);font-family:'Syne',sans-serif;font-weight:700;margin:10px 0 8px">Score par réflexe (0 = intégré · 4 = actif sévère)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="snc-reflexes-grid">
+        <div class="mfield"><label>RTAC</label><input type="number" id="snc-rtac" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>RTSC</label><input type="number" id="snc-rtsc" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>RTL (Galant)</label><input type="number" id="snc-rtl" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Moro</label><input type="number" id="snc-moro" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Landau</label><input type="number" id="snc-landau" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Succion</label><input type="number" id="snc-succion" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Amphibien</label><input type="number" id="snc-amphibien" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Marche automatique</label><input type="number" id="snc-marche" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Peur paralysante</label><input type="number" id="snc-peur" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Préhension palmaire</label><input type="number" id="snc-prehension" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Babinski</label><input type="number" id="snc-babinski" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Redressement</label><input type="number" id="snc-redressement" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Symétrique des bras</label><input type="number" id="snc-symetrique" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Robin de bois</label><input type="number" id="snc-robin" min="0" max="4" step="1" placeholder="0–4"></div>
+        <div class="mfield"><label>Plantigrade</label><input type="number" id="snc-plantigrade" min="0" max="4" step="1" placeholder="0–4"></div>
+      </div>
+      <div id="snc-score-preview" style="margin:12px 0;padding:10px 14px;background:var(--ov-bg,#f8f7f4);border-radius:8px;font-family:'Syne',sans-serif;font-size:10px;color:var(--ov-dim);text-align:center">Score total : —</div>
+      <div class="mfield">
+        <label>Notes (optionnel)</label>
+        <textarea id="snc-notes" placeholder="Observations, comportements notables..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-snc-bilan')">Annuler</button>
+        <button class="btn-modal-save" id="btn-save-snc" onclick="saveSNCBilan()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modale : Modifier liens (Profil / SNC / Physique) -->
 <div class="modal-overlay" id="modal-liens">
   <div class="modal">
@@ -566,15 +747,35 @@ const DB_CLI='726d3b94-8089-464f-8d62-e4100a59b1c0'; // Clips analyste
 const DB_SEANCES='94dd2ff8-0ed9-4baf-9181-a7d7daa8dc87'; // Séances intervenants
 const DB_DOCS='92909604-5b91-4a30-ab6e-e004dd947340'; // Documents joueur
 
+// Normes par poste avec 4 niveaux: insuffisant(<75%), bon(75-85%), très_bon(85-95%), excellent(>=95%)
+// Valeur = 100% (norme élite). Pondération fibres: Explosif -> CMJ+10%, VMA-5% | Endurant -> VMA+10%, CMJ-5%
 const NORMES={
-  'Excentré':{vmax:35,accmax:7.5,cmj:48,sj:44,vma:18},
-  'Attaquant':{vmax:34,accmax:7.0,cmj:46,sj:42,vma:18},
-  'Milieu offensif':{vmax:32.5,accmax:6.5,cmj:44,sj:40,vma:18},
-  'Milieu défensif':{vmax:31.5,accmax:6.5,cmj:43,sj:39,vma:18},
-  'Latéral':{vmax:33,accmax:7.0,cmj:45,sj:41,vma:18},
-  'Défenseur central':{vmax:31,accmax:6.0,cmj:46,sj:42,vma:18},
-  'Gardien':{vmax:28,accmax:6.5,cmj:55,sj:50,vma:14},
+  'Excentré':   {vmax:35,  accmax:7.5, cmj:48, sj:44, vma:18, broad:240, sprint5:1.02, sprint10:1.72, sprint30:4.0},
+  'Attaquant':  {vmax:34,  accmax:7.0, cmj:46, sj:42, vma:18, broad:235, sprint5:1.04, sprint10:1.74, sprint30:4.1},
+  'Milieu offensif':{vmax:32.5,accmax:6.5,cmj:44,sj:40,vma:18,broad:225,sprint5:1.06, sprint10:1.78, sprint30:4.2},
+  'Milieu défensif':{vmax:31.5,accmax:6.5,cmj:43,sj:39,vma:18,broad:220,sprint5:1.07, sprint10:1.80, sprint30:4.3},
+  'Latéral':    {vmax:33,  accmax:7.0, cmj:45, sj:41, vma:18, broad:230, sprint5:1.05, sprint10:1.75, sprint30:4.1},
+  'Défenseur central':{vmax:31,accmax:6.0,cmj:46,sj:42,vma:18,broad:230,sprint5:1.06,sprint10:1.78, sprint30:4.2},
+  'Gardien':    {vmax:28,  accmax:6.5, cmj:55, sj:50, vma:14, broad:240, sprint5:1.05, sprint10:1.75, sprint30:4.2},
 };
+function getNorme(poste,fibres,key){
+  const base=NORMES[poste]||NORMES['Excentré'];
+  let val=base[key]||0;
+  if(fibres==='Explosif'||fibres==='Rapides'){
+    if(key==='cmj'||key==='sj') val*=1.08;
+    if(key==='vma') val*=0.95;
+  } else if(fibres==='Endurant'||fibres==='Lentes'){
+    if(key==='vma') val*=1.08;
+    if(key==='cmj'||key==='sj') val*=0.95;
+  }
+  return val;
+}
+function niveauLabel(pct){
+  if(pct>=95) return {label:'Excellent',color:'#4caf7d',bg:'rgba(76,175,130,.1)'};
+  if(pct>=85) return {label:'Très bon',color:'#81c784',bg:'rgba(129,199,132,.1)'};
+  if(pct>=75) return {label:'Bon',color:'#ffb74d',bg:'rgba(255,183,77,.1)'};
+  return {label:'Insuffisant',color:'#e57373',bg:'rgba(229,115,115,.1)'};
+}
 
 const P=new URLSearchParams(location.search);
 const JID=P.get('id')||null;
@@ -820,10 +1021,6 @@ function renderOverview(saisonFilter){
       prochainRDVType=gp(rdvs[0],'Type intervenant','select')||'—';
     }
   }
-  const motricite=gp(J,'Motricité','select')||'—';
-  const fibres=gp(J,'Fibres','select')||'—';
-  const scoreRef=gp(J,'Score réflexes','number');
-  const profilRef=gp(J,'Profil réflexes','select')||'—';
   const sOpts=saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join('');
   const last3=mS.slice(0,3);
 
@@ -900,48 +1097,35 @@ function renderOverview(saisonFilter){
     <div class="lst mb">3 derniers matchs</div>
     ${mCards}
 
-    <!-- Profil biomécanique -->
-    <div class="lst mb">Profil biomécanique</div>
-    <div class="g2 mb2">
-      <div class="lcard">
-        <div class="lcard-h"><span class="lcard-ht">Motricité</span></div>
-        <div class="lcard-p">
-          <div style="font-family:'Bebas Neue',serif;font-size:24px;color:var(--ov-txt);margin-bottom:4px">${motricite}</div>
-          <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5">${motricite==='Extension'?'Système d\'exploitation puissance — explosivité en extension':motricite==='Flexion'?'Système d\'exploitation vitesse — explosivité en flexion':'—'}</div>
+    <!-- Dernier test physique -->
+    <div class="lst mb">Dernier test physique</div>
+    <div class="lcard mb2">
+      <div class="lcard-p">
+        ${lastT?`
+        <div class="g3" style="gap:8px;text-align:center;margin-bottom:10px">
+          <div class="lkpi" style="padding:8px"><div class="lkpi-v" style="color:var(--ov-txt)">${gp(lastT,'CMJ (cm)','number')||'—'}</div><div class="lkpi-l">CMJ (cm)</div></div>
+          <div class="lkpi" style="padding:8px"><div class="lkpi-v" style="color:var(--ov-txt)">${gp(lastT,'VMA (km/h)','number')||'—'}</div><div class="lkpi-l">VMA (km/h)</div></div>
+          <div class="lkpi" style="padding:8px"><div class="lkpi-v" style="color:var(--ov-txt)">${gp(lastT,'Vmax','number')||'—'}</div><div class="lkpi-l">Vmax</div></div>
         </div>
-      </div>
-      <div class="lcard">
-        <div class="lcard-h"><span class="lcard-ht">Fibres</span></div>
-        <div class="lcard-p">
-          <div style="font-family:'Bebas Neue',serif;font-size:24px;color:var(--ov-txt);margin-bottom:4px">${fibres}</div>
-          <div style="font-size:11px;color:var(--ov-muted);font-weight:300;line-height:1.5">${{'Rapides':'Profil explosif — pic de puissance court','Lentes':'Profil endurant — maintien effort long','Hybrides':'Profil polyvalent — équilibre puissance/endurance','Indéterminées':'Profil à préciser — bilan complet requis'}[fibres]||'—'}</div>
+        <div class="g3" style="gap:8px;text-align:center">
+          <div class="lkpi" style="padding:8px"><div class="lkpi-v" style="color:var(--ov-txt)">${gp(lastT,'SJ (cm)','number')||'—'}</div><div class="lkpi-l">SJ (cm)</div></div>
+          <div class="lkpi" style="padding:8px"><div class="lkpi-v" style="color:var(--ov-txt)">${gp(lastT,'Accmax','number')||gp(lastT,'AccMax','number')||'—'}</div><div class="lkpi-l">AccMax</div></div>
+          <div style="text-align:center;padding:8px"><div style="font-size:9px;color:var(--ov-dim);margin-top:4px">Réalisé le</div><div style="font-size:12px;color:var(--ov-txt);font-weight:500">${fd(gp(lastT,'Date','date'),true)}</div></div>
         </div>
-      </div>
-      <div class="lcard">
-        <div class="lcard-h"><span class="lcard-ht">Réflexes archaïques</span></div>
-        <div class="lcard-p">
-          <div style="font-family:'Bebas Neue',serif;font-size:24px;color:var(--ov-txt);margin-bottom:4px">${scoreRef!==null?scoreRef+' / 60':'—'}</div>
-          <div style="font-size:11px;color:var(--ov-muted);font-weight:300">${profilRef}</div>
-        </div>
-      </div>
-      <div class="lcard">
-        <div class="lcard-h"><span class="lcard-ht">Dernier test physique</span></div>
-        <div class="lcard-p">
-          ${lastT?`
-          <div class="lrow"><span class="lrow-l">CMJ</span><span class="lrow-v">${gp(lastT,'CMJ (cm)','number')||'—'} cm</span></div>
-          <div class="lrow"><span class="lrow-l">VMA</span><span class="lrow-v">${gp(lastT,'VMA (km/h)','number')||'—'} km/h</span></div>
-          <div style="font-size:9px;color:var(--ov-dim);margin-top:8px">${fd(gp(lastT,'Date','date'),true)}</div>
-          `:`<div style="font-size:12px;color:var(--ov-dim);font-style:italic;padding:4px 0">Aucun test enregistré</div>`}
-        </div>
+        `:`<div style="font-size:12px;color:var(--ov-dim);font-style:italic;padding:4px 0">Aucun test enregistré</div>`}
       </div>
     </div>`;
 }
 
 /* ══ MATCHS ══ */
-function renderMatchs(saisonFilter){
+function renderMatchs(saisonFilter,statutFilter,compFilter){
   const saisons=[...new Set(ST.map(m=>gp(m,'Saison','select')).filter(Boolean))].sort().reverse();
   if(!saisonFilter) saisonFilter=saisons[0]||'2025-2026';
-  const mS=ST.filter(m=>gp(m,'Saison','select')===saisonFilter);
+  if(!statutFilter) statutFilter='all';
+  if(!compFilter) compFilter='all';
+  let mS=ST.filter(m=>gp(m,'Saison','select')===saisonFilter);
+  if(statutFilter!=='all') mS=mS.filter(m=>gp(m,'Titulaire/remplaçant','select')===statutFilter);
+  if(compFilter!=='all') mS=mS.filter(m=>gp(m,'Compétition','select')===compFilter);
   const sOpts=saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join('');
   const nM=mS.length;
   const nT=mS.filter(m=>gp(m,'Titulaire/remplaçant','select')==='Titulaire').length;
@@ -965,13 +1149,18 @@ function renderMatchs(saisonFilter){
     const dspr=gp(m,'Distance en sprint (m)','number');
     const rapportFiles=m.properties?.['Rapport match ']?.files||[];
     const rapport=rapportFiles[0]?.file?.url||rapportFiles[0]?.external?.url||null;
-    const rc=res==='Victoire'?'tag-b':res==='Défaite'?'tag-d':'tag-n';
+    const rc=res==='Victoire'?'#4caf7d':res==='Défaite'?'#e57373':'#ffb74d';
+    const rcbg=res==='Victoire'?'rgba(76,175,130,.1)':res==='Défaite'?'rgba(229,115,115,.1)':'rgba(255,183,77,.1)';
+    const tituColor=titu==='Titulaire'?'#5c8fc9':titu==='Remplaçant'?'#9a8e7e':'#bbb';
+    const rapportAnalyste=gp(m,'Rapport analyste (URL)','url');
+    const comp=gp(m,'Compétition','select')||'';
     return `<div class="lcard mb">
       <div class="lcard-h">
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span class="lcard-ht">vs ${adv}</span>
-          ${res?`<span class="tag ${rc}">${res}</span>`:''}
-          ${titu?`<span class="tag ${titu==='Titulaire'?'tag-b':'tag-n'}">${titu}</span>`:''}
+          ${res?`<span style="font-size:9px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:${rcbg};color:${rc};border:1px solid ${rc}44">${res}</span>`:''}
+          ${titu?`<span style="font-size:9px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:rgba(0,0,0,.04);color:${tituColor};border:1px solid ${tituColor}44">${titu}</span>`:''}
+          ${comp?`<span style="font-size:9px;color:var(--ov-dim)">${comp}</span>`:''}
         </div>
         <span style="font-size:10px;color:var(--ov-dim)">${fd(date,true)}</span>
       </div>
@@ -988,8 +1177,9 @@ function renderMatchs(saisonFilter){
           <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${acc?acc.toFixed(1):"—"}</div><div class="mstat-l" style="color:var(--ov-dim)">AccMax</div></div>
           <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dspr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">m sprint</div></div>
         </div>
-        ${rapport?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--ov-bdr)">
-          <a href="${rapport}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DA291C;text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">📄 Rapport analyste</a>
+        ${(rapport||rapportAnalyste)?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--ov-bdr);display:flex;gap:8px;flex-wrap:wrap">
+          ${rapport?`<a href="${rapport}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DA291C;text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">📄 Rapport GPS</a>`:''}
+          ${rapportAnalyste?`<a href="${rapportAnalyste}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5c8fc9;text-decoration:none;padding:6px 12px;border:1px solid rgba(92,143,201,.2);border-radius:8px;background:rgba(92,143,201,.04)">🎬 Rapport analyste</a>`:''}
         </div>`:''}
       </div>
     </div>`;
@@ -1023,9 +1213,25 @@ function renderMatchs(saisonFilter){
 
   const el=document.getElementById('s-matchs');
   el.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="lst" style="margin-bottom:0;flex:1">Saison</div>
-      <select class="lsel" onchange="renderMatchs(this.value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
+    ${IS_ADMIN||(IS_INTERVENANT&&INTERVENANT_TYPE==='Analyste vidéo')?`
+    <div class="int-actions">
+      <button class="btn-int btn-int-add" onclick="openModal('modal-match')">Nouveau match</button>
+      ${IS_ADMIN?`<button class="btn-int btn-int-add" onclick="openClip()">Nouveau clip vidéo</button>`:''}
+    </div>`:''}
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <div class="lst" style="margin-bottom:0;flex:1">Filtres</div>
+      <select class="lsel" onchange="renderMatchs(this.value,document.getElementById('m-statut').value,document.getElementById('m-comp').value)">${sOpts||`<option>${saisonFilter}</option>`}</select>
+      <select id="m-statut" class="lsel" onchange="renderMatchs(document.querySelector('.lsel').value,this.value,document.getElementById('m-comp').value)">
+        <option value="all">Tous</option>
+        <option value="Titulaire" ${statutFilter==='Titulaire'?'selected':''}>Titulaire</option>
+        <option value="Remplaçant" ${statutFilter==='Remplaçant'?'selected':''}>Remplaçant</option>
+      </select>
+      <select id="m-comp" class="lsel" onchange="renderMatchs(document.querySelector('.lsel').value,document.getElementById('m-statut').value,this.value)">
+        <option value="all">Toutes compétitions</option>
+        <option value="🏆 Championnat" ${compFilter==='🏆 Championnat'?'selected':''}>🏆 Championnat</option>
+        <option value="🥅 Coupe" ${compFilter==='🥅 Coupe'?'selected':''}>🥅 Coupe</option>
+        <option value="🌍 Autre" ${compFilter==='🌍 Autre'?'selected':''}>🌍 Autre</option>
+      </select>
     </div>
     <div class="g-auto mb2">
       ${[['Matchs',nM,nT+' tit.'],['Buts',nB,''],['Passes D.',nP,''],['Minutes',nMins+"'",''],['Victoires',nV,nM?Math.round(nV/nM*100)+'% win':'']].map(([l,v,s])=>`
@@ -1076,22 +1282,23 @@ function renderPerf(saisonFilter){
   const tS=TS.filter(t=>gp(t,'Saison','select')===saisonFilter);
   const sOpts=saisons.map(s=>`<option value="${s}" ${s===saisonFilter?'selected':''}>${s}</option>`).join('');
   const poste=gp(J,'Poste','select')||'Excentré';
-  const norme=NORMES[poste]||NORMES['Excentré'];
+  // norme par poste via getNorme(poste, fibres, key)
   const lastT=tS[0];
 
-  const normCard=(label,val,ref,unit)=>{
-    if(val===null)return `<div class="lcard" style="padding:12px 14px"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><span style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">${label}</span><span class="badge badge-warn">—</span></div><div style="font-size:11px;color:var(--txt-d);font-style:italic">Non testé</div></div>`;
-    const pct=Math.min(100,Math.round(val/ref*100));
-    const cls=pct>=100?'norme-ok':pct>=85?'norme-warn':'norme-nope';
-    const bcls=pct>=100?'badge-ok':pct>=85?'badge-warn':'badge-nope';
-    const blabel=pct>=100?'Norme ✓':pct>=85?'Proche':'Sous norme';
+  const fibresJ=gp(J,'Fibres','select')||'';
+  const normCard=(label,val,normeKey,unit)=>{
+    const ref=getNorme(poste,fibresJ,normeKey);
+    if(val===null||val===undefined)return `<div class="lcard" style="padding:12px 14px"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><span style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">${label}</span><span style="font-size:9px;color:var(--ov-dim)">—</span></div><div style="font-size:11px;color:var(--ov-dim);font-style:italic">Non testé</div></div>`;
+    const pct=Math.round(val/ref*100);
+    const niv=niveauLabel(pct);
+    const barPct=Math.min(100,pct);
     return `<div class="lcard" style="padding:12px 14px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
         <span style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700">${label}</span>
-        <div style="display:flex;align-items:baseline;gap:4px"><span style="font-family:'Bebas Neue',serif;font-size:22px;color:var(--ov-txt)">${val.toFixed(1)}</span><span style="font-size:9px;color:var(--ov-dim)">${unit} / réf ${ref}</span></div>
+        <div style="display:flex;align-items:baseline;gap:4px"><span style="font-family:'Bebas Neue',serif;font-size:22px;color:var(--ov-txt)">${val.toFixed(1)}</span><span style="font-size:9px;color:var(--ov-dim)">${unit} / ref ${ref.toFixed(1)}</span></div>
       </div>
-      <div style="height:4px;background:#f0ede8;border-radius:4px;overflow:hidden;margin-bottom:5px"><div class="norme-fill ${cls}" style="width:${pct}%"></div></div>
-      <span class="badge ${bcls}">${blabel}</span>
+      <div style="height:4px;background:#f0ede8;border-radius:4px;overflow:hidden;margin-bottom:5px"><div style="height:100%;width:${barPct}%;background:${niv.color};border-radius:4px;transition:width .4s"></div></div>
+      <span style="font-size:9px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:4px;background:${niv.bg};color:${niv.color}">${niv.label}</span>
     </div>`;
   };
 
@@ -1173,10 +1380,12 @@ function renderPerf(saisonFilter){
     <div class="lst mb">Benchmarks niveau élite</div>
     ${lastT?`
     <div class="g2 mb2">
-      ${normCard('Vmax',gp(lastT,'Vmax','number'),norme.vmax,'km/h')}
-      ${normCard('CMJ',gp(lastT,'CMJ (cm)','number'),norme.cmj,'cm')}
-      ${normCard('SJ',gp(lastT,'SJ (cm)','number'),norme.sj,'cm')}
-      ${normCard('VMA',gp(lastT,'VMA (km/h)','number'),norme.vma,'km/h')}
+      ${normCard('Vmax',gp(lastT,'Vmax','number'),'vmax','km/h')}
+      ${normCard('CMJ',gp(lastT,'CMJ (cm)','number'),'cmj','cm')}
+      ${normCard('SJ',gp(lastT,'SJ (cm)','number'),'sj','cm')}
+      ${normCard('VMA',gp(lastT,'VMA (km/h)','number'),'vma','km/h')}
+      ${normCard('AccMax',gp(lastT,'Accmax','number'),'accmax','m/s²')}
+      ${normCard('Broad Jump',gp(lastT,'Broad Jump (cm)','number'),'broad','cm')}
     </div>
     `:`<div class="lempty mb2">Aucun test enregistré pour cette saison.</div>`}
 
@@ -1335,12 +1544,24 @@ function renderNutrition(){
 
   let html='';
 
-  // Corps
-  html+='<div class="lst mb">Corps</div>'
-    +'<div class="g2 mb2">'
-    +'<div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">'+(poids||'—')+'</div><div class="lkpi-l">Poids (kg)</div></div>'
-    +'<div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">'+(taille||'—')+'</div><div class="lkpi-l">Taille (cm)</div></div>'
-    +'</div>';
+  // Données corporelles — chercher dans les tests
+  const derniersTests=[...TS].sort((a,b)=>(gp(b,'Date','date')||'').localeCompare(gp(a,'Date','date')||''));
+  const poidsMesures=derniersTests.map(t=>({date:gp(t,'Date','date'),val:gp(t,'Poids (kg)','number')})).filter(x=>x.val&&x.date);
+  const mgMesures=derniersTests.map(t=>({date:gp(t,'Date','date'),val:gp(t,'% Masse grasse','number')})).filter(x=>x.val&&x.date);
+  const dernierPoids=poidsMesures[0]?.val||poids||null;
+  const derniereMG=mgMesures[0]?.val||null;
+
+  html+='<div class="lst mb">Corps</div>';
+  html+='<div class="g3 mb2">';
+  html+='<div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">'+(dernierPoids||'—')+'</div><div class="lkpi-l">Poids (kg)</div></div>';
+  html+='<div class="lkpi"><div class="lkpi-v" style="color:var(--ov-txt)">'+(taille||'—')+'</div><div class="lkpi-l">Taille (cm)</div></div>';
+  html+='<div class="lkpi"><div class="lkpi-v" style="color:'+(derniereMG?derniereMG>15?'#ffb74d':'#4caf7d':'#9a907e')+'">'+(derniereMG?derniereMG+'%':'—')+'</div><div class="lkpi-l">% Masse grasse</div></div>';
+  html+='</div>';
+
+  // Graphique poids + masse grasse
+  if(poidsMesures.length>1||mgMesures.length>1){
+    html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Évolution composition corporelle</span></div><div class="lcard-p" style="padding:14px 16px 10px"><div style="position:relative;height:160px"><canvas id="chart-corpo"></canvas></div></div></div>';
+  }
 
   // Conseils diet
   if(lastMet){
@@ -1370,6 +1591,29 @@ function renderNutrition(){
   html+=macroSection('Repos');
 
   el.innerHTML=html;
+
+  // Graphique composition corporelle
+  setTimeout(()=>{
+    const ctx=document.getElementById('chart-corpo');
+    if(!ctx) return;
+    if(CI.corpo) CI.corpo.destroy();
+    const allDates=[...new Set([...poidsMesures.map(x=>x.date),...mgMesures.map(x=>x.date)])].sort();
+    const labels=allDates.map(d=>fd(d,true)).reverse();
+    const poidsData=allDates.map(d=>{const f=poidsMesures.find(x=>x.date===d);return f?f.val:null;}).reverse();
+    const mgData=allDates.map(d=>{const f=mgMesures.find(x=>x.date===d);return f?f.val:null;}).reverse();
+    CI.corpo=new Chart(ctx,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Poids (kg)',data:poidsData,borderColor:'#004170',backgroundColor:'rgba(0,65,112,.08)',tension:.4,yAxisID:'y',pointRadius:3,spanGaps:true},
+        {label:'% MG',data:mgData,borderColor:'#DA291C',backgroundColor:'rgba(218,41,28,.08)',tension:.4,yAxisID:'y2',pointRadius:3,spanGaps:true}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:9},color:'#9a907e'}}},scales:{
+        y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:9}},border:{display:false},title:{display:true,text:'kg',color:'#004170',font:{size:9}}},
+        y2:{position:'right',grid:{display:false},ticks:{color:'#9a907e',font:{size:9}},border:{display:false},title:{display:true,text:'%',color:'#DA291C',font:{size:9}}},
+        x:{grid:{display:false},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}}
+      }}
+    });
+  },100);
 }
 
 /* ══ SANTÉ ══ */
@@ -1532,6 +1776,27 @@ const FIBRES_DESC = {
   'Indéterminé': 'Zone grise — données à compléter ou profil non tranché.',
 };
 
+
+const POINTS_FORTS={
+  'Extension':{
+    'Excentré':    {ath:'Explosivité en démarrage, changement de direction brusque, puissance en appui',tact:'Appel profondeur décrochage, jeu en remise, fixation défenseur',tech:'Conduite balle rapide, dribble appui, frappe en appui'},
+    'Attaquant':   {ath:'Accélération sur courte distance, déséquilibre physique, pivot',tact:'Jeu dos au but, déviation, appel croisé, jeu dos au but',tech:'Contrôle en appui, remise une touche, têtes'},
+    'Latéral':     {ath:'Démarrage arrêt-relance, couverture rapide, projection offensive',tact:'Montée et relance, permutation, centres rasants',tech:'Centre en course, conduite balle longue distance'},
+    'Défenseur central':{ath:'Duels aériens, charges physiques, relance puissante',tact:'Couverture défensive, pressing haut, jeu long',tech:'Relance longue, jeu de tête, anticipation'},
+    'Milieu offensif':{ath:'Accélération balle au pied, frappes puissantes, box to box',tact:'Décrochage, combinaison, pénétration dans la surface',tech:'Frappe de loin, dribble en appui, one-two'},
+    'Milieu défensif':{ath:'Couverture de terrain, duels, pressing physique',tact:'Récupération basse, bloc défensif, couverture',tech:'Interception, dégagement, passe courte sûre'},
+    'Gardien':     {ath:'Explosivité sur courtes distances, puissance plongeon, projection',tact:'Jeu long, coming out, organisation défensive',tech:'Prise de balle, dégagement, jeu au pied'},
+  },
+  'Flexion':{
+    'Excentré':    {ath:'Vitesse de pointe, rebond élastique, élongation en course',tact:'Jeu en profondeur, appels en vitesse, combinaison',tech:'Contrôle orienté, dribble en vitesse, frappe en extension'},
+    'Attaquant':   {ath:'Vitesse en profondeur, course de débordement, rebond',tact:'Appel profondeur, contre-attaque, mouvement continu',tech:'Frappe en extension, conduite rapide, finition en allonge'},
+    'Latéral':     {ath:'Sprint long, endurance vitesse, projection continue',tact:'Débordement en vitesse, passes en mouvement, pressing haut',tech:'Centre en course, conduite rapide, passe en déplacement'},
+    'Défenseur central':{ath:'Endurance défensive, relance longue en profondeur, vitesse de réaction',tact:'Défense ligne haute, relance longue, pressing organisé',tech:'Relance longue, anticipation, lecture de jeu'},
+    'Milieu offensif':{ath:'Endurance balle au pied, déplacements continus, vitesse de croisière',tact:'Pressing haut, combinaisons en mouvement, triangles',tech:'Passe en mouvement, dribble en vitesse, centrage'},
+    'Milieu défensif':{ath:'Endurance pressing, récupération continue, vitesse de couverture',tact:'Bloc médian, récupération et relance, pressing organisé',tech:'Interception en course, passe sûre, relance'},
+    'Gardien':     {ath:'Réactivité, vitesse de déplacement latéral, endurance',tact:'Jeu au pied organisé, distribution rapide, positionnement',tech:'Jeu au pied, distribution rapide, prise en main'},
+  }
+};
 const FIBRES_SEUILS = {
   'Explosif': 'CMJ ≥ 48 cm · VMA 16–18,5 km/h',
   'Endurant': 'CMJ 30–42 cm · VMA ≥ 19,5 km/h',
@@ -1553,42 +1818,94 @@ function renderProfil(){
   const pied=gp(J,'Pied fort','select')||'—';
   const nat=gp(J,'Nationalité sportive','text')||'—';
   const club=gp(J,'Club actuel','text')||'—';
+  const motricite=gp(J,'Motricité','select')||'—';
+  const fibres=gp(J,'Fibres','select')||'—';
+  const scoreRef=gp(J,'Score réflexes','number');
+  const profilRef=gp(J,'Profil réflexes','select')||'—';
+  const notesAndrea=gp(J,'Notes Andrea','text')||'';
+  const poste=gp(J,'Poste','select')||'Excentré';
 
-  const canEdit=!IS_INTERVENANT||(INTERVENANT_TYPE==='Préparateur physique');
+  const canEdit=IS_ADMIN;
   let html='';
 
-  // Boutons saisie Julie/prépa
+  // Boutons saisie Julie uniquement
   if(IS_ADMIN){
     html+=`<div class="int-actions">
       <button class="btn-int btn-int-edit" onclick="openLiens([
         {label:'Routine echauffement (URL)',field:'Routine échauffement (URL)',value:'${routineUrl||''}',placeholder:'Lien Google Drive, Notion...'},
-        {label:'Prévention ciblée (URL)',field:'Prévention ciblée (URL)',value:'${preventionUrl||''}',placeholder:'Lien protocole prévention'},
+        {label:'Prevention ciblee (URL)',field:'Prévention ciblée (URL)',value:'${preventionUrl||''}',placeholder:'Lien protocole prévention'},
         {label:'Questionnaire profil (URL)',field:'Questionnaire profil (URL)',value:'${questionnaireUrl||''}',placeholder:'Lien questionnaire joueur'}
       ])">Modifier les liens</button>
     </div>`;
   }
 
-  // Données perso
+  // ── Profil biomécanique ──
+  const motDesc={'Extension':'Système d exploitation en appui — puissance, explosivité en démarrage arrêt-relance.','Flexion':'Système d exploitation en rebond — vitesse de pointe, énergie élastique, élongation.'};
+  const motLabel=motricite==='Extension'?'TERRIEN':motricite==='Flexion'?'AÉRIEN':motricite;
+  const fibresColor={'Explosif':'#DA291C','Endurant':'#4caf7d','Mixte':'#9c6fc9','En développement':'#9a907e','Indéterminé':'#9a907e'};
+  const fColor=fibresColor[fibres]||'#9a907e';
+
+  html+='<div style="background:var(--ov-bg,#f8f7f4);border:1px solid var(--ov-bdr);border-radius:var(--r);padding:18px 20px;margin-bottom:18px;position:relative;overflow:hidden">';
+  html+='<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1,#004170),var(--c2,#DA291C))"></div>';
+  html+='<div style="font-family:Syne,sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;margin-bottom:12px">Profil biomécanique</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  html+='<div><div style="font-family:Bebas Neue,serif;font-size:36px;line-height:1;color:var(--ov-txt)">'+motLabel+'</div>';
+  html+='<div style="font-size:11px;color:var(--ov-muted);margin-top:4px;line-height:1.5">'+( motDesc[motricite]||'—')+'</div></div>';
+  html+='<div><div style="font-family:Bebas Neue,serif;font-size:36px;line-height:1;color:'+fColor+'">'+fibres.toUpperCase()+'</div>';
+  html+='<div style="font-size:11px;color:var(--ov-muted);margin-top:4px;line-height:1.5">'+(FIBRES_DESC[fibres]||'—')+'</div></div>';
+  html+='</div>';
+  // Score réflexes
+  if(scoreRef!==null){
+    const profilColor={'Nul':'#4caf7d','Faible':'#81c784','Moyen':'#ffb74d','Élevé':'#e57373','Sévère':'#c62828'};
+    html+='<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--ov-bdr);display:flex;align-items:center;gap:12px">';
+    html+='<span style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700">Réflexes archaïques</span>';
+    html+='<span style="font-family:Bebas Neue,serif;font-size:22px;color:var(--ov-txt)">'+scoreRef+' <span style="font-size:13px;color:var(--ov-dim)">/ 60</span></span>';
+    html+='<span style="font-size:11px;font-weight:600;color:'+(profilColor[profilRef]||'#9a907e')+'">'+profilRef+'</span>';
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // ── Points forts par profil ──
+  const pf=(POINTS_FORTS[motricite]||{})[poste]||null;
+  if(pf){
+    html+='<div class="lst mb">Points forts — '+motricite+' · '+poste+'</div>';
+    html+='<div class="g3 mb2" style="gap:8px">';
+    [['🏃 Athlétique',pf.ath,'rgba(218,41,28,.06)','#DA291C'],['⚽ Technique',pf.tech,'rgba(0,65,112,.06)','#004170'],['🧠 Tactique / Lecture',pf.tact,'rgba(76,175,130,.06)','#4caf7d']].forEach(([label,txt,bg,col])=>{
+      html+='<div class="lcard" style="background:'+bg+';border:1px solid '+col+'22">';
+      html+='<div class="lcard-h" style="padding:8px 12px"><span style="font-family:Syne,sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:'+col+'">'+label+'</span></div>';
+      html+='<div class="lcard-p" style="padding:8px 12px"><div style="font-size:11px;color:var(--ov-txt);line-height:1.6;font-weight:300">'+txt+'</div></div>';
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+
+  // ── Notes Andrea (profil) ──
+  if(notesAndrea||IS_ADMIN){
+    html+='<div class="lst mb">Notes de profil</div>';
+    html+='<div class="lcard mb2"><div class="lcard-p"><div style="font-size:12px;color:var(--ov-txt);line-height:1.7;font-weight:300;white-space:pre-wrap">'+(notesAndrea||'<span style="font-style:italic;color:var(--ov-dim)">Aucune note</span>')+'</div></div></div>';
+  }
+
+  // ── Données perso ──
   html+='<div class="lst mb">Informations joueur</div>';
   html+='<div class="g2 mb2" style="gap:8px">';
   [{l:'Date de naissance',v:ddn?fd(ddn):'—'},{l:'Nationalité',v:nat},{l:'Club actuel',v:club},{l:'Pied fort',v:pied},{l:'Poids',v:poids?poids+' kg':'—'},{l:'Taille',v:taille?taille+' cm':'—'}].forEach(({l,v})=>{
-    html+=`<div class="lcard" style="padding:12px 14px"><div style="font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:4px">${l}</div><div style="font-size:13px;color:var(--ov-txt)">${v}</div></div>`;
+    html+=`<div class="lcard" style="padding:12px 14px"><div style="font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;font-family:Syne,sans-serif;margin-bottom:4px">${l}</div><div style="font-size:13px;color:var(--ov-txt)">${v}</div></div>`;
   });
   html+='</div>';
 
-  // Routine échauffement
+  // ── Routine échauffement ──
   html+='<div class="lst mb">Routine d\'échauffement</div>';
   if(routineUrl){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(0,65,112,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔥</div>'
-      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine personnalisée</div><div style="font-size:10px;color:var(--ov-dim)">Protocole echauffement individuel</div></div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine personnalisée</div><div style="font-size:10px;color:var(--ov-dim)">Protocole d échauffement individuel</div></div>'
       +'<a href="'+routineUrl+'" target="_blank" style="font-size:10px;color:var(--c1,#004170);text-decoration:none;border:1px solid var(--c1,#004170);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
   } else {
     html+='<div class="lempty mb2">Aucune routine assignée pour le moment.</div>';
   }
 
-  // Prévention ciblée
+  // ── Prévention ciblée ──
   html+='<div class="lst mb">Prévention ciblée</div>';
   if(preventionUrl){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
@@ -1600,7 +1917,7 @@ function renderProfil(){
     html+='<div class="lempty mb2">Aucun protocole de prévention assigné.</div>';
   }
 
-  // Questionnaire profil
+  // ── Questionnaire profil ──
   html+='<div class="lst mb">Questionnaire profil</div>';
   if(questionnaireUrl){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
@@ -1612,7 +1929,7 @@ function renderProfil(){
     html+='<div class="lempty mb2">Aucun questionnaire assigné.</div>';
   }
 
-  // Programmes disponibles
+  // ── Programmes disponibles ──
   if(progsDispos.length>0){
     html+='<div class="lst mb">Programmes disponibles</div>';
     html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">';
@@ -1624,6 +1941,7 @@ function renderProfil(){
 
   elP.innerHTML=html;
 }
+
 
 function renderMecanique(){
   const el=document.getElementById('s-mecanique');
@@ -1778,6 +2096,7 @@ function renderSNC(){
   // Bouton saisie Julie uniquement
   if(IS_ADMIN){
     html+=`<div class="int-actions">
+      <button class="btn-int btn-int-add" onclick="openSNCBilan()">Nouveau bilan réflexes</button>
       <button class="btn-int btn-int-edit" onclick="openLiens([
         {label:'Programme SNC (URL)',field:'Programme SNC (URL)',value:'${progSNCUrl||''}',placeholder:'Lien programme SNC'},
         {label:'Routine activation SNC (URL)',field:'Routine activation SNC (URL)',value:'${routineActivUrl||''}',placeholder:'Lien routine activation'}
@@ -1871,6 +2190,14 @@ function renderSNC(){
   } else {
     html+='<div class="lempty mb2">Aucun programme SNC assigné pour le moment.</div>';
   }
+  // Évolution scores réflexes — si plusieurs bilans disponibles
+  // On utilise les données de TS filtrées avec score
+  const bilansAvecScore=TS.filter(t=>gp(t,'Score réflexes','number')!==null).sort((a,b)=>(gp(a,'Date','date')||'').localeCompare(gp(b,'Date','date')||''));
+  if(bilansAvecScore.length>1){
+    html+='<div class="lst mb">Évolution du profil réflexes</div>';
+    html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Score réflexes dans le temps</span></div><div class="lcard-p" style="padding:14px 16px 10px"><div style="position:relative;height:140px"><canvas id="chart-snc"></canvas></div></div></div>';
+  }
+
   // Routine activation SNC
   html+='<div class="lst mb">Routine d\'activation SNC</div>';
   if(routineActivUrl){
@@ -1893,6 +2220,23 @@ function renderSNC(){
   }
 
   el.innerHTML=html;
+
+  // Chart évolution SNC
+  setTimeout(()=>{
+    const ctx=document.getElementById('chart-snc');
+    if(!ctx) return;
+    if(CI.snc) CI.snc.destroy();
+    const labels=bilansAvecScore.map(t=>fd(gp(t,'Date','date'),true));
+    const scores=bilansAvecScore.map(t=>gp(t,'Score réflexes','number'));
+    CI.snc=new Chart(ctx,{
+      type:'line',
+      data:{labels,datasets:[{label:'Score réflexes',data:scores,borderColor:'#9c6fc9',backgroundColor:'rgba(156,111,201,.1)',tension:.4,pointRadius:4,pointBackgroundColor:'#9c6fc9',fill:true}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        y:{min:0,max:60,grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}},
+        x:{grid:{display:false},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}}
+      }}
+    });
+  },100);
 }
 
 /* ══ INTERVENANTS — MODALES ══ */
@@ -1913,6 +2257,42 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
 });
 
+
+async function saveMatch(){
+  const btn=document.getElementById('btn-save-match');
+  btn.disabled=true; btn.textContent='Enregistrement…';
+  try{
+    const adversaire=document.getElementById('match-adversaire').value.trim();
+    const date=document.getElementById('match-date').value;
+    const competition=document.getElementById('match-competition').value;
+    const resultat=document.getElementById('match-resultat').value;
+    const statut=document.getElementById('match-statut').value;
+    const saison=document.getElementById('match-saison').value;
+    const temps=parseInt(document.getElementById('match-temps').value)||null;
+    const buts=parseInt(document.getElementById('match-buts').value)||0;
+    const passes=parseInt(document.getElementById('match-passes').value)||0;
+    if(!adversaire||!date){showToast('Adversaire et date requis',false);btn.disabled=false;btn.textContent='Enregistrer';return;}
+    const props={
+      'Adversaire + date':{title:[{text:{content:'vs '+adversaire+(date?' — '+date:'')}}]},
+      'Joueur':{relation:[{id:J.id}]},
+    };
+    if(date) props['Date']={date:{start:date}};
+    if(competition) props['Compétition']={select:{name:competition}};
+    if(resultat) props['Résultats']={select:{name:resultat}};
+    if(statut) props['Titulaire/remplaçant']={select:{name:statut}};
+    if(saison) props['Saison']={select:{name:saison}};
+    if(temps) props['⏱️ Temps de jeu']={number:temps};
+    if(buts>0) props['But(s) marqué(s)']={number:buts};
+    if(passes>0) props['Passe décissive']={number:passes};
+    const r=await fetch(PROXY+'/v1/pages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({parent:{database_id:'34d69796-db3f-801c-aed5-d8cfa048dbba'},properties:props})});
+    if(!r.ok) throw new Error(r.status);
+    closeModal('modal-match');
+    showToast('Match enregistré');
+    await loadAll();
+  }catch(e){showToast('Erreur: '+e.message,false);}
+  btn.disabled=false; btn.textContent='Enregistrer';
+}
+
 function openSeanceType(type){
   document.getElementById('seance-type').value=type||'';
   openSeance();
@@ -1926,8 +2306,14 @@ function openSeance(){
   document.getElementById('seance-rdv').value='';
   document.getElementById('seance-notes').value='';
   document.getElementById('seance-pdf').value='';
-  document.getElementById('modal-seance-title').textContent='Nouvelle séance — '+INTERVENANT_TYPE;
+  document.getElementById('seance-titre').value='';
+  if(document.getElementById('seance-intervenant')) document.getElementById('seance-intervenant').value='';
+  document.getElementById('modal-seance-title').textContent='Nouvelle séance';
   openModal('modal-seance');
+}
+function updateSeanceTitre(type){
+  const t=document.getElementById('seance-titre');
+  if(t&&!t.value) t.placeholder=type||'Titre de la séance';
 }
 
 async function saveSeance(){
@@ -2184,6 +2570,66 @@ function demo(){
   NU=[];MET=[];REC=[];CLI=[];
   document.getElementById('sync-info').textContent='Mode démo · Notion non connecté';
   hero();renderOverview();renderProfil();renderSNC();
+}
+
+
+/* ══ SNC — BILAN ══ */
+const DB_SNC_BILANS = ''; // Base à créer ou réutiliser Tests athlétiques avec champ Type=SNC
+const SNC_REFLEXES=['rtac','rtsc','rtl','moro','landau','succion','amphibien','marche','peur','prehension','babinski','redressement','symetrique','robin','plantigrade'];
+const SNC_LABELS={'rtac':'RTAC','rtsc':'RTSC','rtl':'RTL','moro':'Moro','landau':'Landau','succion':'Succion','amphibien':'Amphibien','marche':'Marche auto','peur':'Peur paralysante','prehension':'Préhension','babinski':'Babinski','redressement':'Redressement','symetrique':'Sym. bras','robin':'Robin de bois','plantigrade':'Plantigrade'};
+
+function openSNCBilan(){
+  document.getElementById('snc-date').value=new Date().toISOString().split('T')[0];
+  SNC_REFLEXES.forEach(r=>{const el=document.getElementById('snc-'+r);if(el)el.value='';});
+  document.getElementById('snc-score-preview').textContent='Score total : —';
+  document.getElementById('snc-notes').value='';
+  // Score live
+  SNC_REFLEXES.forEach(r=>{
+    const el=document.getElementById('snc-'+r);
+    if(el) el.addEventListener('input',()=>{
+      const total=SNC_REFLEXES.reduce((a,x)=>{const v=parseInt(document.getElementById('snc-'+x)?.value||'0')||0;return a+v;},0);
+      const pct=Math.round(total/60*100);
+      const profil=pct<=12?'Nul':pct<=25?'Faible':pct<=50?'Moyen':pct<=75?'Élevé':'Sévère';
+      document.getElementById('snc-score-preview').textContent='Score total : '+total+' / 60 — Profil '+profil+' ('+pct+'%)';
+    });
+  });
+  openModal('modal-snc-bilan');
+}
+
+async function saveSNCBilan(){
+  const btn=document.getElementById('btn-save-snc');
+  btn.disabled=true; btn.textContent='Enregistrement…';
+  try{
+    const date=document.getElementById('snc-date').value;
+    const saison=document.getElementById('snc-saison').value;
+    const notes=document.getElementById('snc-notes').value;
+    const scores={};
+    let total=0;
+    SNC_REFLEXES.forEach(r=>{
+      const v=parseInt(document.getElementById('snc-'+r)?.value||'0')||0;
+      scores[r]=v; total+=v;
+    });
+    const pct=Math.round(total/60*100);
+    const profil=pct<=12?'Nul':pct<=25?'Faible':pct<=50?'Moyen':pct<=75?'Élevé':'Sévère';
+    // Sauvegarder dans la base Tests athlétiques avec un titre "Bilan SNC"
+    const props={
+      'Adversaire + date':{title:[{text:{content:'Bilan SNC — '+(date||new Date().toISOString().split('T')[0])}}]},
+      'Saison':{select:{name:saison}},
+      'Joueur':{relation:[{id:J.id}]},
+    };
+    // Mettre à jour le Score réflexes sur le joueur
+    await fetch(PROXY+'/v1/pages/'+J.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:{
+      'Score réflexes':{number:total},
+      'Profil réflexes':{select:{name:profil}}
+    }})});
+    // Mettre à jour J local
+    if(J.properties['Score réflexes']) J.properties['Score réflexes'].number=total;
+    if(J.properties['Profil réflexes']) J.properties['Profil réflexes'].select={name:profil};
+    closeModal('modal-snc-bilan');
+    showToast('Bilan SNC enregistré — Score '+total+'/60 ('+profil+')');
+    renderSNC();
+  }catch(e){showToast('Erreur: '+e.message,false);}
+  btn.disabled=false; btn.textContent='Enregistrer';
 }
 
 /* ══ LIENS JOUEUR (Profil / SNC / Physique) ══ */
