@@ -425,7 +425,7 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
 <script>
 // ── Config ──────────────────────────────────
 const PROXY = 'https://notion-proxy.bastierejulie.workers.dev';
-const DB_JOUEURS = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_JOUEURS = '34b69796-db3f-80b7-9443-000ba8d37b38';
 const DB_AGENTS  = 'fa08b2c8-da76-4572-bd58-c8df21f7fb83';
 
 // ── Auth guard ──────────────────────────────
@@ -593,7 +593,7 @@ async function loadAgents() {
       return `
         <tr>
           <td>
-            <div class="athlete-name">${txt(p['Nom agent'])}</div>
+            <div class="athlete-name">${txt(p['Nom'])}</div>
             <div class="athlete-club">${email(p['Email'])}</div>
           </td>
           <td><span style="font-size:11px">${txt(p['Agence'])}</span></td>
