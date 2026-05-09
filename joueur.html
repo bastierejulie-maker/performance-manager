@@ -374,7 +374,7 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
       </div>
       <div class="mfield" id="seance-pdf-wrap">
         <label>Lien PDF ou document (URL)</label>
-        <input type="url" id="seance-pdf" placeholder="https://...">
+        <input type="url" id="seance-pdf" placeholder="https://drive.google.com/file/d/.../view"><div style="font-size:10px;color:var(--ov-dim);margin-top:4px">💡 Lien Google Drive — s'ouvre directement sans interface Drive</div>
       </div>
       <div class="modal-actions">
         <button class="btn-modal-cancel" onclick="closeModal('modal-seance')">Annuler</button>
@@ -741,7 +741,7 @@ const DB_S='34d69796-db3f-801c-aed5-d8cfa048dbba';
 const DB_T='34d69796-db3f-8047-b6f9-e361371604a9';
 const DB_N='f0596ef8-c95d-4c18-b35a-a647b4325378';
 const DB_B='34d69796-db3f-80ec-8721-c4ec84c7bc53';
-const DB_MET='34d69796-db3f-8051-afd1-d25038dfc12e'; // Suivi métriques (poids/MG/conseils diet)
+const DB_MET='34d69796-db3f-8058-83df-000b271f1400'; // Suivi métriques nutrition // Suivi métriques (poids/MG/conseils diet)
 const DB_REC='6e70e21a-fcb0-40a1-af75-c93c24fb9627'; // Recettes globales
 const DB_CLI='726d3b94-8089-464f-8d62-e4100a59b1c0'; // Clips analyste
 const DB_SEANCES='94dd2ff8-0ed9-4baf-9181-a7d7daa8dc87'; // Séances intervenants
@@ -857,6 +857,20 @@ function gp(p,k,t='text'){const v=p.properties?.[k];if(!v)return null;
   if(t==='multi_select'){return(v.multi_select||[]).map(x=>x.name);}
   if(t==='checkbox')return v.checkbox??false;
   return null}
+
+// Convertit automatiquement les liens Google Drive /view → /preview pour ouverture directe
+function toPreviewUrl(url){
+  if(!url) return url;
+  // Google Drive: /view?usp=... ou /view
+  if(url.includes('drive.google.com/file/d/')){
+    return url.replace(/\/view(\?.*)?$/, '/preview').replace(/\/edit(\?.*)?$/, '/preview');
+  }
+  // Dropbox: dl=0 → dl=1 pour téléchargement direct, ou raw=1 pour preview
+  if(url.includes('dropbox.com') && url.includes('dl=0')){
+    return url.replace('dl=0','raw=1');
+  }
+  return url;
+}
 function fd(s,short=false){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('fr-FR',short?{day:'2-digit',month:'short'}:{day:'numeric',month:'long',year:'numeric'})}
 
 async function loadAll(){
@@ -1178,8 +1192,8 @@ function renderMatchs(saisonFilter,statutFilter,compFilter){
           <div class="mstat"><div class="mstat-v" style="color:var(--ov-txt)">${dspr??'—'}</div><div class="mstat-l" style="color:var(--ov-dim)">m sprint</div></div>
         </div>
         ${(rapport||rapportAnalyste)?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--ov-bdr);display:flex;gap:8px;flex-wrap:wrap">
-          ${rapport?`<a href="${rapport}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DA291C;text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">📄 Rapport GPS</a>`:''}
-          ${rapportAnalyste?`<a href="${rapportAnalyste}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5c8fc9;text-decoration:none;padding:6px 12px;border:1px solid rgba(92,143,201,.2);border-radius:8px;background:rgba(92,143,201,.04)">🎬 Rapport analyste</a>`:''}
+          ${rapport?`<a href="${toPreviewUrl(rapport)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#DA291C;text-decoration:none;padding:6px 12px;border:1px solid rgba(218,41,28,.2);border-radius:8px;background:rgba(218,41,28,.04)">📄 Rapport GPS</a>`:''}
+          ${rapportAnalyste?`<a href="${toPreviewUrl(rapportAnalyste)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5c8fc9;text-decoration:none;padding:6px 12px;border:1px solid rgba(92,143,201,.2);border-radius:8px;background:rgba(92,143,201,.04)">🎬 Rapport analyste</a>`:''}
         </div>`:''}
       </div>
     </div>`;
@@ -1899,7 +1913,7 @@ function renderProfil(){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(0,65,112,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔥</div>'
       +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine personnalisée</div><div style="font-size:10px;color:var(--ov-dim)">Protocole d échauffement individuel</div></div>'
-      +'<a href="'+routineUrl+'" target="_blank" style="font-size:10px;color:var(--c1,#004170);text-decoration:none;border:1px solid var(--c1,#004170);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'<a href="'+toPreviewUrl(routineUrl)+'" target="_blank" style="font-size:10px;color:var(--c1,#004170);text-decoration:none;border:1px solid var(--c1,#004170);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
   } else {
     html+='<div class="lempty mb2">Aucune routine assignée pour le moment.</div>';
@@ -1911,7 +1925,7 @@ function renderProfil(){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(76,175,130,.1);display:flex;align-items:center;justify-content:center;font-size:18px">🛡️</div>'
       +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme prévention</div><div style="font-size:10px;color:var(--ov-dim)">Protocole ciblé selon profil</div></div>'
-      +'<a href="'+preventionUrl+'" target="_blank" style="font-size:10px;color:#4caf7d;text-decoration:none;border:1px solid #4caf7d;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'<a href="'+toPreviewUrl(preventionUrl)+'" target="_blank" style="font-size:10px;color:#4caf7d;text-decoration:none;border:1px solid #4caf7d;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
   } else {
     html+='<div class="lempty mb2">Aucun protocole de prévention assigné.</div>';
@@ -1923,7 +1937,7 @@ function renderProfil(){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;font-size:18px">📋</div>'
       +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Questionnaire joueur</div><div style="font-size:10px;color:var(--ov-dim)">Données personnelles, habitudes, historique</div></div>'
-      +'<a href="'+questionnaireUrl+'" target="_blank" style="font-size:10px;color:var(--c2,#DA291C);text-decoration:none;border:1px solid var(--c2,#DA291C);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'<a href="'+toPreviewUrl(questionnaireUrl)+'" target="_blank" style="font-size:10px;color:var(--c2,#DA291C);text-decoration:none;border:1px solid var(--c2,#DA291C);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
   } else {
     html+='<div class="lempty mb2">Aucun questionnaire assigné.</div>';
@@ -2185,7 +2199,7 @@ function renderSNC(){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(218,41,28,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DA291C">PDF</div>'
       +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme SNC personnalisé</div><div style="font-size:10px;color:var(--ov-dim)">Protocole réflexes archaïques</div></div>'
-      +'<a href="'+progSNCUrl+'" target="_blank" style="font-size:10px;color:#DA291C;text-decoration:none;border:1px solid #DA291C;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'<a href="'+toPreviewUrl(progSNCUrl)+'" target="_blank" style="font-size:10px;color:#DA291C;text-decoration:none;border:1px solid #DA291C;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
   } else {
     html+='<div class="lempty mb2">Aucun programme SNC assigné pour le moment.</div>';
@@ -2204,7 +2218,7 @@ function renderSNC(){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(156,111,201,.1);display:flex;align-items:center;justify-content:center;font-size:18px">⚡</div>'
       +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine activation SNC</div><div style="font-size:10px;color:var(--ov-dim)">Protocole pré-séance personnalisé</div></div>'
-      +'<a href="'+routineActivUrl+'" target="_blank" style="font-size:10px;color:#9c6fc9;text-decoration:none;border:1px solid #9c6fc9;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'<a href="'+toPreviewUrl(routineActivUrl)+'" target="_blank" style="font-size:10px;color:#9c6fc9;text-decoration:none;border:1px solid #9c6fc9;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
   } else {
     html+='<div class="lempty mb2">Aucune routine activation assignée.</div>';
