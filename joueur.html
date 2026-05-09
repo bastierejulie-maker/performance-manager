@@ -1561,7 +1561,7 @@ function renderProfil(){
   if(IS_ADMIN){
     html+=`<div class="int-actions">
       <button class="btn-int btn-int-edit" onclick="openLiens([
-        {label:'Routine échauffement (URL)',field:'Routine échauffement (URL)',value:'${routineUrl||''}',placeholder:'Lien Google Drive, Notion...'},
+        {label:'Routine echauffement (URL)',field:'Routine échauffement (URL)',value:'${routineUrl||''}',placeholder:'Lien Google Drive, Notion...'},
         {label:'Prévention ciblée (URL)',field:'Prévention ciblée (URL)',value:'${preventionUrl||''}',placeholder:'Lien protocole prévention'},
         {label:'Questionnaire profil (URL)',field:'Questionnaire profil (URL)',value:'${questionnaireUrl||''}',placeholder:'Lien questionnaire joueur'}
       ])">Modifier les liens</button>
@@ -1577,11 +1577,11 @@ function renderProfil(){
   html+='</div>';
 
   // Routine échauffement
-  html+='<div class="lst mb">Routine d'échauffement</div>';
+  html+='<div class="lst mb">Routine d\'échauffement</div>';
   if(routineUrl){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(0,65,112,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔥</div>'
-      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine personnalisée</div><div style="font-size:10px;color:var(--ov-dim)">Protocole d'échauffement individuel</div></div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine personnalisée</div><div style="font-size:10px;color:var(--ov-dim)">Protocole echauffement individuel</div></div>'
       +'<a href="'+routineUrl+'" target="_blank" style="font-size:10px;color:var(--c1,#004170);text-decoration:none;border:1px solid var(--c1,#004170);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
   } else {
@@ -1861,8 +1861,6 @@ function renderSNC(){
   html+='</div></div></div>';
 
   // Programme SNC depuis Notion
-  const progSNCUrl=gp(J,'Programme SNC (URL)','url');
-  const progsDispos=(gp(J,'Programmes disponibles','multi_select')||[]);
   html+='<div class="lst mb">Programmes assignés</div>';
   if(progSNCUrl){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
