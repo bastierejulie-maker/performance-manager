@@ -745,6 +745,13 @@ const DB_MET='34d69796-db3f-8058-83df-000b271f1400'; // Suivi métriques nutriti
 const DB_REC='6e70e21a-fcb0-40a1-af75-c93c24fb9627'; // Recettes globales
 const DB_CLI='726d3b94-8089-464f-8d62-e4100a59b1c0'; // Clips analyste
 const DB_SEANCES='94dd2ff8-0ed9-4baf-9181-a7d7daa8dc87'; // Séances intervenants
+// ── Bases SNC (sous-pages joueur) ──
+const DB_SNC_PROFIL_MOTEUR='34c69796-db3f-807b-952d-000b78562ec3';
+const DB_SNC_SENSORIEL='34c69796-db3f-8094-a604-000b2ff7ab68';
+const DB_SNC_PIEDS='34c69796-db3f-8196-ace3-000b84fa393c';
+const DB_SNC_DOS='34d69796-db3f-81c5-816b-000bf46f2ef7';
+const DB_SNC_COU='34d69796-db3f-8197-b904-000b3687e0b5';
+const DB_SNC_MORO='34d69796-db3f-8190-bb92-000b04558c0f';
 const DB_DOCS='92909604-5b91-4a30-ab6e-e004dd947340'; // Documents joueur
 
 // Normes par poste avec 4 niveaux: insuffisant(<75%), bon(75-85%), très_bon(85-95%), excellent(>=95%)
@@ -933,6 +940,36 @@ async function loadAll(){
         return r.some(id=>(id||'').replace(/-/g,'')=== jid_nd);
       });
     }catch(e){ window._seances=[]; }
+
+    // Charger les données SNC filtrées par joueur
+    try{
+      const jid=J.id;
+      // Fonction query avec filtre relation joueur
+      const snqJ=async(db)=>{
+        try{
+          const b={page_size:50,sorts:[{property:'Date',direction:'descending'}],filter:{property:'Joueur',relation:{contains:jid}}};
+          const ctrl=new AbortController();
+          const tid=setTimeout(()=>ctrl.abort(),8000);
+          const r=await fetch(`${PROXY}/v1/databases/${db}/query`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b),signal:ctrl.signal});
+          clearTimeout(tid);
+          if(!r.ok) return {results:[]};
+          return r.json();
+        }catch(e){return {results:[]};}
+      };
+      const[cou_r,dos_r,pieds_r,moro_r,sens_r,mot_r]=await Promise.all([
+        snqJ(DB_SNC_COU),snqJ(DB_SNC_DOS),snqJ(DB_SNC_PIEDS),
+        snqJ(DB_SNC_MORO),snqJ(DB_SNC_SENSORIEL),snqJ(DB_SNC_PROFIL_MOTEUR),
+      ]);
+      window._sncCou=cou_r.results||[];
+      window._sncDos=dos_r.results||[];
+      window._sncPieds=pieds_r.results||[];
+      window._sncMoro=moro_r.results||[];
+      window._sncSens=sens_r.results||[];
+      window._sncMot=mot_r.results||[];
+    }catch(e){
+      window._sncCou=[];window._sncDos=[];window._sncPieds=[];
+      window._sncMoro=[];window._sncSens=[];window._sncMot=[];
+    }
 
     hero();
     // Si intervenant : rendre son onglet spécifique, sinon aperçu
@@ -2097,17 +2134,71 @@ function chipSens(nom,ok){
 
 function renderSNC(){
   const el=document.getElementById('s-snc');
+  if(!el) return;
+
+  // Données depuis les vraies bases SNC
+  const couBilans=window._sncCou||[];
+  const dosBilans=window._sncDos||[];
+  const piedsBilans=window._sncPieds||[];
+  const moroBilans=window._sncMoro||[];
+  const sensBilans=window._sncSens||[];
+  const motBilans=window._sncMot||[];
+
+  // Derniers bilans
+  const lastCou=couBilans[0]||null;
+  const lastDos=dosBilans[0]||null;
+  const lastPieds=piedsBilans[0]||null;
+  const lastMoro=moroBilans[0]||null;
+  const lastSens=sensBilans[0]||null;
+  const lastMot=motBilans[0]||null;
+
+  // Score réflexes et profil depuis la fiche joueur (résumé)
   const scoreRef=gp(J,'Score réflexes','number');
   const profilRef=gp(J,'Profil réflexes','select')||'—';
   const profilColor={'Nul':'#4caf7d','Faible':'#81c784','Moyen':'#ffb74d','Élevé':'#e57373','Sévère':'#c62828'};
   const pColor=profilColor[profilRef]||'#9a907e';
   const progSNCUrl=gp(J,'Programme SNC (URL)','url');
   const routineActivUrl=gp(J,'Routine activation SNC (URL)','url');
-  const progsDispos=(gp(J,'Programmes disponibles','multi_select')||[]).filter(p=>p.toLowerCase().includes('snc')||p.toLowerCase().includes('réflexe')||p.toLowerCase().includes('protocole'));
+
+  // Helper checkbox
+  const cb=(page,field)=>page?.properties?.[field]?.checkbox===true;
+  const dot=(actif)=>actif
+    ?'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e57373;border:1px solid #e5737388;flex-shrink:0"></span>'
+    :'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f0ede8;border:1px solid #e0dbd5;flex-shrink:0"></span>';
+  const row2=(label,g,d)=>`<div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--ov-bdr)">
+    <span style="font-size:11px;color:var(--ov-muted)">${label}</span>
+    <div style="display:flex;align-items:center;gap:4px">${dot(g)}<span style="font-size:9px;color:var(--ov-dim)">G</span></div>
+    <div style="display:flex;align-items:center;gap:4px">${dot(d)}<span style="font-size:9px;color:var(--ov-dim)">D</span></div>
+  </div>`;
+  const row1=(label,actif)=>`<div style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--ov-bdr)">
+    <span style="font-size:11px;color:var(--ov-muted)">${label}</span>
+    ${dot(actif)}
+  </div>`;
+
+  // Calculer score depuis les bases (si bilans présents)
+  let scoreCou=0,scoreDos=0,scorePieds=0,scoreMoro=0;
+  if(lastCou){
+    const p=lastCou.properties||{};
+    ['RTAC gauche','RTAC droite ','RTSC ext','RTSC flx','RTL ext','RTL flx','RT (redressement de la tête)'].forEach(f=>{if(p[f]?.checkbox) scoreCou++;});
+  }
+  if(lastDos){
+    const p=lastDos.properties||{};
+    ['Galant gauche','Galant droite','Perez'].forEach(f=>{if(p[f]?.checkbox) scoreDos++;});
+  }
+  if(lastPieds){
+    const p=lastPieds.properties||{};
+    ['Babinski gauche','Babinski droite','Babinski fonctionnel gauche','Babinski fonctionnel droite ','RAL gauche','RAL droite','RAP gauche (plantaire)','RAP droite (plantaire)'].forEach(f=>{if(p[f]?.checkbox) scorePieds++;});
+  }
+  if(lastMoro){
+    const p=lastMoro.properties||{};
+    ['Moro','épaule gauche','épaule droite ','Iliaque gauche','Iliaque droite','menton','visuel','tactile','Auditif'].forEach(f=>{if(p[f]?.checkbox) scoreMoro++;});
+  }
+  const scoreTotal=scoreCou+scoreDos+scorePieds+scoreMoro;
+  const hasData=lastCou||lastDos||lastPieds||lastMoro;
 
   let html='';
 
-  // Bouton saisie Julie uniquement
+  // Boutons Julie
   if(IS_ADMIN){
     html+=`<div class="int-actions">
       <button class="btn-int btn-int-add" onclick="openSNCBilan()">Nouveau bilan réflexes</button>
@@ -2118,140 +2209,183 @@ function renderSNC(){
     </div>`;
   }
 
-  // Score global
-  html+='<div class="g2 mb2">'
-    +'<div class="lkpi"><div class="lkpi-v" style="color:'+(scoreRef!==null?(scoreRef>16?'#e57373':scoreRef>8?'#ffb74d':'#4caf7d'):'#9a907e')+'">'+(scoreRef!==null?scoreRef:'—')+'<span style="font-size:14px;color:var(--ov-dim)"> / 28</span></div><div class="lkpi-l">RTAC · RTSC · RTL · Moro</div></div>'
-    +'<div class="lkpi"><div class="lkpi-v" style="color:'+pColor+'">'+profilRef+'</div><div class="lkpi-l">Profil global</div></div>'
-    +'</div>';
+  // ── Score global ──
+  html+='<div class="g2 mb2">';
+  html+='<div class="lkpi"><div class="lkpi-v" style="color:'+(scoreRef!==null?(scoreRef>30?'#e57373':scoreRef>15?'#ffb74d':'#4caf7d'):'#9a907e')+'">'+(scoreRef!==null?scoreRef:(hasData?scoreTotal:'—'))+'</div><div class="lkpi-l">Score réflexes / 60</div></div>';
+  html+='<div class="lkpi"><div class="lkpi-v" style="color:'+pColor+'">'+profilRef+'</div><div class="lkpi-l">Profil global</div></div>';
+  html+='</div>';
 
-  // Légende niveaux
+  // Légende profils
   const profils=[['Nul','0–12%','#4caf7d'],['Faible','13–25%','#81c784'],['Moyen','26–50%','#ffb74d'],['Élevé','51–75%','#e57373'],['Sévère','>75%','#c62828']];
-  html+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px">';
-  profils.forEach(([n,p,c])=>{
+  html+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:20px">';
+  profils.forEach(([n,p,col])=>{
     const active=n===profilRef;
-    html+='<div style="flex:1;min-width:55px;text-align:center;padding:7px 5px;border-radius:8px;background:'+(active?c+'22':'var(--ov-bg,#f8f7f4)')+';border:'+(active?'1px solid '+c:'1px solid var(--ov-bdr)')+';">'
-      +'<div style="font-size:9px;font-weight:700;color:'+c+'">'+n+'</div>'
-      +'<div style="font-size:8px;color:var(--ov-dim);margin-top:2px">'+p+'</div>'
-      +'</div>';
+    html+=`<div style="flex:1;min-width:55px;text-align:center;padding:7px 5px;border-radius:8px;background:${active?col+'22':'var(--ov-bg,#f8f7f4)'};border:${active?'1px solid '+col:'1px solid var(--ov-bdr)'}">
+      <div style="font-size:9px;font-weight:700;color:${col}">${n}</div>
+      <div style="font-size:8px;color:var(--ov-dim);margin-top:2px">${p}</div>
+    </div>`;
   });
   html+='</div>';
 
-  // Tableau réflexes
-  html+='<div class="lst mb">Réflexes — RTAC · RTSC · RTL · Moro</div>';
-  html+='<div class="lcard mb2">'
-    +'<div class="lcard-p">'
-    +'<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--ov-bdr);margin-bottom:4px">'
-    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em"></span>'
-    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em;text-align:center">G / Flex</span>'
-    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em;text-align:center">D / Ext</span>'
-    +'<span style="font-size:8px;font-weight:700;color:var(--ov-dim);text-transform:uppercase;letter-spacing:.1em;text-align:center">Total</span>'
-    +'</div>'
-    +'<div style="font-size:11px;color:var(--ov-muted);font-style:italic;text-align:center;padding:10px 0">Scores disponibles après connexion des bases réflexes.</div>'
-    +'</div></div>';
+  // ── Profil moteur ──
+  html+='<div class="lst mb">Profil moteur</div>';
+  if(lastMot){
+    const mp=lastMot.properties||{};
+    const motPrinc=mp['Motricité principale']?.select?.name||'—';
+    const motAssoc=mp['Motricité ']?.select?.name||'—';
+    const oeil=mp['Oeil moteur']?.select?.name||'—';
+    const epaule=mp['Epaule motrice']?.select?.name||'—';
+    const chaineEn=mp['Chaines énergétiques']?.select?.name||'—';
+    const chaineResp=mp['Chaine respiratoire']?.select?.name||'—';
+    const dateMot=mp['Date']?.date?.start;
+    html+=`<div class="lcard mb2">
+      <div class="lcard-h" style="display:flex;justify-content:space-between;align-items:center">
+        <span class="lcard-ht">Bilan profil moteur</span>
+        <span style="font-size:9px;color:var(--ov-dim)">${dateMot?fd(dateMot,true):''}</span>
+      </div>
+      <div class="lcard-p">
+        <div class="g2" style="gap:8px;margin-bottom:10px">
+          <div style="background:#f8f7f4;border-radius:8px;padding:10px 12px">
+            <div style="font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700;margin-bottom:4px">Motricité principale</div>
+            <div style="font-family:Bebas Neue,serif;font-size:22px;color:var(--ov-txt)">${motPrinc}</div>
+          </div>
+          <div style="background:#f8f7f4;border-radius:8px;padding:10px 12px">
+            <div style="font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700;margin-bottom:4px">Motricité assoc./dissoc.</div>
+            <div style="font-family:Bebas Neue,serif;font-size:22px;color:var(--ov-txt)">${motAssoc}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          ${[['Œil moteur',oeil],['Épaule motrice',epaule],['Chaînes énergétiques',chaineEn],['Chaîne respiratoire',chaineResp]].map(([l,v])=>`
+          <div class="lrow"><span class="lrow-l">${l}</span><span class="lrow-v">${v}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  } else {
+    html+='<div class="lempty mb2">Aucun bilan profil moteur enregistré.</div>';
+  }
 
-  // Réflexes pieds
-  html+='<div class="lst mb">Réflexes pieds</div>';
-  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">';
-  ['Babinski G','Babinski D','Bab. fonct. G','Bab. fonct. D','RAL G','RAL D','RAP G','RAP D'].forEach(n=>{
-    html+=chipActif(n,false);
-  });
-  html+='</div>';
+  // ── Réflexes archaïques ──
+  html+='<div class="lst mb">Réflexes archaïques</div>';
 
-  // Radiation
-  html+='<div class="lst mb">Réflexe de radiation — étoile à 6 points</div>';
-  html+='<div style="font-size:10px;color:var(--ov-muted);margin-bottom:8px">Connexion nombril → périphérie</div>';
-  html+='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px">';
-  ['Épaule G','Épaule D','Iliaque G','Iliaque D','Menton','Sacrum'].forEach(n=>{
-    html+=chipActif(n,false);
-  });
-  html+='</div>';
+  // RP Cou
+  html+=`<div class="lcard mb">
+    <div class="lcard-h" style="display:flex;justify-content:space-between">
+      <span class="lcard-ht">RP Cou</span>
+      ${lastCou?`<span style="font-size:9px;color:var(--ov-dim)">${fd(lastCou.properties?.Date?.date?.start,true)} · ${scoreCou} actifs</span>`:'<span style="font-size:9px;color:var(--ov-dim)">—</span>'}
+    </div>
+    <div class="lcard-p">`;
+  if(lastCou){
+    const p=lastCou.properties||{};
+    html+=row2('RTAC',cb(lastCou,'RTAC gauche'),cb(lastCou,'RTAC droite '));
+    html+=row2('RTSC ext',cb(lastCou,'RTSC ext'),cb(lastCou,'RTSC ext'));
+    html+=row2('RTL ext/flx',cb(lastCou,'RTL ext'),cb(lastCou,'RTL flx'));
+    html+=row1('RT (redressement de la tête)',cb(lastCou,'RT (redressement de la tête)'));
+  } else {
+    html+='<div style="font-size:11px;color:var(--ov-dim);font-style:italic">Aucun bilan enregistré</div>';
+  }
+  html+='</div></div>';
 
-  // Système sensoriel
+  // RP Dos
+  html+=`<div class="lcard mb">
+    <div class="lcard-h" style="display:flex;justify-content:space-between">
+      <span class="lcard-ht">RP Dos</span>
+      ${lastDos?`<span style="font-size:9px;color:var(--ov-dim)">${fd(lastDos.properties?.Date?.date?.start,true)} · ${scoreDos} actifs</span>`:'<span style="font-size:9px;color:var(--ov-dim)">—</span>'}
+    </div>
+    <div class="lcard-p">`;
+  if(lastDos){
+    html+=row2('Galant',cb(lastDos,'Galant gauche'),cb(lastDos,'Galant droite'));
+    html+=row1('Perez',cb(lastDos,'Perez'));
+  } else {
+    html+='<div style="font-size:11px;color:var(--ov-dim);font-style:italic">Aucun bilan enregistré</div>';
+  }
+  html+='</div></div>';
+
+  // RP Pieds
+  html+=`<div class="lcard mb">
+    <div class="lcard-h" style="display:flex;justify-content:space-between">
+      <span class="lcard-ht">RP Pieds</span>
+      ${lastPieds?`<span style="font-size:9px;color:var(--ov-dim)">${fd(lastPieds.properties?.Date?.date?.start,true)} · ${scorePieds} actifs</span>`:'<span style="font-size:9px;color:var(--ov-dim)">—</span>'}
+    </div>
+    <div class="lcard-p">`;
+  if(lastPieds){
+    html+=row2('Babinski',cb(lastPieds,'Babinski gauche'),cb(lastPieds,'Babinski droite'));
+    html+=row2('Babinski fonctionnel',cb(lastPieds,'Babinski fonctionnel gauche'),cb(lastPieds,'Babinski fonctionnel droite '));
+    html+=row2('RAL',cb(lastPieds,'RAL gauche'),cb(lastPieds,'RAL droite'));
+    html+=row2('RAP plantaire',cb(lastPieds,'RAP gauche (plantaire)'),cb(lastPieds,'RAP droite (plantaire)'));
+  } else {
+    html+='<div style="font-size:11px;color:var(--ov-dim);font-style:italic">Aucun bilan enregistré</div>';
+  }
+  html+='</div></div>';
+
+  // RP Moro + PP5
+  html+=`<div class="lcard mb2">
+    <div class="lcard-h" style="display:flex;justify-content:space-between">
+      <span class="lcard-ht">RP Moro + PP5 (radiation)</span>
+      ${lastMoro?`<span style="font-size:9px;color:var(--ov-dim)">${fd(lastMoro.properties?.Date?.date?.start,true)} · ${scoreMoro} actifs</span>`:'<span style="font-size:9px;color:var(--ov-dim)">—</span>'}
+    </div>
+    <div class="lcard-p">`;
+  if(lastMoro){
+    html+=row1('Moro',cb(lastMoro,'Moro'));
+    html+=row2('Épaules',cb(lastMoro,'épaule gauche'),cb(lastMoro,'épaule droite '));
+    html+=row2('Iliaques',cb(lastMoro,'Iliaque gauche'),cb(lastMoro,'Iliaque droite'));
+    html+=row1('Menton',cb(lastMoro,'menton'));
+    html+=row1('Visuel',cb(lastMoro,'visuel'));
+    html+=row1('Tactile',cb(lastMoro,'tactile'));
+    html+=row1('Auditif',cb(lastMoro,'Auditif'));
+  } else {
+    html+='<div style="font-size:11px;color:var(--ov-dim);font-style:italic">Aucun bilan enregistré</div>';
+  }
+  html+='</div></div>';
+
+  // ── Système sensoriel ──
   html+='<div class="lst mb">Système sensoriel</div>';
+  if(lastSens){
+    const dateSens=lastSens.properties?.Date?.date?.start;
+    html+=`<div class="lcard mb2">
+      <div class="lcard-h" style="display:flex;justify-content:space-between">
+        <span class="lcard-ht">Bilan sensoriel</span>
+        ${dateSens?`<span style="font-size:9px;color:var(--ov-dim)">${fd(dateSens,true)}</span>`:''}
+      </div>
+      <div class="lcard-p">
+        <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700;margin-bottom:8px">Vestibulaire — canaux</div>`;
+    html+=row2('Canal haut',cb(lastSens,'Canal Gauche haut'),cb(lastSens,'Canal Droite haut'));
+    html+=row2('Canal bas',cb(lastSens,'Canale Gauche bas'),cb(lastSens,'Canal Droite bas'));
+    html+=row2('Canal global',cb(lastSens,'Canal Gauche'),cb(lastSens,'Canal Droite'));
+    html+='<div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700;margin:12px 0 8px">Visuel — convergences</div>';
+    html+=row2('Statique',cb(lastSens,'Convergence statique gauche'),cb(lastSens,'Convergence statique droite'));
+    html+=row2('Dynamique',cb(lastSens,'Convergence dynamique gauche'),cb(lastSens,'Convergence dynamique droite'));
+    html+='<div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ov-dim);font-family:Syne,sans-serif;font-weight:700;margin:12px 0 8px">Proprioception — Romberg</div>';
+    html+=row1('Romberg simple',cb(lastSens,'Roomberg simple'));
+    html+=row1('Complexe yeux ouverts',cb(lastSens,'Roomberg complexe yeux ouverts'));
+    html+=row1('Complexe yeux fermés',cb(lastSens,'Roomberg complexe yeux fermés'));
+    html+='</div></div>';
+  } else {
+    html+='<div class="lempty mb2">Aucun bilan sensoriel enregistré.</div>';
+  }
 
-  // Vestibulaire
-  html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Vestibulaire — 6 canaux</span></div>'
-    +'<div class="lcard-p"><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">';
-  ['Canal G haut','Canal G bas','Canal D haut','Canal D bas','Canal ant. G','Canal ant. D'].forEach(n=>{
-    html+=chipSens(n,false);
-  });
-  html+='</div></div></div>';
-
-  // Visuel
-  html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Visuel — Convergences</span></div>'
-    +'<div class="lcard-p"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">';
-  ['Stat. G','Stat. D','Dyn. G','Dyn. D'].forEach(n=>{
-    html+=chipSens(n,false);
-  });
-  html+='</div></div></div>';
-
-  // Proprioception Romberg
-  html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Proprioception — Romberg</span></div>'
-    +'<div class="lcard-p"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">';
-  ['Romberg simple','Complexe YO','Complexe YF'].forEach(n=>{
-    html+=chipSens(n,false);
-  });
-  html+='</div></div></div>';
-
-  // Programme SNC depuis Notion
-  html+='<div class="lst mb">Programmes assignés</div>';
+  // ── Programme + Routine ──
+  html+='<div class="lst mb">Programme & Routine</div>';
   if(progSNCUrl){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
-      +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(218,41,28,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DA291C">PDF</div>'
-      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme SNC personnalisé</div><div style="font-size:10px;color:var(--ov-dim)">Protocole réflexes archaïques</div></div>'
-      +'<a href="'+toPreviewUrl(progSNCUrl)+'" target="_blank" style="font-size:10px;color:#DA291C;text-decoration:none;border:1px solid #DA291C;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(156,111,201,.1);display:flex;align-items:center;justify-content:center;font-size:18px">📋</div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme SNC personnalisé</div></div>'
+      +'<a href="'+toPreviewUrl(progSNCUrl)+'" target="_blank" style="font-size:10px;color:#9c6fc9;text-decoration:none;border:1px solid #9c6fc9;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
-  } else {
-    html+='<div class="lempty mb2">Aucun programme SNC assigné pour le moment.</div>';
   }
-  // Évolution scores réflexes — si plusieurs bilans disponibles
-  // On utilise les données de TS filtrées avec score
-  const bilansAvecScore=TS.filter(t=>gp(t,'Score réflexes','number')!==null).sort((a,b)=>(gp(a,'Date','date')||'').localeCompare(gp(b,'Date','date')||''));
-  if(bilansAvecScore.length>1){
-    html+='<div class="lst mb">Évolution du profil réflexes</div>';
-    html+='<div class="lcard mb2"><div class="lcard-h"><span class="lcard-ht">Score réflexes dans le temps</span></div><div class="lcard-p" style="padding:14px 16px 10px"><div style="position:relative;height:140px"><canvas id="chart-snc"></canvas></div></div></div>';
-  }
-
-  // Routine activation SNC
-  html+='<div class="lst mb">Routine d\'activation SNC</div>';
   if(routineActivUrl){
     html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
       +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(156,111,201,.1);display:flex;align-items:center;justify-content:center;font-size:18px">⚡</div>'
-      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine activation SNC</div><div style="font-size:10px;color:var(--ov-dim)">Protocole pré-séance personnalisé</div></div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine activation SNC</div></div>'
       +'<a href="'+toPreviewUrl(routineActivUrl)+'" target="_blank" style="font-size:10px;color:#9c6fc9;text-decoration:none;border:1px solid #9c6fc9;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
       +'</div></div>';
-  } else {
-    html+='<div class="lempty mb2">Aucune routine activation assignée.</div>';
   }
-
-  if(progsDispos.length>0){
-    html+='<div class="lst mb">Programmes disponibles</div>';
-    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">';
-    progsDispos.forEach(p=>{
-      html+='<span style="font-size:10px;padding:5px 12px;background:rgba(218,41,28,.06);border:1px solid rgba(218,41,28,.2);border-radius:20px;color:#DA291C">'+p+'</span>';
-    });
-    html+='</div>';
+  if(!progSNCUrl && !routineActivUrl){
+    html+='<div class="lempty mb2">Aucun programme ou routine assigné.</div>';
   }
 
   el.innerHTML=html;
-
-  // Chart évolution SNC
-  setTimeout(()=>{
-    const ctx=document.getElementById('chart-snc');
-    if(!ctx) return;
-    if(CI.snc) CI.snc.destroy();
-    const labels=bilansAvecScore.map(t=>fd(gp(t,'Date','date'),true));
-    const scores=bilansAvecScore.map(t=>gp(t,'Score réflexes','number'));
-    CI.snc=new Chart(ctx,{
-      type:'line',
-      data:{labels,datasets:[{label:'Score réflexes',data:scores,borderColor:'#9c6fc9',backgroundColor:'rgba(156,111,201,.1)',tension:.4,pointRadius:4,pointBackgroundColor:'#9c6fc9',fill:true}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-        y:{min:0,max:60,grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}},
-        x:{grid:{display:false},ticks:{color:'#9a907e',font:{size:9}},border:{display:false}}
-      }}
-    });
-  },100);
 }
+
 
 /* ══ INTERVENANTS — MODALES ══ */
 
