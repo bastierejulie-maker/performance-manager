@@ -534,6 +534,25 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<!-- Modale : Modifier liens (Profil / SNC / Physique) -->
+<div class="modal-overlay" id="modal-liens">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-liens-title">Modifier les liens</span>
+      <button class="modal-close" onclick="closeModal('modal-liens')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-liens-fields"></div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal('modal-liens')">Annuler</button>
+        <button class="btn-modal-save" id="btn-save-liens" onclick="saveLiens()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
 const PROXY='https://notion-proxy.bastierejulie.workers.dev';
 const DB_J='34b69796-db3f-8002-9344-eba7a2c4dbe4';
@@ -562,6 +581,17 @@ const JID=P.get('id')||null;
 const IS_INTERVENANT=P.get('intervenant')==='1';
 const INTERVENANT_TYPE=P.get('type')||'';
 const INTERVENANT_ATHLETES=(P.get('athletes')||'').split(',').filter(Boolean);
+
+// Rôle depuis sessionStorage (login.html)
+const _pmUser=JSON.parse(sessionStorage.getItem('pm_user')||'null');
+const USER_ROLE=_pmUser?.role||'joueur'; // admin | agent | joueur | intervenant
+const IS_ADMIN=USER_ROLE==='admin';
+const IS_AGENT=USER_ROLE==='agent';
+const IS_JOUEUR=USER_ROLE==='joueur'||(!_pmUser&&!IS_INTERVENANT);
+// Seul l'admin (Julie) peut éditer
+const CAN_EDIT=IS_ADMIN;
+// Intervenants ET prépa physique peuvent saisir des séances
+const CAN_SAISIR=IS_ADMIN||IS_INTERVENANT;
 let J=null,ST=[],TS=[],NU=[],BL=[],CI={},MET=[],REC=[],CLI=[];
 
 // Onglets autorisés par type d'intervenant
@@ -1074,11 +1104,15 @@ function renderPerf(saisonFilter){
 
   const el=document.getElementById('s-perf');
   el.innerHTML=`
-    ${(IS_INTERVENANT&&INTERVENANT_TYPE==='Préparateur physique')||!IS_INTERVENANT?`
+    ${CAN_SAISIR||IS_ADMIN?`
     <div class="int-actions">
       <button class="btn-int btn-int-add" onclick="openSeanceType('Prépa physique')">Nouvelle séance</button>
       <button class="btn-int btn-int-add" onclick="openRDVType('Prépa physique')">Prévoir un RDV</button>
       <button class="btn-int btn-int-add" onclick="openModal('modal-test')">Nouveau test</button>
+      ${IS_ADMIN?`<button class="btn-int btn-int-edit" onclick="openLiens([
+        {label:'Programme physique (URL)',field:'Programme physique (URL)',value:'${progPhysiqueUrl||''}',placeholder:'Lien programme physique'},
+        {label:'Direction saison (URL)',field:'Direction saison (URL)',value:'${gp(J,'Direction saison (URL)','url')||''}',placeholder:'Lien direction de saison'}
+      ])">Modifier les liens</button>`:''}
     </div>`:''}
 
     <!-- KPIs physique -->
@@ -1103,6 +1137,14 @@ function renderPerf(saisonFilter){
         <div style="width:36px;height:36px;border-radius:8px;background:rgba(218,41,28,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DA291C">PDF</div>
         <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Programme physique</div><div style="font-size:10px;color:var(--ov-dim)">Plan de saison personnalisé</div></div>
         <a href="${progPhysiqueUrl}" target="_blank" style="font-size:10px;color:#DA291C;text-decoration:none;border:1px solid #DA291C;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>
+      </div>
+    </div>`:''}
+    ${gp(J,'Direction saison (URL)','url')?`
+    <div class="lcard mb2">
+      <div class="lcard-p" style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(0,65,112,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🧭</div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Direction de saison</div><div style="font-size:10px;color:var(--ov-dim)">Objectifs et orientations de la saison</div></div>
+        <a href="${gp(J,'Direction saison (URL)','url')}" target="_blank" style="font-size:10px;color:var(--c1,#004170);text-decoration:none;border:1px solid var(--c1,#004170);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>
       </div>
     </div>`:''}
 
@@ -1374,7 +1416,7 @@ function renderSante(saisonFilter,typeFilter,zoneFilter){
 
   document.getElementById('s-sante').innerHTML=`
     <!-- Boutons intervenants -->
-    ${IS_INTERVENANT && (INTERVENANT_TYPE==='Kiné'||INTERVENANT_TYPE==='Ostéopathe') ? `
+    ${(IS_INTERVENANT && (INTERVENANT_TYPE==='Kiné'||INTERVENANT_TYPE==='Ostéopathe'))||IS_ADMIN ? `
     <div class="int-actions">
       <button class="btn-int btn-int-add" onclick="openSeance()">Nouvelle séance</button>
       <button class="btn-int btn-int-add" onclick="openRDV()">Prévoir un RDV</button>
@@ -1503,6 +1545,7 @@ function renderProfil(){
   if(!elP) return;
   const routineUrl=gp(J,'Routine échauffement (URL)','url');
   const preventionUrl=gp(J,'Prévention ciblée (URL)','url');
+  const questionnaireUrl=gp(J,'Questionnaire profil (URL)','url');
   const progsDispos=(gp(J,'Programmes disponibles','multi_select')||[]);
   const poids=gp(J,'Poids (kg)','number');
   const taille=gp(J,'Taille (cm)','number');
@@ -1511,7 +1554,19 @@ function renderProfil(){
   const nat=gp(J,'Nationalité sportive','text')||'—';
   const club=gp(J,'Club actuel','text')||'—';
 
+  const canEdit=!IS_INTERVENANT||(INTERVENANT_TYPE==='Préparateur physique');
   let html='';
+
+  // Boutons saisie Julie/prépa
+  if(IS_ADMIN){
+    html+=`<div class="int-actions">
+      <button class="btn-int btn-int-edit" onclick="openLiens([
+        {label:'Routine échauffement (URL)',field:'Routine échauffement (URL)',value:'${routineUrl||''}',placeholder:'Lien Google Drive, Notion...'},
+        {label:'Prévention ciblée (URL)',field:'Prévention ciblée (URL)',value:'${preventionUrl||''}',placeholder:'Lien protocole prévention'},
+        {label:'Questionnaire profil (URL)',field:'Questionnaire profil (URL)',value:'${questionnaireUrl||''}',placeholder:'Lien questionnaire joueur'}
+      ])">Modifier les liens</button>
+    </div>`;
+  }
 
   // Données perso
   html+='<div class="lst mb">Informations joueur</div>';
@@ -1543,6 +1598,18 @@ function renderProfil(){
       +'</div></div>';
   } else {
     html+='<div class="lempty mb2">Aucun protocole de prévention assigné.</div>';
+  }
+
+  // Questionnaire profil
+  html+='<div class="lst mb">Questionnaire profil</div>';
+  if(questionnaireUrl){
+    html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
+      +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;font-size:18px">📋</div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Questionnaire joueur</div><div style="font-size:10px;color:var(--ov-dim)">Données personnelles, habitudes, historique</div></div>'
+      +'<a href="'+questionnaireUrl+'" target="_blank" style="font-size:10px;color:var(--c2,#DA291C);text-decoration:none;border:1px solid var(--c2,#DA291C);padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'</div></div>';
+  } else {
+    html+='<div class="lempty mb2">Aucun questionnaire assigné.</div>';
   }
 
   // Programmes disponibles
@@ -1702,8 +1769,21 @@ function renderSNC(){
   const profilRef=gp(J,'Profil réflexes','select')||'—';
   const profilColor={'Nul':'#4caf7d','Faible':'#81c784','Moyen':'#ffb74d','Élevé':'#e57373','Sévère':'#c62828'};
   const pColor=profilColor[profilRef]||'#9a907e';
+  const progSNCUrl=gp(J,'Programme SNC (URL)','url');
+  const routineActivUrl=gp(J,'Routine activation SNC (URL)','url');
+  const progsDispos=(gp(J,'Programmes disponibles','multi_select')||[]).filter(p=>p.toLowerCase().includes('snc')||p.toLowerCase().includes('réflexe')||p.toLowerCase().includes('protocole'));
 
   let html='';
+
+  // Bouton saisie Julie uniquement
+  if(IS_ADMIN){
+    html+=`<div class="int-actions">
+      <button class="btn-int btn-int-edit" onclick="openLiens([
+        {label:'Programme SNC (URL)',field:'Programme SNC (URL)',value:'${progSNCUrl||''}',placeholder:'Lien programme SNC'},
+        {label:'Routine activation SNC (URL)',field:'Routine activation SNC (URL)',value:'${routineActivUrl||''}',placeholder:'Lien routine activation'}
+      ])">Modifier les liens SNC</button>
+    </div>`;
+  }
 
   // Score global
   html+='<div class="g2 mb2">'
@@ -1793,6 +1873,18 @@ function renderSNC(){
   } else {
     html+='<div class="lempty mb2">Aucun programme SNC assigné pour le moment.</div>';
   }
+  // Routine activation SNC
+  html+='<div class="lst mb">Routine d\'activation SNC</div>';
+  if(routineActivUrl){
+    html+='<div class="lcard mb2"><div class="lcard-p" style="display:flex;align-items:center;gap:12px">'
+      +'<div style="width:36px;height:36px;border-radius:8px;background:rgba(156,111,201,.1);display:flex;align-items:center;justify-content:center;font-size:18px">⚡</div>'
+      +'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ov-txt)">Routine activation SNC</div><div style="font-size:10px;color:var(--ov-dim)">Protocole pré-séance personnalisé</div></div>'
+      +'<a href="'+routineActivUrl+'" target="_blank" style="font-size:10px;color:#9c6fc9;text-decoration:none;border:1px solid #9c6fc9;padding:5px 10px;border-radius:6px">Ouvrir ↗</a>'
+      +'</div></div>';
+  } else {
+    html+='<div class="lempty mb2">Aucune routine activation assignée.</div>';
+  }
+
   if(progsDispos.length>0){
     html+='<div class="lst mb">Programmes disponibles</div>';
     html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">';
@@ -2095,6 +2187,51 @@ function demo(){
   document.getElementById('sync-info').textContent='Mode démo · Notion non connecté';
   hero();renderOverview();renderProfil();renderSNC();
 }
+
+/* ══ LIENS JOUEUR (Profil / SNC / Physique) ══ */
+let _liensConfig=[];
+function openLiens(config){
+  // config = [{label, field, value, placeholder}]
+  _liensConfig=config;
+  document.getElementById('modal-liens-title').textContent='Modifier les liens';
+  const fieldsEl=document.getElementById('modal-liens-fields');
+  fieldsEl.innerHTML=config.map((c,i)=>`
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ov-muted);margin-bottom:6px">${c.label}</label>
+      <input id="liens-field-${i}" type="url" value="${c.value||''}" placeholder="${c.placeholder||'https://'}" style="width:100%;background:var(--ov-bg,#f8f7f4);border:1px solid var(--ov-bdr);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--ov-txt);font-family:inherit">
+    </div>`).join('');
+  openModal('modal-liens');
+}
+async function saveLiens(){
+  const btn=document.getElementById('btn-save-liens');
+  btn.disabled=true; btn.textContent='Enregistrement…';
+  try{
+    const props={};
+    _liensConfig.forEach((c,i)=>{
+      const val=document.getElementById('liens-field-'+i).value.trim();
+      props[c.field]={url:val||null};
+    });
+    const r=await fetch(PROXY+'/v1/pages/'+J.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:props})});
+    if(!r.ok)throw new Error(r.status);
+    // Mettre à jour J local
+    _liensConfig.forEach((c,i)=>{
+      const val=document.getElementById('liens-field-'+i).value.trim();
+      if(J.properties[c.field]) J.properties[c.field]={type:'url',url:val||null};
+      else J.properties[c.field]={url:val||null};
+    });
+    closeModal('modal-liens');
+    showToast('Liens mis à jour');
+    // Re-render l'onglet actif
+    const activeTab=document.querySelector('.nav-t.active');
+    if(activeTab){
+      const tabId=activeTab.id.replace('tab-','');
+      const renderMap={mecanique:renderProfil,snc:renderSNC,perf:renderPerf};
+      if(renderMap[tabId]) renderMap[tabId]();
+    }
+  }catch(e){showToast('Erreur: '+e.message,false);}
+  btn.disabled=false; btn.textContent='Enregistrer';
+}
+
 </script>
 </body>
 </html>
