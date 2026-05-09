@@ -864,19 +864,32 @@ async function loadAll(){
     }
     if(!J)throw new Error('no joueur');
 
-    // Charger toutes les données en parallèle
-    const[sr,tr,nr,br]=await Promise.all([
-      safeLoad(DB_S,[{property:'Date',direction:'descending'}]),
-      safeLoad(DB_T,[{property:'Date',direction:'descending'}]),
-      safeLoad(DB_N,[{property:'Date',direction:'descending'}]),
-      safeLoad(DB_B,[{property:'Date',direction:'descending'}]),
-    ]);
-    const jid_nd=J.id.replace(/-/g,'');
+    // Charger les données filtrées par joueur directement via l'API
+    const jid=J.id;
+    const jid_nd=jid.replace(/-/g,'');
     const flt=arr=>arr.filter(x=>{
       const r=gp(x,'Joueur','relation')||[];
       return r.some(id=>(id||'').replace(/-/g,'')=== jid_nd);
     });
-    ST=flt(sr.results||[]);TS=flt(tr.results||[]);NU=flt(nr.results||[]);BL=flt(br.results||[]);
+    const loadFiltered=async(db,sorts=[])=>{
+      try{
+        const b={page_size:100,filter:{property:'Joueur',relation:{contains:jid}}};
+        if(sorts.length) b.sorts=sorts;
+        const ctrl=new AbortController();
+        const tid=setTimeout(()=>ctrl.abort(),8000);
+        const r=await fetch(`${PROXY}/v1/databases/${db}/query`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b),signal:ctrl.signal});
+        clearTimeout(tid);
+        if(!r.ok){console.warn('loadFiltered 404:',db,r.status);return {results:[]};}
+        return r.json();
+      }catch(e){console.warn('loadFiltered err:',db,e);return {results:[]};}
+    };
+    const[sr,tr,nr,br]=await Promise.all([
+      loadFiltered(DB_S,[{property:'Date',direction:'descending'}]),
+      loadFiltered(DB_T,[{property:'Date',direction:'descending'}]),
+      loadFiltered(DB_N,[{property:'Date',direction:'descending'}]),
+      loadFiltered(DB_B,[{property:'Date',direction:'descending'}]),
+    ]);
+    ST=sr.results||[];TS=tr.results||[];NU=nr.results||[];BL=br.results||[];
     console.log('[PM Debug] Données chargées →',{joueur:J?.id,stats:ST.length,tests:TS.length,nutrition:NU.length,blessures:BL.length,blessuresTotal:br.results?.length||0});
     console.log('[PM Debug] Statut joueur:',gp(J,'Statut','select'),'| BL statuts:',BL.map(b=>gp(b,'Statut','select')));
 
