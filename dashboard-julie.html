@@ -131,9 +131,6 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
         <span class="nav-dot"></span> Alertes actives
       </div>
       <div class="nav-section">Accès</div>
-      <div class="nav-item" onclick="showSection('agents', this)">
-        <span class="nav-dot"></span> Agents
-      </div>
       <div class="nav-item" onclick="showSection('agents2', this)">
         <span class="nav-dot"></span> Agents
       </div>
@@ -190,25 +187,10 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
       </table>
     </div>
 
-    <div class="section" id="section-agents" style="display:none">
-      <div class="section-header">
-        <span class="section-title">Accès agents</span>
-        <button class="section-action" onclick="window.open('https://notion.so/c9eac685693b4e809f22e6a73714d445', '_blank')">Gérer dans Notion ↗</button>
-      </div>
-      <table class="athletes-table">
-        <thead>
-          <tr><th>Agent</th><th>Agence</th><th>Statut accès</th><th>Dernière connexion</th><th>URL Dashboard</th></tr>
-        </thead>
-        <tbody id="agents-tbody">
-          <tr class="loading-row"><td colspan="5"><span class="loading-dots">Chargement</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-
     <div class="section" id="section-agents2" style="display:none">
       <div class="section-header">
         <span class="section-title">Agents — par joueur</span>
-        <button class="section-action" onclick="window.open('https://notion.so/fa08b2c8da764572bd58c8df21f7fb83', '_blank')">Gérer dans Notion ↗</button>
+        <button class="section-action" onclick="window.open('https://notion.so/c9eac685693b4e809f22e6a73714d445', '_blank')">Gérer dans Notion ↗</button>
       </div>
       <div id="agents2-content">
         <p class="loading-dots" style="color:var(--muted);font-size:11px;letter-spacing:0.15em;padding:32px 0">Chargement</p>
@@ -218,7 +200,7 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
     <div class="section" id="section-intervenants" style="display:none">
       <div class="section-header">
         <span class="section-title">Intervenants — par joueur</span>
-        <button class="section-action" onclick="window.open('https://notion.so/fa08b2c8da764572bd58c8df21f7fb83', '_blank')">Gérer dans Notion ↗</button>
+        <button class="section-action" onclick="window.open('https://notion.so/c9eac685693b4e809f22e6a73714d445', '_blank')">Gérer dans Notion ↗</button>
       </div>
       <div id="intervenants-content">
         <p class="loading-dots" style="color:var(--muted);font-size:11px;letter-spacing:0.15em;padding:32px 0">Chargement</p>
@@ -229,8 +211,7 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
 
 <script>
 const PROXY = 'https://notion-proxy.bastierejulie.workers.dev';
-const DB_JOUEURS = '34b69796-db3f-8002-9344-eba7a2c4dbe4'; // ✅ ID API REST correct
-const DB_AGENTS  = 'c9eac685-693b-4e80-9f22-e6a73714d445'; // ✅ ID API REST correct
+const DB_JOUEURS = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
 
 // Auth guard
 const user = JSON.parse(sessionStorage.getItem('pm_user') || 'null');
@@ -244,12 +225,11 @@ document.getElementById('currentDate').textContent = `${days[now.getDay()]} ${no
 
 // Navigation
 function showSection(name, el) {
-  ['athletes','alerts','agents','agents2','intervenants'].forEach(s => {
+  ['athletes','alerts','agents2','intervenants'].forEach(s => {
     document.getElementById(`section-${s}`).style.display = s === name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
   el.classList.add('active');
-  if (name === 'agents' && !agentsLoaded) loadAgents();
   if (name === 'alerts' && !alertsLoaded) loadAlerts();
   if (name === 'agents2' && !agents2Loaded) loadAgents2();
   if (name === 'intervenants' && !intervenantsLoaded) loadIntervenants();
@@ -378,40 +358,8 @@ async function loadAlerts() {
   } catch(e) { console.error(e); }
 }
 
-// Agents
-let agentsLoaded = false;
-async function loadAgents() {
-  if (agentsLoaded) return;
-  try {
-    const rows = await query(DB_AGENTS);
-    agentsLoaded = true;
-    const tbody = document.getElementById('agents-tbody');
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">∅</div><p>Aucun agent enregistré</p></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = rows.map(r => {
-      const p = r.properties;
-      const dashUrl = urlVal(p['URL Dashboard']);
-      return `
-        <tr>
-          <td>
-            <div class="athlete-name">${txt(p['Nom'])}</div>
-            <div class="athlete-club">${emailVal(p['Email'])}</div>
-          </td>
-          <td><span style="font-size:11px">${txt(p['Agence'])}</span></td>
-          <td>${accessBadge(sel(p['Statut accès']))}</td>
-          <td><span style="font-size:11px">${dateStr(p['Dernière connexion'])}</span></td>
-          <td>
-            ${dashUrl ? `<a href="${dashUrl}" target="_blank" style="font-size:9px;letter-spacing:0.2em;color:var(--gold);text-decoration:none;text-transform:uppercase">Voir ↗</a>` : '—'}
-          </td>
-        </tr>`;
-    }).join('');
-  } catch(e) { console.error(e); }
-}
-
-// Accès (Agents + Intervenants) depuis fa08b2c8
-const DB_ACCES = 'fa08b2c8-da76-4572-bd58-c8df21f7fb83';
+// Accès (Agents + Intervenants)
+const DB_ACCES = 'c9eac685-693b-4e80-9f22-e6a73714d445';
 let playerMap = {};
 
 async function getPlayerMap() {
