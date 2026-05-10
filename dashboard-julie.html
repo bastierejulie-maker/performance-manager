@@ -211,7 +211,8 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
 
 <script>
 const PROXY = 'https://notion-proxy.bastierejulie.workers.dev';
-const DB_JOUEURS = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_JOUEURS   = '34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_BLESSURES = '34d69796-db3f-80ec-8721-c4ec84c7bc53';
 
 // Auth guard
 const user = JSON.parse(sessionStorage.getItem('pm_user') || 'null');
@@ -277,19 +278,40 @@ async function query(db, filter = null) {
 
 // Joueurs
 let athletesLoaded = false;
+let allAthletes = [];
+let injuryMap = {}; // pageId → 'Blessé' | 'En rééducation'
+
+function buildInjuryMap(blessures) {
+  injuryMap = {};
+  blessures.forEach(b => {
+    const bs = sel(b.properties['Statut']);
+    if (bs === '🟢 Terminé') return;
+    const mapped = bs.includes('athlétisation') ? 'En rééducation' : 'Blessé';
+    (b.properties['Joueur']?.relation || []).forEach(rel => {
+      if (!injuryMap[rel.id] || injuryMap[rel.id] !== 'Blessé') injuryMap[rel.id] = mapped;
+    });
+  });
+}
+
+function liveStatut(row) {
+  return injuryMap[row.id] || sel(row.properties['Statut']);
+}
+
 async function loadAthletes() {
   if (athletesLoaded) return;
   try {
-    const rows = await query(DB_JOUEURS);
+    const [rows, blessures] = await Promise.all([
+      query(DB_JOUEURS),
+      queryDB(DB_BLESSURES, { property: 'Statut', select: { does_not_equal: '🟢 Terminé' } })
+    ]);
     athletesLoaded = true;
-    const tbody = document.getElementById('athletes-tbody');
+    allAthletes = rows;
+    buildInjuryMap(blessures);
 
-    const total = rows.length;
-    const dispo = rows.filter(r => sel(r.properties['Statut']) === 'Disponible').length;
-    const blesses = rows.filter(r => ['Blessé','En rééducation'].includes(sel(r.properties['Statut']))).length;
-    document.getElementById('kpi-total').textContent = total;
-    document.getElementById('kpi-dispo').textContent = dispo;
-    document.getElementById('kpi-blesses').textContent = blesses;
+    const tbody = document.getElementById('athletes-tbody');
+    document.getElementById('kpi-total').textContent = rows.length;
+    document.getElementById('kpi-dispo').textContent = rows.filter(r => liveStatut(r) === 'Disponible').length;
+    document.getElementById('kpi-blesses').textContent = rows.filter(r => ['Blessé','En rééducation'].includes(liveStatut(r))).length;
 
     if (!rows.length) {
       tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">∅</div><p>Aucun athlète dans la base</p></div></td></tr>`;
@@ -301,7 +323,7 @@ async function loadAthletes() {
       const nom = txt(p['Nom complet']);
       const club = txt(p['Club actuel']);
       const poste = sel(p['Poste']);
-      const statut = sel(p['Statut']);
+      const statut = liveStatut(r);
       const motricite = sel(p['Motricité']);
       const fibres = sel(p['Fibres']);
       return `
@@ -330,19 +352,15 @@ let alertsLoaded = false;
 async function loadAlerts() {
   if (alertsLoaded) return;
   try {
-    const rows = await query(DB_JOUEURS, {
-      or: [
-        { property: 'Statut', select: { equals: 'Blessé' } },
-        { property: 'Statut', select: { equals: 'En rééducation' } }
-      ]
-    });
+    if (!athletesLoaded) await loadAthletes();
     alertsLoaded = true;
     const tbody = document.getElementById('alerts-tbody');
-    if (!rows.length) {
+    const injured = allAthletes.filter(r => injuryMap[r.id]);
+    if (!injured.length) {
       tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">✓</div><p>Aucune alerte active</p></div></td></tr>`;
       return;
     }
-    tbody.innerHTML = rows.map(r => {
+    tbody.innerHTML = injured.map(r => {
       const p = r.properties;
       return `
         <tr onclick="openJoueur('${r.id}')">
@@ -350,7 +368,7 @@ async function loadAlerts() {
             <div class="athlete-name">${txt(p['Nom complet'])}</div>
             <div class="athlete-club">${txt(p['Club actuel'])}</div>
           </td>
-          <td>${statusBadge(sel(p['Statut']))}</td>
+          <td>${statusBadge(injuryMap[r.id])}</td>
           <td><span style="font-size:11px">${txt(p['Club actuel'])}</span></td>
           <td><span style="font-size:11px;color:var(--white-dim)">${txt(p['Notes Andrea'])}</span></td>
         </tr>`;
