@@ -389,7 +389,7 @@ function renderGrouped(rows, pmap, containerId) {
   }
   const groups = {};
   rows.forEach(r => {
-    const relation = r.properties['Joueur']?.relation || [];
+    const relation = r.properties['Joueurs liés']?.relation || [];
     const pids = relation.length ? relation.map(rel => rel.id) : ['__none__'];
     pids.forEach(pid => {
       if (!groups[pid]) groups[pid] = { name: pid === '__none__' ? 'Sans joueur' : (pmap[pid] || 'Joueur inconnu'), rows: [] };
@@ -406,7 +406,7 @@ function renderGrouped(rows, pmap, containerId) {
         const type = sel(p['Type']);
         const email = p['Email']?.email || '';
         const tel = p['Téléphone']?.phone_number || '';
-        const agence = txt(p['Agence']) !== '—' ? txt(p['Agence']) : '';
+        const agence = p['Organisation']?.rich_text?.[0]?.plain_text || '';
         return `<div class="contact-row">
           <div>
             <div class="contact-name">${nom}</div>
