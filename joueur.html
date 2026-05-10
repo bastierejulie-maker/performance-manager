@@ -1854,11 +1854,26 @@ async function saveNewBlessure(){
   }catch(e){showToast('Erreur: '+e.message,false);}
 }
 
+async function syncStatutJoueur(){
+  if(!J?.id)return;
+  let newStatut='Disponible';
+  for(const b of BL){
+    const s=gp(b,'Statut','select')||'';
+    if(s.includes('Terminé'))continue;
+    if(s.includes('Blessé')||s.includes('En cours')){newStatut='Blessé';break;}
+    if(s.includes('athlétisation')||s.includes('ééducation'))newStatut='En rééducation';
+  }
+  try{
+    await fetch(PROXY+'/v1/pages/'+J.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({properties:{'Statut':{select:{name:newStatut}}}})});
+  }catch(e){console.warn('syncStatutJoueur',e);}
+}
+
 async function reloadBL(){
   try{
     const br=await nq(DB_B,[{property:'Date',direction:'descending'}],{property:'Joueur',relation:{contains:J.id}});
     const jid_nd=J.id.replace(/-/g,'');
     BL=(br.results||[]).filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.some(id=>(id||'').replace(/-/g,'')===jid_nd);});
+    await syncStatutJoueur();
     renderOverview();renderSante();renderProfil();renderSNC();
   }catch(e){console.warn('reloadBL',e);}
 }
