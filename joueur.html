@@ -602,6 +602,8 @@ const IS_INTERVENANT=P.get('intervenant')==='1';
 const INTERVENANT_TYPE=P.get('type')||'';
 const INTERVENANT_ATHLETES=(P.get('athletes')||'').split(',').filter(Boolean);
 
+// Si ?role=admin dans l'URL, on le stocke en session (accès depuis dashboard-julie)
+if(P.get('role')==='admin'){sessionStorage.setItem('pm_user',JSON.stringify({role:'admin'}));}
 const _pmUser=JSON.parse(sessionStorage.getItem('pm_user')||'null');
 const USER_ROLE=_pmUser?.role||'joueur';
 const IS_ADMIN=USER_ROLE==='admin';
