@@ -695,15 +695,15 @@ body{font-family:'DM Sans',sans-serif;background:#F4F5F7;color:var(--txt);min-he
 
 <script>
 const PROXY='https://notion-proxy.bastierejulie.workers.dev';
-const DB_J='34b69796-db3f-80b7-9443-000ba8d37b38';
-const DB_S='34d69796-db3f-8026-87b2-000bf74a0578';
-const DB_T='34d69796-db3f-80b3-8d23-000b895ddf8b';
+const DB_J='34b69796-db3f-8002-9344-eba7a2c4dbe4';
+const DB_S='34d69796-db3f-801c-aed5-d8cfa048dbba';
+const DB_T='34d69796-db3f-8047-b6f9-e361371604a9';
 const DB_N='f0596ef8-c95d-4c18-b35a-a647b4325378';
-const DB_B='34d69796-db3f-803f-ad9c-000be74dd00e';
+const DB_B='34d69796-db3f-80ec-8721-c4ec84c7bc53';
 const DB_MET='34d69796-db3f-8051-afd1-d25038dfc12e'; // Suivi métriques nutrition
-const DB_REC='5250fc52-dd50-4175-8228-0981a320e3e6'; // Recettes globales
-const DB_CLI='47d335be-a877-4c5b-a099-1ee7458e84a6'; // Clips analyste
-const DB_SEANCES='212c82e2-78a3-40fa-9ac8-e58daa7b8055'; // Séances intervenants
+const DB_REC='6e70e21a-fcb0-40a1-af75-c93c24fb9627'; // Recettes // Recettes globales
+const DB_CLI='726d3b94-8089-464f-8d62-e4100a59b1c0'; // Clips // Clips analyste
+const DB_SEANCES='94dd2ff8-0ed9-4baf-9181-a7d7daa8dc87'; // Séances // Séances intervenants
 // ── Bases SNC (sous-pages joueur) ──
 const DB_SNC_PROFIL_MOTEUR='34c69796-db3f-807b-952d-000b78562ec3';
 const DB_SNC_SENSORIEL='34c69796-db3f-8094-a604-000b2ff7ab68';
@@ -1564,7 +1564,9 @@ function renderNutrition(){
   // Données corporelles — chercher dans les tests
   const derniersTests=[...TS].sort((a,b)=>(gp(b,'Date','date')||'').localeCompare(gp(a,'Date','date')||''));
   const poidsMesures=derniersTests.map(t=>({date:gp(t,'Date','date'),val:gp(t,'Poids (kg)','number')})).filter(x=>x.val&&x.date);
-  const mgMesures=derniersTests.map(t=>({date:gp(t,'Date','date'),val:gp(t,'% Masse grasse','number')})).filter(x=>x.val&&x.date);
+  // Masse grasse depuis Suivi métriques (%MG du jour) + fallback Tests
+  const derniersMetriques=[...MET].sort((a,b)=>(gp(b,'Date','date')||'').localeCompare(gp(a,'Date','date')||''));
+  const mgMesures=derniersMetriques.map(t=>({date:gp(t,'Date','date'),val:gp(t,'%MG du jour ','number')||gp(t,'%MG du jour','number')})).filter(x=>x.val&&x.date);
   const dernierPoids=poidsMesures[0]?.val||poids||null;
   const derniereMG=mgMesures[0]?.val||null;
 
@@ -1902,13 +1904,22 @@ function renderProfil(){
     html+='<div class="lcard mb2"><div class="lcard-p"><div style="font-size:12px;color:var(--ov-txt);line-height:1.7;font-weight:300;white-space:pre-wrap">'+(notesAndrea||'<span style="font-style:italic;color:var(--ov-dim)">Aucune note</span>')+'</div></div></div>';
   }
 
-  // ── Données perso ──
-  html+='<div class="lst mb">Informations joueur</div>';
-  html+='<div class="g2 mb2" style="gap:8px">';
-  [{l:'Date de naissance',v:ddn?fd(ddn):'—'},{l:'Nationalité',v:nat},{l:'Club actuel',v:club},{l:'Pied fort',v:pied},{l:'Poids',v:poids?poids+' kg':'—'},{l:'Taille',v:taille?taille+' cm':'—'}].forEach(({l,v})=>{
-    html+=`<div class="lcard" style="padding:12px 14px"><div style="font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;font-family:Syne,sans-serif;margin-bottom:4px">${l}</div><div style="font-size:13px;color:var(--ov-txt)">${v}</div></div>`;
-  });
-  html+='</div>';
+  // ── Données mécaniques complémentaires depuis base Profil moteur ──
+  const lastMot2=(window._sncMot||[])[0]||null;
+  if(lastMot2){
+    const mp=lastMot2.properties||{};
+    const oeil=mp['Oeil moteur']?.select?.name||'—';
+    const epaule=mp['Epaule motrice']?.select?.name||'—';
+    const chaineEn=mp['Chaines énergétiques']?.select?.name||'—';
+    const chaineResp=mp['Chaine respiratoire']?.select?.name||'—';
+    const motAssoc=mp['Motricité ']?.select?.name||'—';
+    html+='<div class="lst mb">Données mécaniques</div>';
+    html+='<div class="g2 mb2" style="gap:8px">';
+    [{l:'Œil moteur',v:oeil},{l:'Épaule motrice',v:epaule},{l:'Motricité assoc.',v:motAssoc},{l:'Chaînes énergétiques',v:chaineEn},{l:'Chaîne respiratoire',v:chaineResp},{l:'Pied fort',v:pied}].forEach(({l,v})=>{
+      html+=`<div class="lcard" style="padding:12px 14px"><div style="font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--ov-dim);font-weight:700;font-family:Syne,sans-serif;margin-bottom:4px">${l}</div><div style="font-size:13px;color:var(--ov-txt)">${v}</div></div>`;
+    });
+    html+='</div>';
+  }
 
   // ── Routine échauffement ──
   html+='<div class="lst mb">Routine d\'échauffement</div>';
