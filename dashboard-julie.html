@@ -27,10 +27,8 @@
 }
 html, body { min-height: 100vh; background: var(--black); color: var(--white); font-family: 'DM Mono', monospace; font-weight: 300; }
 
-/* Layout */
 .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
 
-/* Sidebar */
 .sidebar {
   background: var(--surface);
   border-right: 1px solid var(--border);
@@ -42,249 +40,69 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
   height: 100vh;
   overflow-y: auto;
 }
-.sidebar-brand {
-  padding: 0 28px 40px;
-  border-bottom: 1px solid var(--border);
-}
-.sidebar-brand .logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 20px;
-  font-weight: 300;
-  color: var(--white);
-  line-height: 1.2;
-}
+.sidebar-brand { padding: 0 28px 40px; border-bottom: 1px solid var(--border); }
+.sidebar-brand .logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 300; color: var(--white); line-height: 1.2; }
 .sidebar-brand .logo em { color: var(--gold); font-style: italic; }
-.sidebar-brand .version {
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 6px;
-}
+.sidebar-brand .version { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
 .nav { padding: 24px 0; flex: 1; }
-.nav-section {
-  font-size: 9px;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 28px;
-  margin-bottom: 8px;
-  margin-top: 24px;
-}
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 28px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--white-dim);
-  cursor: pointer;
-  transition: all 0.2s;
-  border-left: 2px solid transparent;
-  text-decoration: none;
-}
+.nav-section { font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--muted); padding: 0 28px; margin-bottom: 8px; margin-top: 24px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 28px; font-size: 11px; letter-spacing: 0.08em; color: var(--white-dim); cursor: pointer; transition: all 0.2s; border-left: 2px solid transparent; text-decoration: none; }
 .nav-item:hover { color: var(--white); background: var(--gold-faint); }
 .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-faint); }
 .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; flex-shrink: 0; }
 .nav-item.active .nav-dot { opacity: 1; }
-
-.sidebar-footer {
-  padding: 24px 28px;
-  border-top: 1px solid var(--border);
-}
-.sidebar-footer .user-name {
-  font-size: 11px;
-  color: var(--white);
-  letter-spacing: 0.05em;
-}
-.sidebar-footer .user-role {
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-top: 2px;
-}
-.logout-btn {
-  margin-top: 16px;
-  font-size: 9px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: inherit;
-  transition: color 0.2s;
-}
+.sidebar-footer { padding: 24px 28px; border-top: 1px solid var(--border); }
+.sidebar-footer .user-name { font-size: 11px; color: var(--white); letter-spacing: 0.05em; }
+.sidebar-footer .user-role { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-top: 2px; }
+.logout-btn { margin-top: 16px; font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; transition: color 0.2s; }
 .logout-btn:hover { color: var(--red); }
 
-/* Main */
 .main { overflow-y: auto; }
-.main-header {
-  padding: 48px 48px 32px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.main-header h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 36px;
-  font-weight: 300;
-  letter-spacing: -0.01em;
-}
+.main-header { padding: 48px 48px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; }
+.main-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 300; letter-spacing: -0.01em; }
 .main-header h1 em { color: var(--gold); font-style: italic; }
-.header-date {
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
+.header-date { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
 
-/* KPIs */
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border-bottom: 1px solid var(--border);
-}
-.kpi {
-  background: var(--black);
-  padding: 28px 32px;
-}
-.kpi-value {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 42px;
-  font-weight: 300;
-  line-height: 1;
-  color: var(--white);
-}
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+.kpi { background: var(--black); padding: 28px 32px; }
+.kpi-value { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1; color: var(--white); }
 .kpi-value.gold { color: var(--gold); }
 .kpi-value.green { color: var(--green); }
 .kpi-value.orange { color: var(--orange); }
 .kpi-value.red { color: var(--red); }
-.kpi-label {
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 8px;
-}
+.kpi-label { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
 
-/* Section */
 .section { padding: 40px 48px; }
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-.section-title {
-  font-size: 10px;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-.section-action {
-  font-size: 9px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-  background: none;
-  border: 1px solid var(--border);
-  padding: 6px 14px;
-  color: var(--white-dim);
-  font-family: inherit;
-  transition: all 0.2s;
-}
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.section-title { font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); }
+.section-action { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; background: none; border: 1px solid var(--border); padding: 6px 14px; color: var(--white-dim); font-family: inherit; transition: all 0.2s; }
 .section-action:hover { border-color: var(--gold-dim); color: var(--gold); }
 
-/* Table joueurs */
 .athletes-table { width: 100%; border-collapse: collapse; }
-.athletes-table thead tr {
-  border-bottom: 1px solid var(--border);
-}
-.athletes-table th {
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 16px 12px;
-  text-align: left;
-  font-weight: 400;
-}
+.athletes-table thead tr { border-bottom: 1px solid var(--border); }
+.athletes-table th { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); padding: 0 16px 12px; text-align: left; font-weight: 400; }
 .athletes-table th:first-child { padding-left: 0; }
-.athletes-table tbody tr {
-  border-bottom: 1px solid rgba(201,169,110,0.06);
-  cursor: pointer;
-  transition: background 0.15s;
-}
+.athletes-table tbody tr { border-bottom: 1px solid rgba(201,169,110,0.06); cursor: pointer; transition: background 0.15s; }
 .athletes-table tbody tr:hover { background: var(--gold-faint); }
-.athletes-table td {
-  padding: 16px;
-  font-size: 12px;
-  color: var(--white-dim);
-  vertical-align: middle;
-}
+.athletes-table td { padding: 16px; font-size: 12px; color: var(--white-dim); vertical-align: middle; }
 .athletes-table td:first-child { padding-left: 0; }
-.athlete-name {
-  font-size: 13px;
-  color: var(--white);
-  letter-spacing: 0.02em;
-}
-.athlete-club {
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 2px;
-  letter-spacing: 0.05em;
-}
-.badge {
-  display: inline-block;
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 2px;
-}
+.athlete-name { font-size: 13px; color: var(--white); letter-spacing: 0.02em; }
+.athlete-club { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 0.05em; }
+.badge { display: inline-block; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; }
 .badge-green { background: rgba(76,175,130,0.12); color: var(--green); }
 .badge-orange { background: rgba(232,130,74,0.12); color: var(--orange); }
 .badge-red { background: rgba(217,91,91,0.12); color: var(--red); }
 .badge-yellow { background: rgba(212,168,67,0.12); color: var(--yellow); }
 .badge-muted { background: var(--white-faint); color: var(--muted); }
 
-/* Loading state */
-.loading-row td {
-  color: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  padding: 32px 0 !important;
-}
-.loading-dots::after {
-  content: '···';
-  animation: dots 1.2s infinite;
-}
+.loading-row td { color: var(--muted); font-size: 11px; letter-spacing: 0.15em; padding: 32px 0 !important; }
+.loading-dots::after { content: '···'; animation: dots 1.2s infinite; }
 @keyframes dots { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 80px 40px;
-  color: var(--muted);
-}
-.empty-state .empty-icon {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 48px;
-  color: var(--gold);
-  opacity: 0.3;
-  margin-bottom: 16px;
-}
+.empty-state { text-align: center; padding: 80px 40px; color: var(--muted); }
+.empty-state .empty-icon { font-family: 'Cormorant Garamond', serif; font-size: 48px; color: var(--gold); opacity: 0.3; margin-bottom: 16px; }
 .empty-state p { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
 
-/* Fade-in */
 @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 .section { animation: fadeIn 0.5s ease both; }
 </style>
@@ -292,7 +110,6 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
 <body>
 
 <div class="app">
-  <!-- Sidebar -->
   <nav class="sidebar">
     <div class="sidebar-brand">
       <div class="logo">PM <em>&</em> Co</div>
@@ -300,14 +117,14 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
     </div>
     <div class="nav">
       <div class="nav-section">Tableau de bord</div>
-      <div class="nav-item active" onclick="showSection('athletes')">
+      <div class="nav-item active" onclick="showSection('athletes', this)">
         <span class="nav-dot"></span> Tous les athlètes
       </div>
-      <div class="nav-item" onclick="showSection('alerts')">
+      <div class="nav-item" onclick="showSection('alerts', this)">
         <span class="nav-dot"></span> Alertes actives
       </div>
       <div class="nav-section">Accès</div>
-      <div class="nav-item" onclick="showSection('agents')">
+      <div class="nav-item" onclick="showSection('agents', this)">
         <span class="nav-dot"></span> Agents
       </div>
     </div>
@@ -318,104 +135,59 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
     </div>
   </nav>
 
-  <!-- Main -->
   <main class="main">
     <div class="main-header">
       <h1>Tour de <em>contrôle</em></h1>
       <span class="header-date" id="currentDate"></span>
     </div>
 
-    <!-- KPIs -->
     <div class="kpis">
-      <div class="kpi">
-        <div class="kpi-value gold" id="kpi-total">—</div>
-        <div class="kpi-label">Athlètes suivis</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-value green" id="kpi-dispo">—</div>
-        <div class="kpi-label">Disponibles</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-value orange" id="kpi-blesses">—</div>
-        <div class="kpi-label">Blessés / Réédu</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-value" id="kpi-max" style="color:var(--white-dim)">10</div>
-        <div class="kpi-label">Capacité max</div>
-      </div>
+      <div class="kpi"><div class="kpi-value gold" id="kpi-total">—</div><div class="kpi-label">Athlètes suivis</div></div>
+      <div class="kpi"><div class="kpi-value green" id="kpi-dispo">—</div><div class="kpi-label">Disponibles</div></div>
+      <div class="kpi"><div class="kpi-value orange" id="kpi-blesses">—</div><div class="kpi-label">Blessés / Réédu</div></div>
+      <div class="kpi"><div class="kpi-value" id="kpi-max" style="color:var(--white-dim)">10</div><div class="kpi-label">Capacité max</div></div>
     </div>
 
-    <!-- Section athlètes -->
     <div class="section" id="section-athletes">
       <div class="section-header">
         <span class="section-title">Roster actif</span>
-        <button class="section-action" onclick="window.open('https://notion.so/34b69796db3f80029344eba7a2c4dbe4', '_blank')">
-          Ouvrir dans Notion ↗
-        </button>
+        <button class="section-action" onclick="window.open('https://notion.so/34b69796db3f80029344eba7a2c4dbe4', '_blank')">Ouvrir dans Notion ↗</button>
       </div>
       <table class="athletes-table">
         <thead>
           <tr>
-            <th>Athlète</th>
-            <th>Poste</th>
-            <th>Statut</th>
-            <th>Motricité</th>
-            <th>Fibres</th>
-            <th></th>
+            <th>Athlète</th><th>Poste</th><th>Statut</th><th>Motricité</th><th>Fibres</th><th></th>
           </tr>
         </thead>
         <tbody id="athletes-tbody">
-          <tr class="loading-row">
-            <td colspan="6"><span class="loading-dots">Chargement</span></td>
-          </tr>
+          <tr class="loading-row"><td colspan="6"><span class="loading-dots">Chargement</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Section alertes -->
     <div class="section" id="section-alerts" style="display:none">
-      <div class="section-header">
-        <span class="section-title">Alertes blessés</span>
-      </div>
+      <div class="section-header"><span class="section-title">Alertes blessés</span></div>
       <table class="athletes-table">
         <thead>
-          <tr>
-            <th>Athlète</th>
-            <th>Statut</th>
-            <th>Club</th>
-            <th>Notes Andrea</th>
-          </tr>
+          <tr><th>Athlète</th><th>Statut</th><th>Club</th><th>Notes Andrea</th></tr>
         </thead>
         <tbody id="alerts-tbody">
-          <tr class="loading-row">
-            <td colspan="4"><span class="loading-dots">Chargement</span></td>
-          </tr>
+          <tr class="loading-row"><td colspan="4"><span class="loading-dots">Chargement</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Section agents -->
     <div class="section" id="section-agents" style="display:none">
       <div class="section-header">
         <span class="section-title">Accès agents</span>
-        <button class="section-action" onclick="window.open('https://notion.so/c9eac685693b4e809f22e6a73714d445', '_blank')">
-          Gérer dans Notion ↗
-        </button>
+        <button class="section-action" onclick="window.open('https://notion.so/c9eac685693b4e809f22e6a73714d445', '_blank')">Gérer dans Notion ↗</button>
       </div>
       <table class="athletes-table">
         <thead>
-          <tr>
-            <th>Agent</th>
-            <th>Agence</th>
-            <th>Statut accès</th>
-            <th>Dernière connexion</th>
-            <th>URL Dashboard</th>
-          </tr>
+          <tr><th>Agent</th><th>Agence</th><th>Statut accès</th><th>Dernière connexion</th><th>URL Dashboard</th></tr>
         </thead>
         <tbody id="agents-tbody">
-          <tr class="loading-row">
-            <td colspan="5"><span class="loading-dots">Chargement</span></td>
-          </tr>
+          <tr class="loading-row"><td colspan="5"><span class="loading-dots">Chargement</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -423,29 +195,27 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
 </div>
 
 <script>
-// ── Config ──────────────────────────────────
 const PROXY = 'https://notion-proxy.bastierejulie.workers.dev';
-const DB_JOUEURS = '34b69796-db3f-80b7-9443-000ba8d37b38';
-const DB_AGENTS  = 'fa08b2c8-da76-4572-bd58-c8df21f7fb83';
+const DB_JOUEURS = '34b69796-db3f-8002-9344-eba7a2c4dbe4'; // ✅ ID API REST correct
+const DB_AGENTS  = 'c9eac685-693b-4e80-9f22-e6a73714d445'; // ✅ ID API REST correct
 
-// ── Auth guard ──────────────────────────────
+// Auth guard
 const user = JSON.parse(sessionStorage.getItem('pm_user') || 'null');
 if (!user || user.role !== 'admin') window.location.href = 'login.html';
 
-// ── Date ────────────────────────────────────
+// Date
 const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const now = new Date();
-document.getElementById('currentDate').textContent =
-  `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+document.getElementById('currentDate').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 
-// ── Navigation ──────────────────────────────
-function showSection(name) {
+// Navigation
+function showSection(name, el) {
   ['athletes','alerts','agents'].forEach(s => {
     document.getElementById(`section-${s}`).style.display = s === name ? 'block' : 'none';
   });
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
   if (name === 'agents' && !agentsLoaded) loadAgents();
   if (name === 'alerts' && !alertsLoaded) loadAlerts();
 }
@@ -455,26 +225,26 @@ function logout() {
   window.location.href = 'login.html';
 }
 
-// ── Helpers ─────────────────────────────────
+// Helpers
 function txt(prop) { return prop?.rich_text?.[0]?.plain_text || prop?.title?.[0]?.plain_text || '—'; }
 function sel(prop) { return prop?.select?.name || '—'; }
-function email(prop) { return prop?.email || '—'; }
-function url(prop) { return prop?.url || ''; }
+function emailVal(prop) { return prop?.email || '—'; }
+function urlVal(prop) { return prop?.url || ''; }
 function dateStr(prop) { return prop?.date?.start ? prop.date.start.split('T')[0] : '—'; }
 
 function statusBadge(statut) {
-  const map = {
-    'Disponible': 'green',
-    'Blessé': 'red',
-    'En rééducation': 'orange',
-    'Indisponible': 'muted'
-  };
+  const map = { 'Disponible':'green', 'Blessé':'red', 'En rééducation':'orange', 'Indisponible':'muted' };
   return `<span class="badge badge-${map[statut]||'muted'}">${statut||'—'}</span>`;
 }
-
 function accessBadge(s) {
   const map = { 'Actif':'green','Suspendu':'red','En attente':'yellow' };
   return `<span class="badge badge-${map[s]||'muted'}">${s||'—'}</span>`;
+}
+
+// Ouvrir fiche joueur en mode admin
+function openJoueur(pageId) {
+  // La session admin est déjà active — on l'assure en passant ?role=admin dans l'URL
+  window.location.href = `joueur.html?id=${pageId}&role=admin`;
 }
 
 async function query(db, filter = null) {
@@ -485,12 +255,12 @@ async function query(db, filter = null) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
-  if (!r.ok) throw new Error('API error');
+  if (!r.ok) throw new Error('API error ' + r.status);
   const d = await r.json();
   return d.results || [];
 }
 
-// ── Joueurs ─────────────────────────────────
+// Joueurs
 let athletesLoaded = false;
 async function loadAthletes() {
   if (athletesLoaded) return;
@@ -499,7 +269,6 @@ async function loadAthletes() {
     athletesLoaded = true;
     const tbody = document.getElementById('athletes-tbody');
 
-    // KPIs
     const total = rows.length;
     const dispo = rows.filter(r => sel(r.properties['Statut']) === 'Disponible').length;
     const blesses = rows.filter(r => ['Blessé','En rééducation'].includes(sel(r.properties['Statut']))).length;
@@ -514,7 +283,6 @@ async function loadAthletes() {
 
     tbody.innerHTML = rows.map(r => {
       const p = r.properties;
-      const id = r.id.replace(/-/g,'');
       const nom = txt(p['Nom complet']);
       const club = txt(p['Club actuel']);
       const poste = sel(p['Poste']);
@@ -522,7 +290,7 @@ async function loadAthletes() {
       const motricite = sel(p['Motricité']);
       const fibres = sel(p['Fibres']);
       return `
-        <tr onclick="window.location='joueur.html?id=${r.id}'">
+        <tr onclick="openJoueur('${r.id}')">
           <td>
             <div class="athlete-name">${nom}</div>
             <div class="athlete-club">${club !== '—' ? club : ''}</div>
@@ -538,11 +306,11 @@ async function loadAthletes() {
     }).join('');
   } catch(e) {
     document.getElementById('athletes-tbody').innerHTML =
-      `<tr class="loading-row"><td colspan="6">Erreur de chargement — vérifie le proxy Cloudflare</td></tr>`;
+      `<tr class="loading-row"><td colspan="6">Erreur de chargement — ${e.message}</td></tr>`;
   }
 }
 
-// ── Alertes ─────────────────────────────────
+// Alertes
 let alertsLoaded = false;
 async function loadAlerts() {
   if (alertsLoaded) return;
@@ -562,7 +330,7 @@ async function loadAlerts() {
     tbody.innerHTML = rows.map(r => {
       const p = r.properties;
       return `
-        <tr onclick="window.location='joueur.html?id=${r.id}'">
+        <tr onclick="openJoueur('${r.id}')">
           <td>
             <div class="athlete-name">${txt(p['Nom complet'])}</div>
             <div class="athlete-club">${txt(p['Club actuel'])}</div>
@@ -575,7 +343,7 @@ async function loadAlerts() {
   } catch(e) { console.error(e); }
 }
 
-// ── Agents ───────────────────────────────────
+// Agents
 let agentsLoaded = false;
 async function loadAgents() {
   if (agentsLoaded) return;
@@ -589,12 +357,12 @@ async function loadAgents() {
     }
     tbody.innerHTML = rows.map(r => {
       const p = r.properties;
-      const dashUrl = url(p['URL Dashboard']);
+      const dashUrl = urlVal(p['URL Dashboard']);
       return `
         <tr>
           <td>
             <div class="athlete-name">${txt(p['Nom'])}</div>
-            <div class="athlete-club">${email(p['Email'])}</div>
+            <div class="athlete-club">${emailVal(p['Email'])}</div>
           </td>
           <td><span style="font-size:11px">${txt(p['Agence'])}</span></td>
           <td>${accessBadge(sel(p['Statut accès']))}</td>
@@ -607,7 +375,6 @@ async function loadAgents() {
   } catch(e) { console.error(e); }
 }
 
-// ── Init ─────────────────────────────────────
 loadAthletes();
 </script>
 </body>
