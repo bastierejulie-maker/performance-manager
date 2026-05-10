@@ -105,6 +105,13 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
 
 @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 .section { animation: fadeIn 0.5s ease both; }
+
+.group-block { margin-bottom: 36px; }
+.group-player { font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.contact-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(201,169,110,0.06); }
+.contact-name { font-size: 13px; color: var(--white); letter-spacing: 0.02em; }
+.contact-role { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.contact-info { font-size: 11px; color: var(--white-dim); text-align: right; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -126,6 +133,12 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
       <div class="nav-section">Accès</div>
       <div class="nav-item" onclick="showSection('agents', this)">
         <span class="nav-dot"></span> Agents
+      </div>
+      <div class="nav-item" onclick="showSection('agents2', this)">
+        <span class="nav-dot"></span> Agents
+      </div>
+      <div class="nav-item" onclick="showSection('intervenants', this)">
+        <span class="nav-dot"></span> Intervenants
       </div>
     </div>
     <div class="sidebar-footer">
@@ -191,6 +204,26 @@ html, body { min-height: 100vh; background: var(--black); color: var(--white); f
         </tbody>
       </table>
     </div>
+
+    <div class="section" id="section-agents2" style="display:none">
+      <div class="section-header">
+        <span class="section-title">Agents — par joueur</span>
+        <button class="section-action" onclick="window.open('https://notion.so/fa08b2c8da764572bd58c8df21f7fb83', '_blank')">Gérer dans Notion ↗</button>
+      </div>
+      <div id="agents2-content">
+        <p class="loading-dots" style="color:var(--muted);font-size:11px;letter-spacing:0.15em;padding:32px 0">Chargement</p>
+      </div>
+    </div>
+
+    <div class="section" id="section-intervenants" style="display:none">
+      <div class="section-header">
+        <span class="section-title">Intervenants — par joueur</span>
+        <button class="section-action" onclick="window.open('https://notion.so/fa08b2c8da764572bd58c8df21f7fb83', '_blank')">Gérer dans Notion ↗</button>
+      </div>
+      <div id="intervenants-content">
+        <p class="loading-dots" style="color:var(--muted);font-size:11px;letter-spacing:0.15em;padding:32px 0">Chargement</p>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -211,13 +244,15 @@ document.getElementById('currentDate').textContent = `${days[now.getDay()]} ${no
 
 // Navigation
 function showSection(name, el) {
-  ['athletes','alerts','agents'].forEach(s => {
+  ['athletes','alerts','agents','agents2','intervenants'].forEach(s => {
     document.getElementById(`section-${s}`).style.display = s === name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
   el.classList.add('active');
   if (name === 'agents' && !agentsLoaded) loadAgents();
   if (name === 'alerts' && !alertsLoaded) loadAlerts();
+  if (name === 'agents2' && !agents2Loaded) loadAgents2();
+  if (name === 'intervenants' && !intervenantsLoaded) loadIntervenants();
 }
 
 function logout() {
@@ -373,6 +408,106 @@ async function loadAgents() {
         </tr>`;
     }).join('');
   } catch(e) { console.error(e); }
+}
+
+// Accès (Agents + Intervenants) depuis fa08b2c8
+const DB_ACCES = 'fa08b2c8-da76-4572-bd58-c8df21f7fb83';
+let playerMap = {};
+
+async function getPlayerMap() {
+  if (Object.keys(playerMap).length) return playerMap;
+  const rows = await query(DB_JOUEURS);
+  rows.forEach(r => { playerMap[r.id] = txt(r.properties['Nom complet']); });
+  return playerMap;
+}
+
+async function queryDB(dbId, filter) {
+  const body = {};
+  if (filter) body.filter = filter;
+  const r = await fetch(`${PROXY}/v1/databases/${dbId}/query`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error('API error ' + r.status);
+  return (await r.json()).results || [];
+}
+
+function renderGrouped(rows, pmap, containerId) {
+  const container = document.getElementById(containerId);
+  if (!rows.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">∅</div><p>Aucune entrée</p></div>`;
+    return;
+  }
+  const groups = {};
+  rows.forEach(r => {
+    const relation = r.properties['Joueur']?.relation || [];
+    const pids = relation.length ? relation.map(rel => rel.id) : ['__none__'];
+    pids.forEach(pid => {
+      if (!groups[pid]) groups[pid] = { name: pid === '__none__' ? 'Sans joueur' : (pmap[pid] || 'Joueur inconnu'), rows: [] };
+      groups[pid].rows.push(r);
+    });
+  });
+  const sorted = Object.values(groups).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  container.innerHTML = sorted.map(g => `
+    <div class="group-block">
+      <div class="group-player">${g.name}</div>
+      ${g.rows.map(r => {
+        const p = r.properties;
+        const nom = txt(p['Nom']) !== '—' ? txt(p['Nom']) : txt(p['Nom complet']);
+        const type = sel(p['Type']);
+        const email = p['Email']?.email || '';
+        const tel = p['Téléphone']?.phone_number || '';
+        const agence = txt(p['Agence']) !== '—' ? txt(p['Agence']) : '';
+        return `<div class="contact-row">
+          <div>
+            <div class="contact-name">${nom}</div>
+            <div class="contact-role">${type}${agence ? ' · ' + agence : ''}</div>
+          </div>
+          <div class="contact-info">
+            ${email ? `<div>${email}</div>` : ''}
+            ${tel ? `<div>${tel}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+let agents2Loaded = false;
+async function loadAgents2() {
+  if (agents2Loaded) return;
+  try {
+    const [pmap, rows] = await Promise.all([
+      getPlayerMap(),
+      queryDB(DB_ACCES, { property: 'Type', select: { equals: 'Agent' } })
+    ]);
+    agents2Loaded = true;
+    renderGrouped(rows, pmap, 'agents2-content');
+  } catch(e) {
+    document.getElementById('agents2-content').innerHTML =
+      `<p style="color:var(--muted);font-size:11px;padding:32px 0">Erreur — ${e.message}</p>`;
+  }
+}
+
+let intervenantsLoaded = false;
+async function loadIntervenants() {
+  if (intervenantsLoaded) return;
+  try {
+    const [pmap, rows] = await Promise.all([
+      getPlayerMap(),
+      queryDB(DB_ACCES, {
+        and: [
+          { property: 'Type', select: { does_not_equal: 'Agent' } },
+          { property: 'Type', select: { does_not_equal: 'Joueur' } }
+        ]
+      })
+    ]);
+    intervenantsLoaded = true;
+    renderGrouped(rows, pmap, 'intervenants-content');
+  } catch(e) {
+    document.getElementById('intervenants-content').innerHTML =
+      `<p style="color:var(--muted);font-size:11px;padding:32px 0">Erreur — ${e.message}</p>`;
+  }
 }
 
 loadAthletes();
