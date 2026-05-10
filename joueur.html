@@ -643,9 +643,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 // ════════════════════════════════════════════════
 // REQUÊTES NOTION
 // ════════════════════════════════════════════════
-async function nq(db,sorts=[],timeoutMs=8000){
+async function nq(db,sorts=[],filter=null,timeoutMs=8000){
   const b={page_size:100};
   if(sorts.length)b.sorts=sorts;
+  if(filter)b.filter=filter;
   const ctrl=new AbortController();
   const tid=setTimeout(()=>ctrl.abort(),timeoutMs);
   try{
@@ -707,8 +708,8 @@ function fd(s,short=false){
 // ════════════════════════════════════════════════
 async function loadAll(){
   try{
-    const safeLoad=async(db,sorts=[])=>{
-      try{return await nq(db,sorts);}
+    const safeLoad=async(db,sorts=[],filter=null)=>{
+      try{return await nq(db,sorts,filter);}
       catch(e){console.warn('Échec chargement base',db,e);return {results:[]};}
     };
 
@@ -738,7 +739,7 @@ async function loadAll(){
       safeLoad(DB_S,[{property:'Date',direction:'descending'}]),
       safeLoad(DB_T,[{property:'Date',direction:'descending'}]),
       safeLoad(DB_N,[{property:'Date',direction:'descending'}]),
-      safeLoad(DB_B,[{property:'Date',direction:'descending'}]),
+      safeLoad(DB_B,[{property:'Date',direction:'descending'}],{property:'Joueur',relation:{contains:jid}}),
     ]);
 
     ST=flt(sr.results||[]);
@@ -1855,7 +1856,7 @@ async function saveNewBlessure(){
 
 async function reloadBL(){
   try{
-    const br=await nq(DB_B,[{property:'Date',direction:'descending'}]);
+    const br=await nq(DB_B,[{property:'Date',direction:'descending'}],{property:'Joueur',relation:{contains:J.id}});
     const jid_nd=J.id.replace(/-/g,'');
     BL=(br.results||[]).filter(x=>{const r=gp(x,'Joueur','relation')||[];return r.some(id=>(id||'').replace(/-/g,'')===jid_nd);});
     renderOverview();renderSante();renderProfil();renderSNC();
